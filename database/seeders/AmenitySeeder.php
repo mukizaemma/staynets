@@ -17,7 +17,9 @@ class AmenitySeeder extends Seeder
     public function run(): void
     {
         $amenities = [
+            ['title' => 'One Double Bed', 'icon' => 'fa fa-bed'],
             ['title' => 'Two Double Beds', 'icon' => 'fa fa-bed'],
+            ['title' => 'One Single Bed', 'icon' => 'fa fa-bed'],
             ['title' => 'Two Single Beds', 'icon' => 'fa fa-bed'],
             ['title' => 'Two Double Bedrooms', 'icon' => 'fa fa-bed'],
             ['title' => 'Two Single Bedrooms', 'icon' => 'fa fa-bed'],
