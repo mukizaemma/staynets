@@ -28,7 +28,6 @@ return new class extends Migration
             $table->string('currency')->nullable();
             $table->string('maxPeople')->nullable();
             $table->string('minAge')->nullable();
-            $table->string('image')->nullable();
             $table->unsignedBigInteger('price')->default(0);
             $table->unsignedBigInteger('couplePrice')->default(0);
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
@@ -44,9 +43,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('trips');

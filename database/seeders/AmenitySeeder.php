@@ -11,9 +11,7 @@ use Illuminate\Support\Carbon;
 
 class AmenitySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
     public function run(): void
     {
         $amenities = [
