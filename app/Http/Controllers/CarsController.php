@@ -48,9 +48,13 @@ class CarsController extends Controller
         $blog->image = $fileName;
         $blog->slug = $slug;
         $blog->added_by = $request->user()->id;
-        $blog->save();
+        $saved = $blog->save();
     
-        return redirect()->route('getTrips')->with('success', 'New Facility has been saved successfully');
+       if($saved){
+         return redirect()->route('getTrips')->with('success', 'New Facility has been saved successfully');
+       }
+       else 
+         return redirect()->route('getTrips')->with('error', 'Something went wrong');
     }
 
     
