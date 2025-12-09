@@ -98,7 +98,6 @@ class SlidesController extends Controller
         $data = new Gallery();
         $data ->caption = $request->caption;
 
-        // Uploading image
         if ($request->hasFile('image')) {
             $dir = 'public/images/gallery';
             $path = $request->file('image')->store($dir);

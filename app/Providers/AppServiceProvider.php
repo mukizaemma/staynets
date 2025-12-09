@@ -21,13 +21,11 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+
     public function boot(): void
     {
         View::share('destinations', Category::oldest()->get());
-        iew::share('services', Program::oldest()->get());
+        View::share('services', Program::oldest()->get());
         View::share('setting', Setting::first());
         View::share('about', About::first());
     }
