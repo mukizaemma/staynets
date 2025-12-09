@@ -223,7 +223,7 @@
         <div class="th-menu-area text-center">
             <button class="th-menu-toggle"><i class="fal fa-times"></i></button>
             <div class="mobile-logo">
-                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="Tourm"></a>
+                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="Tourm" width="120px"></a>
             </div>
             <div class="th-mobile-menu">
                 <ul>
@@ -353,7 +353,7 @@
                     <div class="row align-items-center justify-content-between">
                         <div class="col-auto">
                             <div class="header-logo">
-                                <a href="{{ route('home') }}"><img src="assets/img/logo.svg" alt="Tourm"></a>
+                                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="Tourm" width="150px"></a>
                             </div>
                         </div>
                         <div class="col-auto me-xl-auto">
@@ -427,7 +427,8 @@
                         <div class="widget footer-widget">
                             <div class="th-widget-about">
                                 <div class="about-logo">
-                                    <a href="{{route('home')}}"><img src="{{ asset('storage/images') . ($setting->logo2 ?? '') }}" alt="Accoomodation Booking Engine"></a>
+                                    <a href="{{route('home')}}"><img src="{{ asset('storage/images') . ($setting->logo ?? '') }}" 
+                                       height="90px" alt="Accoomodation Booking Engine"></a>
                                 </div>
                                 <p class="about-text">Where Lake Kivu meets warm hospitality</p>
                                 <div class="th-social">
