@@ -23,17 +23,24 @@ class HotelRoom extends Model
 
     protected $casts = [
         'amenities' => 'array',
+        'price_per_night' => 'decimal:2',
+         'amenities' => 'array',
     ];
 
     public function hotel()
     {
-        return $this->belongsTo(Hotel::class);
+        return $this->belongsTo(Hotel::class, 'hotel_id');
+    }
+
+    public function getImagePathAttribute()
+    {
+        return $this->image ? asset('storage/images/rooms/' . $this->image) : asset('assets/img/tour/tour_3_1.jpg');
     }
 
     public function amenities()
     {
        
-        return $this->belongsToMany(Amenity::class, 'amenity_hotel_room', 'hotel_room_id', 'amenity_id');
+        return $this->belongsToMany(Amenity::class, 'amenity_hotel_rooms', 'hotel_room_id', 'amenity_id');
     }
 
     

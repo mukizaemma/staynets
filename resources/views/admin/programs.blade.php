@@ -12,20 +12,7 @@
         <!-- Content Start -->
         <div class="content">
 
-            <div class="row">
-                @if (session()->has('success'))
-                    <div class="arlert alert-success">
-                        <button class="close" type="button" data-dismiss="alert">X</button>
-                        {{ session()->get('success') }}
-                    </div>
-                @endif
-                @if (session()->has('error'))
-                    <div class="arlert alert-danger">
-                        <button class="close" type="button" data-dismiss="alert">X</button>
-                        {{ session()->get('error') }}
-                    </div>
-                @endif
-            </div>
+
             <!-- Navbar Start -->
             @include('admin.includes.navbar')
             <!-- Navbar End -->
@@ -56,7 +43,7 @@
                                 @foreach($programs as $rs)
                                 <tr>
                                     {{-- <td><input class="form-check-input" type="checkbox"></td> --}}
-                                    <td><a href="{{ route('editService',['id'=>$rs->id]) }}">{{ $rs->title }}</a></td>
+                                    <td><a href="{{ route('editService',['id'=>$rs->id]) }}">{{ $rs->title }}</a> <br> {{ $rs->hotels->count() }} Items</td>
                                     <td><img src="{{ asset('storage/images/programs/' .$rs->image) }}" alt="" width="120px"></td>
                                     <td>{!! $rs->description !!}</td>
                                     <td>

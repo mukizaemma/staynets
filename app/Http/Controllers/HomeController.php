@@ -97,51 +97,75 @@ class HomeController extends Controller
     
     }
 
-    public function apartments(Request $request)
-    {
+public function apartments(Request $request)
+{
+    try {
         $q = $request->input('q');
         $orderby = $request->input('orderby');
-        $query = \App\Models\Hotel::query()->where('status','Active')->where('type','apartment');
+
+        // Make sure the model exists and column names used below match your schema
+        $query = \App\Models\Hotel::query()
+            ->where('status', 'Active')
+            ->where('type', 'apartment'); // verify this is exact value in DB
 
         if (!empty($q)) {
-            $query->where(function($qbuilder) use ($q) {
-                $qbuilder->where('name', 'like', "%{$q}%")
-                        ->orWhere('location', 'like', "%{$q}%")
-                        ->orWhere('city', 'like', "%{$q}%");
+            $query->where(function($qb) use ($q) {
+                $qb->where('name', 'like', "%{$q}%")
+                   ->orWhere('location', 'like', "%{$q}%")
+                   ->orWhere('city', 'like', "%{$q}%");
             });
         }
 
-        // ordering
         switch ($orderby) {
             case 'date':
                 $query->orderBy('created_at', 'desc');
                 break;
             case 'price':
-                $query->orderBy('name', 'asc');
+                $query->orderBy('price', 'asc');
                 break;
             case 'price-desc':
-                $query->orderBy('name', 'desc');
+                $query->orderBy('price', 'desc');
                 break;
             case 'rating':
-                $query->orderBy('name', 'asc');
+                $query->orderBy('rating', 'desc');
                 break;
             default:
-                $query->oldest();
+                $query->orderBy('created_at', 'desc');
         }
 
-        $rooms = $query->paginate(12)->appends($request->query());
+        $apartments = $query->paginate(12)->appends($request->query());
 
         if ($request->ajax()) {
-            // render the partial view and return HTML
-            $html = view('frontend.partials.accommodations_results', compact('rooms'))->render();
+            $html = view('frontend.partials.accommodations_results', compact('apartments'))->render();
             return response()->json(['html' => $html]);
         }
 
-        return view('frontend.hotels', [
-            'rooms' => $rooms,
+        if (!view()->exists('frontend.apartments')) {
+            \Log::error('View frontend.apartments not found');
+            abort(500, 'View missing: frontend.apartments');
+        }
+
+        return view('frontend.apartments', [
+            'apartments' => $apartments,
         ]);
-    
+    } catch (\Throwable $e) {
+        \Log::error('Error in apartments controller: '.$e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json(['error' => 'Server error retrieving apartments'], 500);
+        }
+
+        // in non-production you may want to rethrow to see the full stack trace
+        if (config('app.debug')) {
+            throw $e;
+        }
+
+        abort(500, 'Unable to load apartments at this time');
     }
+}
+
 
     public function about(){
         $rooms = HotelRoom::oldest()->get();
@@ -166,9 +190,11 @@ class HomeController extends Controller
     public function service($slug)
     {
         $service = Program::where('slug', $slug)->firstOrFail();
+        $hotels = $service->hotels;
         $trips = Trip::Oldest()->get();                         
         return view('frontend.service', [
 
+            'hotels' => $hotels,
             'trips' => $trips,
             'service' => $service,
         ]);
@@ -229,6 +255,28 @@ public function accommodations(Request $request)
     ]);
 }
 
+public function showAccommodation(Request $request, $slug)
+{
+    $hotel = Hotel::with(['hotelRooms' => function($q) {
+        $q->where('status', 'Available')
+            ->orderBy('price_per_night', 'asc');
+    }])
+    ->where(function($q) use ($slug) {
+        if (is_numeric($slug)) {
+            $q->where('id', $slug);
+        } else {
+            $q->where('slug', $slug);
+        }
+    })
+    ->where('status', 'Active') 
+    ->firstOrFail();
+
+    return view('frontend.accommodation', [
+        'hotel' => $hotel,
+        'rooms' => $hotel->hotelRooms, 
+    ]);
+}
+
 
 public function destinations()
 {
@@ -279,85 +327,111 @@ public function hotelRooms($hotelSlug)
 }
 
 public function roomDetails($hotelSlug, $roomSlug)
-    {
-        $hotel = Hotel::where('slug', $hotelSlug)->firstOrFail();
+{
+    $hotel = Hotel::where('slug', $hotelSlug)->firstOrFail();
 
-        $room = HotelRoom::where('hotel_id', $hotel->id)
-            ->where('slug', $roomSlug)
-            ->firstOrFail();
+    $room = HotelRoom::where('hotel_id', $hotel->id)
+        ->where('slug', $roomSlug)
+        ->firstOrFail();
 
-        $images = [];
+    $images = [];
 
-        if (!empty($room->image)) {
-            $decoded = json_decode($room->image, true);
-            if (is_array($decoded)) {
-                $images = $decoded;
+    if (!empty($room->image)) {
+        $decoded = json_decode($room->image, true);
+        if (is_array($decoded)) {
+            $images = $decoded;
+        } else {
+            if (strpos($room->image, ',') !== false) {
+                $images = array_map('trim', explode(',', $room->image));
+            } elseif (strpos($room->image, '|') !== false) {
+                $images = array_map('trim', explode('|', $room->image));
             } else {
-                if (strpos($room->image, ',') !== false) {
-                    $images = array_map('trim', explode(',', $room->image));
-                } elseif (strpos($room->image, '|') !== false) {
-                    $images = array_map('trim', explode('|', $room->image));
-                } else {
-                    $images = [$room->image];
-                }
+                $images = [$room->image];
             }
         }
-
-        if (empty($images) && !empty($hotel->image)) {
-            $images[] = $hotel->image;
-        }
-
-        if (empty($images)) {
-            $images = [
-                'assets/img/tour/tour_inner_2_1.jpg',
-                'assets/img/tour/tour_inner_2_2.jpg',
-                'assets/img/tour/tour_inner_2_3.jpg'
-            ];
-        }
-
-        $images = array_map(function($img) {
-            if (preg_match('#^(https?:)?//#', $img) || str_starts_with($img, 'assets/')) {
-                return $img;
-            }
-            if (str_starts_with($img, 'storage/') || str_starts_with($img, 'public/')) {
-                return asset($img);
-            }
-            $roomPath = storage_path('app/public/images/rooms/' . $img);
-            $hotelPath = storage_path('app/public/images/hotels/' . $img);
-            if (file_exists($roomPath)) {
-                return asset('storage/images/rooms/' . $img);
-            } elseif (file_exists($hotelPath)) {
-                return asset('storage/images/hotels/' . $img);
-            }
-            return asset('assets/img/tour/tour_inner_2_1.jpg');
-        }, $images);
-
-        $amenities = [];
-        if (!empty($room->amenities)) {
-            $amenities = is_array($room->amenities) ? $room->amenities : (json_decode($room->amenities, true) ?? []);
-        }
-
-        return view('frontend.roomDetails', [
-            'hotel'     => $hotel,
-            'room'      => $room,
-            'images'    => $images,
-            'amenities' => $amenities,
-        ]);
     }
 
-
-    public function room(){
-        $room = HotelRoom::all();
-        $setting = Setting::first();
-        $about = About::first();
-            $trips = Trip::Oldest()->get();
-        return view('frontend.roomDetails',[
-            'room'=>$room,
-            'setting'=>$setting,
-            'about'=>$about,
-            'trips'=>$trips,
-        ]);
+    if (empty($images) && !empty($hotel->image)) {
+        $images[] = $hotel->image;
     }
+
+    if (empty($images)) {
+        $images = [
+            'assets/img/tour/tour_inner_2_1.jpg',
+            'assets/img/tour/tour_inner_2_2.jpg',
+            'assets/img/tour/tour_inner_2_3.jpg'
+        ];
+    }
+
+    $images = array_map(function($img) {
+        $img = trim($img);
+        if (preg_match('#^(https?:)?//#', $img)) {
+            return $img;
+        }
+        if (\Illuminate\Support\Str::startsWith($img, 'assets/')) {
+            return asset($img);
+        }
+        if (\Illuminate\Support\Str::startsWith($img, 'storage/') || \Illuminate\Support\Str::startsWith($img, 'public/')) {
+            return asset($img);
+        }
+        $roomPath = storage_path('app/public/images/rooms/' . $img);
+        $hotelPath = storage_path('app/public/images/hotels/' . $img);
+        if (file_exists($roomPath)) {
+            return asset('storage/images/rooms/' . $img);
+        } elseif (file_exists($hotelPath)) {
+            return asset('storage/images/hotels/' . $img);
+        }
+        return asset('assets/img/tour/tour_inner_2_1.jpg');
+    }, $images);
+
+    $amenities = collect();
+
+    if (!empty($room->amenities)) {
+        if (is_array($room->amenities)) {
+            $raw = $room->amenities;
+        } else {
+            $raw = json_decode($room->amenities, true) ?? [];
+        }
+
+        if (!empty($raw) && array_is_list($raw) && is_numeric($raw[0] ?? null)) {
+            if (class_exists(\App\Models\Amenity::class)) {
+                $amenities = \App\Models\Amenity::whereIn('id', $raw)->get()->map(function($a){ return $a->title ?? (string)$a; });
+            } else {
+                $amenities = collect(array_map(function($id){ return 'Amenity '.$id; }, $raw));
+            }
+        } elseif (!empty($raw) && is_array($raw) && isset($raw[0]) && (is_array($raw[0]) || is_object($raw[0]))) {
+            $amenities = collect($raw)->map(function($a){
+                if (is_array($a)) return (object)$a;
+                return $a;
+            });
+        } elseif (!empty($raw) && is_array($raw)) {
+            $amenities = collect($raw);
+        } else {
+            $amenities = collect();
+        }
+    }
+
+    $relatedRooms = HotelRoom::where('hotel_id', $hotel->id)
+        ->where('id', '!=', $room->id)
+        ->where('status', 'Available')
+        ->orderBy('price_per_night', 'asc')
+        ->take(6)
+        ->get();
+
+    $trips = \App\Models\Trip::oldest()->get();
+
+    return view('frontend.roomDetails', [
+        'hotel' => $hotel,
+        'room' => $room,
+        'images' => collect($images),
+        'amenities' => $amenities,
+        'relatedRooms' => $relatedRooms,
+        'trips' => $trips,
+    ]);
+}
+
+
+
 
     public function facilities(){
         $facilities = Facility::with('images')->oldest()->get();
@@ -400,7 +474,7 @@ public function roomDetails($hotelSlug, $roomSlug)
         ]);
     }
 
-        public function promotion($slug){
+    public function promotion($slug){
         $promotion = Promotion::where('slug', $slug)->firstOrFail();
         $allPromotions = Promotion::where('id','!=',$promotion->id)->get();
 
@@ -465,18 +539,18 @@ public function gallery()
 
 
 
-    public function terms(){
-        $rooms = Room::all();
-        $trips = Trip::all();
-        $setting = Setting::first();
-        $about = About::first();
-        return view('frontend.terms',[
-            'setting'=>$setting,
-            'about'=>$about,
-            'rooms'=>$rooms,
-            'trips'=>$trips,
-        ]);
-    }
+public function terms(){
+    $rooms = Room::all();
+    $trips = Trip::all();
+    $setting = Setting::first();
+    $about = About::first();
+    return view('frontend.terms',[
+        'setting'=>$setting,
+        'about'=>$about,
+        'rooms'=>$rooms,
+        'trips'=>$trips,
+    ]);
+}
 
 public function bookNow(Request $request)
 {
@@ -519,7 +593,7 @@ public function bookNow(Request $request)
         $allTrips = Trip::all();
         $setting = Setting::first();
         $about = About::first();
-        return view('frontend.tour',[
+        return view('frontend.trip',[
             'tour'=>$tour,
             'images'=>$images,
             'tours'=>$tours,

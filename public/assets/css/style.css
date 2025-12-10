@@ -8414,7 +8414,7 @@ ol.wp-block-rss {
 }
 
 .header-layout4 .logo-bg {
-  background-color: var(--title-color);
+  /* background-color: var(--title-color); */
 }
 
 .header-layout4 .menu-right-bg {

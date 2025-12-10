@@ -45,30 +45,30 @@
 <body>
 
         @if (session('success'))
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: '{{ session('success') }}',
-                    confirmButtonColor: '#25D366'
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '{{ session('success') }}',
+                        confirmButtonColor: '#25D366'
+                    });
                 });
-            });
-        </script>
-    @endif
+            </script>
+        @endif
 
-    @if (session('error'))
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops!',
-                    text: '{{ session('error') }}',
-                    confirmButtonColor: '#d33'
+        @if (session('error'))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops!',
+                        text: '{{ session('error') }}',
+                        confirmButtonColor: '#d33'
+                    });
                 });
-            });
-        </script>
-    @endif
+            </script>
+        @endif
 
     <div class="container-xxl position-relative bg-white d-flex p-0">
         <!-- Spinner Start -->

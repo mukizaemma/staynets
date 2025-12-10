@@ -23,4 +23,10 @@ class Program extends Model
         return $this->hasMany(Post::class);
     }
 
+public function hotels()
+{
+    return $this->hasMany(Hotel::class, 'program_id', 'id');
+}
+
+
 }

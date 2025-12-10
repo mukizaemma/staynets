@@ -32,9 +32,23 @@ class Hotel extends Model
         'status',
     ];
 
+    public function hotelRooms()
+    {
+        return $this->hasMany(HotelRoom::class, 'hotel_id');
+    }
+
+    public function getImagePathAttribute()
+    {
+        return $this->image ? asset('storage/images/hotels/' . $this->image) : asset('assets/img/tour/tour_3_1.jpg');
+    }
+
     public function destination()
     {
         return $this->belongsTo(Category::class);
+    }
+    public function service()
+    {
+        return $this->belongsTo(Program::class);
     }
     public function partner()
     {

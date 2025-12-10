@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use App\Models\Trip;
+use App\Models\Category;
+use App\Models\Program;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\Tripimage;
@@ -17,12 +19,15 @@ class TripsController extends Controller
     
         $trips = Trip::latest()->get();
 
-
+        $categories = Category::oldest()->get();
+        $programs   = Program::oldest()->get();
         $setting = Setting::first();
     
         return view('admin.tours.trips', [
             'trips' => $trips,
             'setting' => $setting,
+            'categories' => $categories,
+            'programs' => $programs,
         ]);
     }
     
@@ -55,6 +60,7 @@ class TripsController extends Controller
         $blog->minAge = $request->input('minAge');
         $blog->price = $request->input('price');
         $blog->program_id = $request->input('program_id');
+        $blog->category_id = $request->input('category_id');
         $blog->image = $fileName;
         $blog->slug = $slug;
         $blog->added_by = $request->user()->id;

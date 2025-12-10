@@ -20,7 +20,7 @@ class ServicesController extends Controller
             return substr($text, 0, $limit) . '...';
         }
     
-        $services = Program::latest()
+        $services = Program::with('hotels')->latest()
             ->get()
             ->map(function ($data) {
                 $data->short_body = limitText(strip_tags($data->description), 100);

@@ -46,7 +46,6 @@ class DestinationsController extends Controller
         $destination = new Category();
         $destination->name = $request->input('name');
         $destination->description = $request->input('description');
-        $destination->program_id = $request->input('program_id');
         $destination->slug = $slug;
         $destination->image = $fileName;
         $saved = $destination->save();

@@ -25,43 +25,23 @@ Product Area
             <div class="row">
                 <div class="col-xxl-8 col-lg-7">
                 <div class="row gy-24 gx-24">
-                    @forelse($hotels as $hotel)
+                    @forelse($trips as $hotel)
                         <div class="col-md-6">
                             <div class="tour-box th-ani">
                                 <div class="tour-box_img global-img">
-                                    @if($hotel->image && file_exists(storage_path('app/public/images/hotels/' . $hotel->image)))
-                                        <img src="{{ asset('storage/images/hotels/' . $hotel->image) }}" alt="{{ $hotel->name }}">
+                                    @if($hotel->image && file_exists(storage_path('app/public/images/trips/' . $hotel->image)))
+                                        <img src="{{ asset('storage/images/trips/' . $hotel->image) }}" alt="{{ $hotel->title }}">
                                     @else
                                         {{-- fallback image (keeps style unchanged) --}}
-                                        <img src="{{ asset('assets/img/tour/tour_5_1.jpg') }}" alt="{{ $hotel->name }}">
+                                        <img src="{{ asset('assets/img/tour/tour_5_1.jpg') }}" alt="{{ $hotel->title }}">
                                     @endif
                                 </div>
 
                                 <div class="tour-content">
                                     <h3 class="box-title">
-                                        <a href="{{ route('hotelRooms', $hotel->slug) }}">{{ $hotel->name }}</a>
+                                        <a href="{{ route('hotelRooms', $hotel->slug) }}">{{ $hotel->title }}</a>
                                     </h3>
 
-                                    {{-- Stars --}}
-                                    <div class="tour-rating" aria-hidden="false">
-                                        @php
-                                            // try to convert stored stars to integer (defensive)
-                                            $stars = (int) $hotel->stars;
-                                            $stars = max(0, min(5, $stars)); // clamp 0..5
-                                        @endphp
-
-                                        <div class="star-rating" role="img" aria-label="{{ $stars }} out of 5 stars">
-                                            {{-- visual star icons (keeps look, change icons if you use different fontawesome) --}}
-                                            @for($i = 1; $i <= 5; $i++)
-                                                @if($i <= $stars)
-                                                    <i class="fa-solid fa-star" aria-hidden="true"></i>
-                                                @else
-                                                    <i class="fa-regular fa-star" aria-hidden="true"></i>
-                                                @endif
-                                            @endfor
-                                            <span class="sr-only">{{ $stars }} out of 5</span>
-                                        </div>
-                                    </div>
 
                                     {{-- Location --}}
                                     <p class="mb-2" style="margin:6px 0;">
@@ -72,20 +52,20 @@ Product Area
                                     {{-- View more button --}}
                                     <div class="tour-action">
                                         {{-- you can add other meta like duration or price here if you have them --}}
-                                        <a href="{{ route('hotelRooms', $hotel->slug) }}" class="th-btn style4">View More</a>
+                                        <a href="{{ route('tour', $hotel->slug) }}" class="th-btn style4">View More</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     @empty
                         <div class="col-12">
-                            <p class="text-center">No hotels found for this category yet.</p>
+                            <p class="text-center">No activities found for this destination yet.</p>
                         </div>
                     @endforelse
                 </div>
 
                   {{-- pagination (if $hotels is a paginator) --}}
-                  @if(method_exists($hotels, 'links'))
+                  @if(method_exists($trips, 'links'))
                       <div class="row mt-24">
                           <div class="col-12 d-flex justify-content-center">
                               {{ $hotels->links() }}

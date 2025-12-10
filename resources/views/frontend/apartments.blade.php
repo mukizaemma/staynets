@@ -65,7 +65,7 @@
                         {{-- GRID VIEW --}}
                         <div class="tab-pane fade active show" id="tab-grid" role="tabpanel" aria-labelledby="tab-destination-grid">
                             <div class="row gy-30">
-                                @forelse($rooms as $hotel)
+                                @forelse($apartment as $hotel)
                                     <div class="col-xxl-4 col-xl-6">
                                         <div class="tour-box th-ani">
                                             <div class="tour-box_img global-img">
@@ -122,7 +122,7 @@
                         {{-- LIST VIEW --}}
                         <div class="tab-pane fade" id="tab-list" role="tabpanel" aria-labelledby="tab-destination-list">
                             <div class="row gy-30">
-                                @forelse($rooms as $hotel)
+                                @forelse($apartment as $hotel)
                                     <div class="col-12">
                                         <div class="tour-box style-flex th-ani">
                                             <div class="tour-box_img global-img">
@@ -177,10 +177,10 @@
 
                         {{-- pagination --}}
                         <div class="th-pagination text-center mt-60 mb-0">
-                            @if(method_exists($rooms, 'links'))
+                            @if(method_exists($apartment, 'links'))
                                 <div class="row">
                                     <div class="col-12 d-flex justify-content-center">
-                                        {!! $rooms->appends(request()->query())->links() !!}
+                                        {!! $apartment->appends(request()->query())->links() !!}
                                     </div>
                                 </div>
                             @endif

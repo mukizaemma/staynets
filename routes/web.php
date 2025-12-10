@@ -174,11 +174,34 @@ Route::get('/destinations', [App\Http\Controllers\HomeController::class, 'destin
 Route::get('/destination/{slug}', [App\Http\Controllers\HomeController::class, 'destination'])->name('destination');
 Route::get('/accommodations', [App\Http\Controllers\HomeController::class, 'accommodations'])->name('accommodations');
 Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
+Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
 Route::get('/accommodations/apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
 
 Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
-Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HotelController::class, 'roomDetails'])->name('roomDetails');
+Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
 
+
+
+Route::middleware(['auth'])->group(function () {
+    // Properties listing & creation
+    Route::get('/my-properties', [App\Http\Controllers\UserPropertyController::class, 'index'])->name('myProperties');
+    Route::get('/my-properties/hotels/create', [App\Http\Controllers\UserPropertyController::class, 'myPropertyCreate'])->name('myPropertyCreate');
+    Route::post('/my-properties/hotels', [App\Http\Controllers\UserPropertyController::class, 'storeHotel'])->name('storeHotel');
+
+    // Hotel owner page, edit
+    Route::get('/my-properties/hotels/{hotel}', [App\Http\Controllers\UserPropertyController::class, 'showHotel'])->name('my.properties.hotels.show');
+    Route::get('/my-properties/hotels/{hotel}/edit', [App\Http\Controllers\UserPropertyController::class, 'editHotel'])->name('my.properties.hotels.edit');
+    Route::put('/my-properties/hotels/{hotel}', [App\Http\Controllers\UserPropertyController::class, 'updateHotel'])->name('my.properties.hotels.update');
+
+    // Rooms
+    Route::get('/my-properties/hotels/{hotel}/rooms/create', [App\Http\Controllers\UserPropertyController::class, 'createRoom'])->name('my.properties.rooms.create');
+    Route::post('/my-properties/hotels/{hotel}/rooms', [App\Http\Controllers\UserPropertyController::class, 'storeRoom'])->name('my.properties.rooms.store');
+    Route::get('/my-properties/rooms/{room}/edit', [App\Http\Controllers\UserPropertyController::class, 'editRoom'])->name('my.properties.rooms.edit');
+    Route::put('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'updateRoom'])->name('my.properties.rooms.update');
+});
+
+
+// Route::get('/my-properties', [App\Http\Controllers\HomeController::class, 'myProperties'])->name('myProperties');
 Route::get('/our-rooms/all', [App\Http\Controllers\HomeController::class, 'room'])->name('room');
 Route::get('/events', [App\Http\Controllers\HomeController::class, 'events'])->name('events');
 Route::get('/tours', [App\Http\Controllers\HomeController::class, 'tours'])->name('tours');
@@ -195,7 +218,7 @@ Route::get('/terms-and-conditions', [App\Http\Controllers\HomeController::class,
 
 Route::get('/connect', [App\Http\Controllers\HomeController::class, 'connect'])->name('connect');
 
-Route::get('/logouts', [App\Http\Controllers\HomeController::class, 'logouts'])->name('logouts');
+Route::get('/logout', [App\Http\Controllers\HomeController::class, 'logout'])->name('logout');
 Route::post('/subscribe', [App\Http\Controllers\HomeController::class, 'subscribe'])->name('subscribe');
 
 Route::post('/sendMessage', [App\Http\Controllers\HomeController::class, 'sendMessage'])->name('sendMessage');

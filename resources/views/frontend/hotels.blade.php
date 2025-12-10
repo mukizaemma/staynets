@@ -95,7 +95,7 @@
                                                                 <i class="fa-regular fa-star" aria-hidden="true"></i>
                                                             @endif
                                                         @endfor
-                                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="woocommerce-review-link">({{ $stars }} Rating)</a>
+                                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="woocommerce-review-link">({{ $stars }} Rating)</a>
                                                     </div>
                                                 </div>
 
@@ -105,8 +105,8 @@
                                                 </p>
 
                                                 <div class="tour-action">
-                                                    <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
-                                                    <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
+                                                    <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
+                                                    <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
                                                 </div>
                                             </div>
                                         </div>

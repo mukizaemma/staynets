@@ -106,12 +106,12 @@ Services Area
                                             <img src="{{ asset('storage/images/services/' .$service->image) }}" alt="image" style="height: 250px !important">
                                         </div>
                                         <div class="tour-content">
-                                            <h3 class="box-title"><a href="{{route('tour',['slug'=>$service->slug])}}">{{ $service->title }}</a></h3>
+                                            <h3 class="box-title"><a href="{{route('service',['slug'=>$service->slug])}}">{{ $service->title }}</a></h3>
                                             <div class="tour-rating">
                                                 <p>{{ \Illuminate\Support\Str::limit(strip_tags($service->description), 100) }}</p>
                                             </div>
                                             <div class="tour-action">
-                                                <a href="{{route('tour',['slug'=>$service->slug])}}" class="th-btn style4 th-icon">View More</a>
+                                                <a href="{{route('service',['slug'=>$service->slug])}}" class="th-btn style4 th-icon">View More</a>
                                             </div>
                                         </div>
                                     </div>
@@ -200,29 +200,74 @@ Service Area
                 <div class="swiper th-slider has-shadow slider-drag-wrap" data-slider-options='{"breakpoints":{"0":{"slidesPerView":1},"576":{"slidesPerView":"1"},"768":{"slidesPerView":"2"},"992":{"slidesPerView":"2"},"1200":{"slidesPerView":"3"},"1300":{"slidesPerView":"4"}}}'>
                     <div class="swiper-wrapper">
 
-                        @foreach ($rooms as $room)
-                        <div class="swiper-slide">
-                            <div class="tour-box style4 th-ani gsap-cursor">
-                                <div class="tour-box_img global-img">
-                                    <img src="{{ asset('storage/images/rooms/' . $room->image) }}" alt="image">
-                                </div>
-                                <div class="tour-content">
-                                    <h3 class="box-title"><a href="tour-details.html">{{ $room->room_type }}</a></h3>
-                                    <div class="tour-rating">
-                                        <div class="star-rating" role="img" aria-label="Rated 5.00 out of 5"><span style="width:100%">Rated
-                                                <strong class="rating">5.00</strong> out of 5 based on <span class="rating">4.8</span>(4.8
-                                                Rating)</span></div>
-                                        <a href="tour-details.html" class="woocommerce-review-link">(<span class="count">4.8</span>
-                                            Rating)</a>
+                        @foreach($rooms as $r)
+                            <div class="col-xxl-4 col-xl-6 col-md-6">
+                                <div class="tour-box th-ani">
+                                    <div class="tour-box_img global-img">
+                                        @php
+                                            $imgSrc = asset('assets/img/tour/tour_3_1.jpg');
+                                            if(!empty($r->image)){
+                                                if(preg_match('#^(https?:)?//#', $r->image) || \Illuminate\Support\Str::startsWith($r->image, ['assets/','storage/','public/'])) $imgSrc = $r->image;
+                                                else {
+                                                    $p = storage_path('app/public/images/rooms/' . $r->image);
+                                                    if(file_exists($p)) $imgSrc = asset('storage/images/rooms/' . $r->image);
+                                                }
+                                            }
+                                        @endphp
+
+                                        <img src="{{ $imgSrc }}" alt="{{ $r->room_type }}">
                                     </div>
-                                    <h4 class="tour-box_price"><span class="currency">${{ $room->price_per_night }}</span>/Night</h4>
-                                    <div class="tour-action">
-                                        <span><i class="fa-light fa-clock"></i>7 Days</span>
-                                        <a href="tour-guider-details.html" class="th-btn style4 th-icon">Book Now</a>
+
+                                    <div class="tour-content">
+                                        <h3 class="box-title">
+                                            @php
+                                                $hotelParam = $hotel->slug ?? $hotel->id ?? ($r->hotel->slug ?? $r->hotel->id ?? null);
+                                                $roomParam  = $r->slug  ?? $r->id ?? null;
+                                            @endphp
+
+                                            @if($hotelParam && $roomParam)
+                                                <a href="{{ route('roomDetails', ['hotel' => $hotelParam, 'room' => $roomParam]) }}">{{ $r->room_type }}</a>
+                                            @else
+                                                <a href="#">{{ $r->room_type }}</a>
+                                            @endif
+                                        </h3>
+
+                                        <p class="mb-2" style="margin:6px 0;">
+                                            <strong>Price / night:</strong> {{ number_format($r->price_per_night ?? 0, 2) }}
+                                        </p>
+
+                                        <p class="mb-2" style="margin:6px 0;">
+                                            <i class="fa-solid fa-users"></i> Max: {{ $r->max_occupancy ?? 0 }}
+                                            &nbsp;•&nbsp;
+                                            <i class="fa-solid fa-door-open"></i> Available: {{ $r->available_rooms ?? 0 }}
+                                        </p>
+
+                                        @if(!empty($r->description))
+                                            <p class="small" style="margin:6px 0;">{!! \Illuminate\Support\Str::limit($r->description, 120) !!}</p>
+                                        @endif
+
+                                        @if(!empty($r->amenities) && is_array($r->amenities))
+                                            <div class="room-amenities mt-2">
+                                                @foreach($r->amenities as $amen)
+                                                    <span class="badge rounded-pill bg-light text-dark me-1 mb-1">{{ $amen }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        <div class="tour-action mt-3">
+                                            @if($hotelParam && $roomParam)
+                                                <a href="{{ route('roomDetails', ['hotel' => $hotelParam, 'room' => $roomParam]) }}" class="th-btn style4 th-icon">View</a>
+                                            @elseif($hotelParam)
+                                                <a href="{{ route('hotel', $hotelParam) }}" class="th-btn style4 th-icon">View hotel</a>
+                                            @else
+                                                <button type="button" class="th-btn style4 th-icon" disabled>View</button>
+                                            @endif
+
+                                            <a href="{{ route('connect') }}" class="th-btn style3">Book Now</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
                         @endforeach
 
 
@@ -258,12 +303,12 @@ Service Area
                                             <img src="{{ asset('storage/images/destinations/' .$trip->image) }}" alt="image" style="height: 250px !important">
                                         </div>
                                         <div class="tour-content">
-                                            <h3 class="box-title"><a href="{{route('tour',['slug'=>$trip->slug])}}">{{ $trip->title }}</a></h3>
+                                            <h3 class="box-title"><a href="{{route('destination',['slug'=>$trip->slug])}}">{{ $trip->title }}</a></h3>
                                             <div class="tour-rating">
                                                 <p>{{ \Illuminate\Support\Str::limit(strip_tags($trip->description), 100) }}</p>
                                             </div>
                                             <div class="tour-action">
-                                                <a href="{{route('tour',['slug'=>$trip->slug])}}" class="th-btn style4 th-icon">View More</a>
+                                                <a href="{{route('destination',['slug'=>$trip->slug])}}" class="th-btn style4 th-icon">View More</a>
                                             </div>
                                         </div>
                                     </div>

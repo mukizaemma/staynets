@@ -88,52 +88,8 @@
         </script>
     @endif
 
-    <!--[if lte IE 9]>
-    	<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
-  	<![endif]-->
 
 
-    <!--********************************
-   		Code Start From Here 
-	******************************** -->
-
-    {{-- <div class="cursor-follower"></div> --}}
-
-    <!-- slider drag cursor -->
-    {{-- <div class="slider-drag-cursor"><i class="fas fa-angle-left me-2"></i> DRAG <i class="fas fa-angle-right ms-2"></i>
-    </div> --}}
-
-
-    <!--==============================
-     Preloader
-  ==============================-->
-    {{-- <div id="preloader" class="preloader ">
-        <button class="th-btn preloaderCls">Cancel Preloader </button>
-        <div class="preloader-inner">
-            <img src="{{ asset('storage/images') . $setting->logo }}" alt="">
-        </div>
-
-        <div id="loader" class="th-preloader">
-            <div class="animation-preloader">
-                <div class="txt-loading">
-                    <span preloader-text="T" class="characters">T </span>
-
-                    <span preloader-text="O" class="characters">O </span>
-
-                    <span preloader-text="U" class="characters">U </span>
-
-                    <span preloader-text="R" class="characters">R </span>
-
-                    <span preloader-text="M" class="characters">M </span>
-                </div>
-            </div>
-        </div>
-
-    </div>  --}}
-    
-    <!--==============================
-    Sidemenu
-============================== -->
     <div class="sidemenu-wrapper sidemenu-info ">
         <div class="sidemenu-content">
             <button class="closeButton sideMenuCls"><i class="far fa-times"></i></button>
@@ -216,7 +172,8 @@
             <input type="text" placeholder="What are you looking for?">
             <button type="submit"><i class="fal fa-search"></i></button>
         </form>
-    </div><!--==============================
+    </div>
+    <!--==============================
     Mobile Menu
   ============================== -->
     <div class="th-menu-wrapper onepage-nav">
@@ -227,80 +184,60 @@
             </div>
             <div class="th-mobile-menu">
                 <ul>
-                    <li class="menu-item-has-children mega-menu-wrap">
-                        <a class="active" href="{{ route('home') }}">Home</a>
 
+                    <li><a href="{{ route('home') }}">Home</a></li>
+                
+                    <li class="menu-item-has-children">
+                        <a href="{{ route('services') }}">Services</a>
                         <ul class="sub-menu">
-                            <li><a href="{{ route('home') }}">Home Travel</a></li>
-                            <li><a href="home-tour.html">Home Tour</a></li>
-                            <li><a href="home-agency.html">Home Agency</a></li>
-                            <li><a href="home-yacht.html">Home Yacht</a></li>
-                            <li><a href="home-beach.html">Home Beach</a></li>
-                            <li><a href="home-resort.html">Home Resort</a></li>
-                            <li><a href="home-countryside-hotel.html">Home Countryside Hotel</a></li>
-                            <li><a href="home-forest.html">Home Forest</a></li>
+                            @foreach ($services as $service)
+                                <li><a href="{{route('service',['slug'=>$service->slug])}}">{{ $service->title }}</a></li>
+                            @endforeach
                         </ul>
                     </li>
-                    <li><a href="{{ route('home') }}">About Us</a></li>
-                    <li class="menu-item-has-children">
-                        <a href="#">Destination</a>
-                        <ul class="sub-menu">
-                            <li><a href="destination.html">Destination</a></li>
-                            <li><a href="destination-details.html">Destination Details</a></li>
-                        </ul>
-                    </li>
-                    <li class="menu-item-has-children">
-                        <a href="#">Service</a>
-                        <ul class="sub-menu">
-                            <li><a href="service.html">Services</a></li>
-                            <li><a href="service-details.html">Service Details</a></li>
-                        </ul>
-                    </li>
-                    <li class="menu-item-has-children">
-                        <a href="#">Activities</a>
-                        <ul class="sub-menu">
-                            <li><a href="activities.html">activities</a></li>
-                            <li><a href="activities-details.html">activities Details</a></li>
-                        </ul>
-                    </li>
-                    <li class="menu-item-has-children">
-                        <a href="#">Pages</a>
-                        <ul class="sub-menu">
-                            <li class="menu-item-has-children">
-                                <a href="#">Shop</a>
-                                <ul class="sub-menu">
-                                    <li><a href="shop.html">Shop</a></li>
-                                    <li><a href="shop-details.html">Shop Details</a></li>
-                                    <li><a href="cart.html">Cart Page</a></li>
-                                    <li><a href="checkout.html">Checkout</a></li>
-                                    <li><a href="wishlist.html">Wishlist</a></li>
-                                </ul>
-                            </li>
 
-                            <li><a href="gallery.html">Gallery</a></li>
-                            <li><a href="tour.html">Our Tour</a></li>
-                            <li><a href="tour-details.html">Tour Details</a></li>
-                            <li><a href="resort.html">Resort page</a></li>
-                            <li><a href="resort-details.html">Resort Details</a></li>
-                            <li><a href="tour-details.html">Tour Details</a></li>
-                            <li><a href="tour-guide.html">Tour Guider</a></li>
-                            <li><a href="tour-guider-details.html">Tour Guider Details</a></li>
-                            <li><a href="faq.html">Faq Page</a></li>
-                            <li><a href="price.html">Price Package</a></li>
-                            <li><a href="error.html">Error Page</a></li>
-                        </ul>
-
-                    </li>
-                    <li class="menu-item-has-children">
-                        <a href="#">Blog</a>
-                        <ul class="sub-menu">
-                            <li><a href="blog.html">Blog</a></li>
-                            <li><a href="blog-details.html">Blog Details</a></li>
-                        </ul>
+                    <li>
+                        <a href="{{ route('hotels') }}">Hotels</a>
                     </li>
                     <li>
-                        <a href="{{ route('home') }}">Contact us</a>
+                        <a href="{{ route('apartments') }}">Apartments</a>
                     </li>
+                    <li>
+                        <a href="{{ route('accommodations') }}">Car Rental</a>
+                    </li>
+
+                    <li class="menu-item-has-children">
+                        <a href="{{ route('tours') }}">Trips</a>
+                        <ul class="sub-menu">
+                            @foreach ($destinations as $destination)
+                                <li><a href="{{route('destination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
+                            @endforeach
+                        </ul>
+                    </li>
+                    
+                    <li>
+                        <a href="{{ route('connect') }}">Contact</a>
+                    </li>
+
+                    {{-- Mobile login/register or user dropdown --}}
+                    @if(auth()->check())
+                        <li class="menu-item-has-children">
+                            <a href="javascript:void(0)">{{ auth()->user()->name }}</a>
+                            <ul class="sub-menu">
+                                <li><a href="">Profile</a></li>
+                                <li><a href="{{ route('myProperties') }}">My Properties</a></li>
+                                <li>
+                                    <form id="logout-mobile-form" action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-link p-0">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    @else
+                        <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a></li>
+                    @endif
+
                 </ul>
             </div>
         </div>
@@ -325,20 +262,30 @@
                     </div>
                     <div class="col-auto">
                         <div class="header-right">
-                            {{-- <div class="currency-menu">
-                                <select class="form-select nice-select">
-                                    <option selected="">language </option>
-                                    <option>CNY</option>
-                                    <option>EUR</option>
-                                    <option>AUD</option>
-                                </select>
-                            </div> --}}
                             <div class="header-links">
                                 <ul>
                                     <li class="d-none d-md-inline-block"><a href="{{ route('home') }}">FAQ</a></li>
                                     <li class="d-none d-md-inline-block"><a href="{{ route('home') }}">Support</a></li>
-                                    <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a>
-                                    </li>
+
+                                    {{-- Desktop: show user name + dropdown when logged in, otherwise sign-in link --}}
+                                    @if(auth()->check())
+                                        <li class="menu-item-has-children">
+                                            <a href="javascript:void(0)">{{ auth()->user()->name }} <i class="far fa-caret-down"></i></a>
+                                            <ul class="sub-menu">
+                                                <li><a href="{">Profile</a></li>
+                                                <li><a href="{{ route('myProperties') }}">My Properties</a></li>
+                                                <li>
+                                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-link p-0">Logout</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @else
+                                        <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a></li>
+                                    @endif
+
                                 </ul>
                             </div>
                         </div>
@@ -399,13 +346,12 @@
                         </div>
                         <div class="col-auto d-none d-xl-block">
                             <div class="header-button">
-                                <a href="{{ route('home') }}" class="th-btn style3 th-icon">List Your Property</a>
+                                <a href="{{ route('myProperties') }}" class="th-btn style3 th-icon">List Your Property</a>
 
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="logo-bg" data-mask-src="assets/img/logo_bg_mask.png"></div>
             </div>
         </div>
     </header>
@@ -428,7 +374,7 @@
                             <div class="th-widget-about">
                                 <div class="about-logo">
                                     <a href="{{route('home')}}"><img src="{{ asset('storage/images') . ($setting->logo ?? '') }}" 
-                                       height="90px" alt="Accoomodation Booking Engine"></a>
+                                       width="120px" alt="Accoomodation Booking Engine" ></a>
                                 </div>
                                 <p class="about-text">Where Lake Kivu meets warm hospitality</p>
                                 <div class="th-social">
@@ -490,37 +436,6 @@
                             </div>
                         </div>
                     </div>
-                    {{-- <div class="col-md-6 col-xl-auto">
-                        <div class="widget footer-widget">
-                            <h3 class="widget_title">Instagram Post</h3>
-                            <div class="sidebar-gallery">
-                                <div class="gallery-thumb">
-                                    <img src="assets/img/widget/gallery_1_1.jpg" alt="Gallery Image">
-                                    <a target="_blank" href="https://www.instagram.com/" class="gallery-btn"><i class="fab fa-instagram"></i></a>
-                                </div>
-                                <div class="gallery-thumb">
-                                    <img src="assets/img/widget/gallery_1_2.jpg" alt="Gallery Image">
-                                    <a target="_blank" href="https://www.instagram.com/" class="gallery-btn"><i class="fab fa-instagram"></i></a>
-                                </div>
-                                <div class="gallery-thumb">
-                                    <img src="assets/img/widget/gallery_1_3.jpg" alt="Gallery Image">
-                                    <a target="_blank" href="https://www.instagram.com/" class="gallery-btn"><i class="fab fa-instagram"></i></a>
-                                </div>
-                                <div class="gallery-thumb">
-                                    <img src="assets/img/widget/gallery_1_4.jpg" alt="Gallery Image">
-                                    <a target="_blank" href="https://www.instagram.com/" class="gallery-btn"><i class="fab fa-instagram"></i></a>
-                                </div>
-                                <div class="gallery-thumb">
-                                    <img src="assets/img/widget/gallery_1_5.jpg" alt="Gallery Image">
-                                    <a target="_blank" href="https://www.instagram.com/" class="gallery-btn"><i class="fab fa-instagram"></i></a>
-                                </div>
-                                <div class="gallery-thumb">
-                                    <img src="assets/img/widget/gallery_1_6.jpg" alt="Gallery Image">
-                                    <a target="_blank" href="https://www.instagram.com/" class="gallery-btn"><i class="fab fa-instagram"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
                 </div>
             </div>
         </div>
@@ -572,63 +487,15 @@ modal Area
             <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
                 <h3 class="box-title mb-30">Sign in to your account</h3>
                 <div class="th-login-form">
-                    <form action="mail.php" method="POST" class="login-form ajax-contact">
-                        <div class="row">
-                            <div class="form-group col-12">
-                                <label>Username or email</label>
-                                <input type="text" class="form-control" name="email" id="email" required="required">
-                            </div>
-                            <div class="form-group col-12">
-                                <label>Password</label>
-                                <input type="password" class="form-control" name="pasword" id="pasword" required="required">
-                            </div>
 
-                            <div class="form-btn mb-20 col-12">
-                                <button class="th-btn btn-fw th-radius2 ">Send Message</button>
-                            </div>
-                        </div>
-                        <div id="forgot_url">
-                            <a href="my-account.html">Forgot password?</a>
-                        </div>
-                        <p class="form-messages mb-0 mt-3"></p>
-                    </form>
+                    @include('frontend.includes.login')
+
                 </div>
             </div>
             <div class="tab-pane fade active show" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <h3 class="th-form-title mb-30">Sign in to your account</h3>
-                <form action="mail.php" method="POST" class="login-form ajax-contact">
-                    <div class="row">
-                        <div class="form-group col-12">
-                            <label>Username*</label>
-                            <input type="text" class="form-control" name="usename" id="usename" required="required">
-                        </div>
-                        <div class="form-group col-12">
-                            <label>First name*</label>
-                            <input type="text" class="form-control" name="firstname" id="firstname" required="required">
-                        </div>
-                        <div class="form-group col-12">
-                            <label>Last name*</label>
-                            <input type="text" class="form-control" name="lastname" id="lastname" required="required">
-                        </div>
-                        <div class="form-group col-12">
-                            <label for="new_email">Your email*</label>
-                            <input type="text" class="form-control" name="new_email" id="new_email" required="required">
-                        </div>
-                        <div class="form-group col-12">
-                            <label for="new_email_confirm">Confirm email*</label>
-                            <input type="text" class="form-control" name="new_email_confirm" id="new_email_confirm" required="required">
-                        </div>
-                        <div class="statement">
-                            <span class="register-notes">A password will be emailed to you.</span>
-                        </div>
 
-                        <div class="form-btn mt-20 col-12">
-                            <button class="th-btn btn-fw th-radius2 ">Sign up</button>
-                        </div>
-                    </div>
-                    <p class="form-messages mb-0 mt-3"></p>
-                </form>
-            </div>
+            </div>    @include('frontend.includes.register')
         </div>
     </div>
 
@@ -677,4 +544,3 @@ modal Area
 </body>
 
 </html>
-
