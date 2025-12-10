@@ -218,7 +218,7 @@ Route::get('/terms-and-conditions', [App\Http\Controllers\HomeController::class,
 
 Route::get('/connect', [App\Http\Controllers\HomeController::class, 'connect'])->name('connect');
 
-Route::get('/logout', [App\Http\Controllers\HomeController::class, 'logout'])->name('logout');
+Route::get('/logouts', [App\Http\Controllers\HomeController::class, 'logouts'])->name('logouts');
 Route::post('/subscribe', [App\Http\Controllers\HomeController::class, 'subscribe'])->name('subscribe');
 
 Route::post('/sendMessage', [App\Http\Controllers\HomeController::class, 'sendMessage'])->name('sendMessage');
