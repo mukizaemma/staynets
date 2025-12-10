@@ -186,10 +186,8 @@
 
                             </div>
 
-                            <!-- Partner Type -->
                            <div class="row mb-3">
 
-                            <!-- Partner Type -->
                             <div class="col-lg-4 col-sm-12">
                                 <label>Partner Type</label>
                                 <select class="form-control" name="type" required>
