@@ -123,7 +123,7 @@ public function update(Request $request, $id)
             $room->image = basename($path);
         }
 
-        // Update fields directly
+
         $room->hotel_id = $request->hotel_id;
         $room->room_type = $request->room_type;
         $room->price_per_night = $request->price_per_night;
@@ -132,7 +132,7 @@ public function update(Request $request, $id)
         $room->available_rooms = $request->available_rooms;
         $room->description = $request->description;
 
-        // Handle amenities as JSON
+ 
         $room->amenities = json_encode($request->amenities ?? []);
 
         // Slug only updates if room_type changed
