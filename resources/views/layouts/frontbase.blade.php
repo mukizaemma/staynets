@@ -322,7 +322,7 @@
                                         <a href="{{ route('hotels') }}">Hotels</a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('apartments') }}">Apartments</a>
+                                        <a href="{{ route('accommodations') }}">Apartments</a>
                                     </li>
                                     <li>
                                         <a href="{{ route('accommodations') }}">Car Rental</a>
