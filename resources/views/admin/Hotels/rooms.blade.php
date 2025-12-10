@@ -4,7 +4,6 @@
 @section('content')
 
 
-        <!-- Sidebar Start -->
 @include('admin.includes.sidebar')
         <!-- Sidebar End -->
 
