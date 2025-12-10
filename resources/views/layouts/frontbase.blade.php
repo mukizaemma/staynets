@@ -358,7 +358,7 @@
 
 
     <div class="container-fluid">
-        {{-- @show --}}
+
         @yield('content')
     </div>
     
@@ -424,7 +424,6 @@
                                     </div>
                                     <div class="details">
                                         <p><a href="mailto:{{ $setting->email ?? '' }}" class="info-box_link">{{ $setting->email ?? '' }}</a></p>
-                                        {{-- <p><a href="mailto:support24@Booking Site.com" class="info-box_link">support24@Booking Site.com</a></p> --}}
                                     </div>
                                 </div>
                                 <div class="info-box_text">
