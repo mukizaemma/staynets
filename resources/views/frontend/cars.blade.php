@@ -62,58 +62,126 @@
                 <div id="accommodations-results">
                     <div class="tab-content" id="nav-tabContent">
 
-
-                        {{-- LIST VIEW --}}
-                        <div class="tab-pane fade" id="tab-list" role="tabpanel" aria-labelledby="tab-destination-list">
+                        {{-- GRID VIEW --}}
+                        <div class="tab-pane fade active show" id="tab-grid" role="tabpanel" aria-labelledby="tab-destination-grid">
                             <div class="row gy-30">
-                                @forelse($apartments as $hotel)
-                                    <div class="col-12">
-                                        <div class="tour-box style-flex th-ani">
-                                            <div class="tour-box_img global-img">
-                                                @if($hotel->image && file_exists(storage_path('app/public/images/hotels/' . $hotel->image)))
-                                                    <img src="{{ asset('storage/images/hotels/' . $hotel->image) }}" alt="{{ $hotel->name }}">
-                                                @else
-                                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
-                                                @endif
-                                            </div>
+                                @forelse($cars as $car)
+                                    <div class="col-xxl-4 col-xl-6">
+                                        <div class="tour-box th-ani">
+                                        <div class="tour-box_img global-img"
+                                            style="height:250px; overflow:hidden;">
+                                            @if($car->images && file_exists(storage_path('app/public/images/cars/' . $car->image)))
+                                                <img src="{{ asset('storage/images/cars/' . $car->image) }}"
+                                                    alt="{{ $car->name }}"
+                                                    style="width:100%; height:100%; object-fit:cover;">
+                                            @else
+                                                <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}"
+                                                    alt="{{ $car->name }}"
+                                                    style="width:100%; height:100%; object-fit:cover;">
+                                            @endif
+                                        </div>
+
 
                                             <div class="tour-content">
                                                 <h3 class="box-title">
-                                                    <a href="{{ route('accommodations', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
+                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
                                                 </h3>
 
-                                                <div class="tour-rating">
-                                                    @php
-                                                        $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
-                                                        $stars = max(0, min(5, $stars));
-                                                    @endphp
-                                                    <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
-                                                        @for($i = 1; $i <= 5; $i++)
-                                                            @if($i <= $stars)
-                                                                <i class="fa-solid fa-star" aria-hidden="true"></i>
-                                                            @else
-                                                                <i class="fa-regular fa-star" aria-hidden="true"></i>
-                                                            @endif
-                                                        @endfor
-                                                        <a href="{{ route('accommodations', $hotel->slug ?? $hotel->id) }}" class="woocommerce-review-link">({{ $stars }} Rating)</a>
-                                                    </div>
-                                                </div>
-
-                                                <p class="mb-2" style="margin:6px 0;">
-                                                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                                    {{ $hotel->location ?? $hotel->city ?? 'Location not specified' }}
-                                                </p>
+                                                <ul class="list-unstyled mb-3 small text-muted row">
+                                                    <li class="col-6 mb-1"><i class="fa fa-car me-1"></i> {{ $car->model }}</li>
+                                                    <li class="col-6 mb-1"><i class="fa fa-gas-pump me-1"></i> {{ $car->fuel_type }}</li>
+                                                    <li class="col-6 mb-1"><i class="fa fa-cogs me-1"></i> {{ $car->transmission }}</li>
+                                                    <li class="col-6 mb-1"><i class="fa fa-users me-1"></i> {{ $car->seats }} seats</li>
+                                                </ul>
 
                                                 <div class="tour-action">
-                                                    <a href="{{ route('accommodations', $hotel->slug ?? $hotel->id) }}" class="th-btn style4">View Rooms</a>
-                                                    <a href="{{ route('accommodations', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
+                                                    <div class="mt-auto">
+                                                        @if($car->price_per_day !== null)
+                                                            <p class="fw-bold mb-2">
+                                                                {{ number_format($car->price_per_day) }} RWF
+                                                                <span class="text-muted fw-normal">/ day</span>
+                                                            </p>
+                                                        @elseif($car->price_per_day || $car->price_per_month)
+                                                            {{-- FOR RENT --}}
+                                                            <p class="fw-bold mb-2">
+                                                                {{ number_format($car->price_per_day ?? $car->price_per_month) }} RWF
+                                                                <span class="fw-normal text-muted">
+                                                                    / {{ $car->price_per_day ? 'day' : 'month' }}
+                                                                </span>
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 @empty
                                     <div class="col-12">
-                                        <p class="text-center">No hotels found.</p>
+                                        <p class="text-center">No Cars found.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        {{-- LIST VIEW --}}
+                        <div class="tab-pane fade" id="tab-list" role="tabpanel" aria-labelledby="tab-destination-list">
+                            <div class="row gy-30">
+                                @forelse($cars as $car)
+                                    <div class="col-12">
+                                        <div class="tour-box style-flex th-ani">
+                                            <div class="tour-box_img global-img">
+                                                @if($car->images && file_exists(storage_path('app/public/images/cars/' . $car->image)))
+                                                    <img src="{{ asset('storage/images/cars/' . $car->image) }}" alt="{{ $car->name }}">
+                                                @else
+                                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $car->name }}">
+                                                @endif
+                                            </div>
+
+                                            <div class="tour-content">
+                                                <h3 class="box-title">
+                                                    <a href="{{ route('accommodations', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
+                                                </h3>
+
+                                            <div class="tour-content">
+                                                <h3 class="box-title">
+                                                    <a href="{{ route('hotelRooms', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
+                                                </h3>
+
+                                                <ul class="list-unstyled mb-3 small text-muted row">
+                                                    <li class="col-6 mb-1"><i class="fa fa-car me-1"></i> {{ $car->model }}</li>
+                                                    <li class="col-6 mb-1"><i class="fa fa-gas-pump me-1"></i> {{ $car->fuel_type }}</li>
+                                                    <li class="col-6 mb-1"><i class="fa fa-cogs me-1"></i> {{ $car->transmission }}</li>
+                                                    <li class="col-6 mb-1"><i class="fa fa-users me-1"></i> {{ $car->seats }} seats</li>
+                                                </ul>
+
+                                                <div class="tour-action">
+                                                    <div class="mt-auto">
+                                                        @if($car->price_per_day !== null)
+                                                            <p class="fw-bold mb-2">
+                                                                {{ number_format($car->price_per_day) }} RWF
+                                                                <span class="text-muted fw-normal">/ day</span>
+                                                            </p>
+                                                        @elseif($car->price_per_day || $car->price_per_month)
+                                                            {{-- FOR RENT --}}
+                                                            <p class="fw-bold mb-2">
+                                                                {{ number_format($car->price_per_day ?? $car->price_per_month) }} RWF
+                                                                <span class="fw-normal text-muted">
+                                                                    / {{ $car->price_per_day ? 'day' : 'month' }}
+                                                                </span>
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <a href="{{ route('hotel', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
+                                                </div>
+                                            </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12">
+                                        <p class="text-center">No Cars found.</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -121,10 +189,10 @@
 
                         {{-- pagination --}}
                         <div class="th-pagination text-center mt-60 mb-0">
-                            @if(method_exists($apartments, 'links'))
+                            @if(method_exists($cars, 'links'))
                                 <div class="row">
                                     <div class="col-12 d-flex justify-content-center">
-                                        {!! $apartments->appends(request()->query())->links() !!}
+                                        {!! $cars->appends(request()->query())->links() !!}
                                     </div>
                                 </div>
                             @endif

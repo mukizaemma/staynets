@@ -28,54 +28,58 @@ class CarsController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+
         $fileName = '';
-        if($request->hasFile('image')){
-            $file = $request->file('image');
-            $path = $file->store('public/images/cars');
-            $fileName = basename($path);
+
+        if ($request->hasFile('image')) {
+            foreach ($request->file('image') as $file) {
+                $path = $file->store('public/images/cars');
+                $fileName = basename($path);
+                break; 
+            }
         }
     
-        $slug = Str::of($request->input('title'))->slug();
+        $slug = Str::of($request->input('name'))->slug();
     
         $blog = new Car();
         $blog->name = $request->input('name');
-        $blog->model = $request->input('model')->nullable();
-        $blog->fuel_type = $request->input('fuel_type')->nullable();
-        $blog->seats = $request->input('seats')->nullable();
-        $blog->transmission = $request->input('transmission')->nullable();
-        $blog->price_per_day = $request->input('price_per_day')->nullable();
+        $blog->model = $request->input('model');
+        $blog->fuel_type = $request->input('fuel_type');
+        $blog->seats = $request->input('seats');
+        $blog->transmission = $request->input('transmission');
+        $blog->price_per_day = $request->input('price_per_day');
         $blog->program_id = $request->input('program_id');
-        $blog->image = $fileName;
+        $blog->images = $fileName;
         $blog->slug = $slug;
         $blog->added_by = $request->user()->id;
         $saved = $blog->save();
     
        if($saved){
-         return redirect()->route('getTrips')->with('success', 'New Facility has been saved successfully');
+         return redirect()->route('getCars')->with('success', 'New Car has been saved successfully');
        }
        else 
-         return redirect()->route('getTrips')->with('error', 'Something went wrong');
+         return redirect()->route('getCars')->with('error', 'Something went wrong');
     }
 
     
     public function edit($id)
     {
-        $trip = Trip::find($id);
-        $images = $trip->images ?? collect();
+        $car = Car::find($id);
+        $images = collect($car->images ?? []);
         $totalImages = $images->count();
 
-        return view('admin.tours.tripUpdate', [
-            'trip'=>$trip,
+        return view('admin.cars.carUpdate', [
+            'car'=>$car,
             'images'=>$images,
             'totalImages'=>$totalImages,
         ]);
     }
     public function view($id)
     {
-        $trip = Trip::find($id);
+        $car = Trip::find($id);
         $program= Trip::all();
         return view('admin.posts.blogView', [
-            'service'=>$trip,
+            'service'=>$car,
             'program'=>$program,
         ]);
     }
@@ -83,37 +87,36 @@ class CarsController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $trip = Trip::findOrFail($id);
+            $car = Car::findOrFail($id);
     
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $path = $file->store('public/images/trips');
-                Storage::delete('public/images/trips/' . $trip->image);
-                $trip->image = basename($path);
+                $path = $file->store('public/images/cars');
+                Storage::delete('public/images/cars/' . $car->image);
+                $car->image = basename($path);
             }
     
             $fields = [
-                'title', 'description', 'status','itinerary','expectations','currency','maxPeople',
-                'recommendations','inclusions','exclusions','location','duration','languages',
-                'minAge','price','couplePrice',
+                'name', 'description', 'status','model','fuel_type','seats','transmission',
+                'price_per_day','price_per_month','price_to_buy','images','added_by','program_id',
                 ];
             foreach ($fields as $field) {
-                if ($request->has($field) && $request->input($field) !== $trip->$field) {
-                    $trip->$field = $request->input($field);
+                if ($request->has($field) && $request->input($field) !== $car->$field) {
+                    $car->$field = $request->input($field);
                 }
             }
     
-            if ($trip->isDirty('title')) {
-                $slug = Str::of($trip->title)->slug();
-                if (Trip::where('slug', $slug)->where('id', '!=', $trip->id)->exists()) {
+            if ($car->isDirty('name')) {
+                $slug = Str::of($car->name)->slug();
+                if (Trip::where('slug', $slug)->where('id', '!=', $car->id)->exists()) {
                     $slug .= '-' . uniqid();
                 }
-                $trip->slug = $slug;
+                $car->slug = $slug;
             }
     
-            $trip->save();
+            $car->save();
     
-            return redirect()->route('getTrips')->with('success', 'Trip has been updated successfully');
+            return redirect()->route('getCars')->with('success', 'Trip has been updated successfully');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Something went wrong');
         }
@@ -123,14 +126,14 @@ class CarsController extends Controller
 
     public function destroy($id)
     {
-        $trip = Trip::find($id); 
-        if (!$trip) {
+        $car = Car::find($id); 
+        if (!$car) {
             return back()->with('error', 'Content not found');
         }
-        if ($trip->image) {
-            Storage::delete('public/images/trips/' . $trip->image);
+        if ($car->image) {
+            Storage::delete('public/images/cars/' . $car->image);
         }
-        $trip->delete($id);
+        $car->delete($id);
         return back()
             ->with('success', 'Story deleted successfully');
     }

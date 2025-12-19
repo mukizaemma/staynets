@@ -71,7 +71,7 @@
                                         <a href="{{ route('editHotel', $rs->id) }}" class="fw-bold text-primary">
                                             {{ $rs->name }}
                                         </a>
-                                        <div class="small text-muted">{{ $rs->location }}</div>
+                                        <div class="small text-muted">{{ $rs->type }} ->{{ $rs->location }}</div>
                                     </td>
 
                                     <td>{{ $rs->phone ?? '—' }}</td>
@@ -126,7 +126,6 @@
         </div>
         <!-- Content End -->
 
-
         <!-- The Modal -->
         <div class="modal fade" id="slideImage">
             <div class="modal-dialog modal-lg">
@@ -169,20 +168,10 @@
 
                             <!-- Name & Website -->
                             <div class="row mb-3">
-                                <div class="col-lg-8 col-sm-12">
-                                    <label>Hotel Name</label>
+                                <div class="col-12">
+                                    <label>Property Name</label>
                                     <input type="text" class="form-control" name="name" placeholder="Business name" required>
                                 </div>
-                            <div class="col-lg-4 col-sm-12">
-                                <label>Location</label>
-                                <select class="form-control" name="category_id" required>
-                                    <option value="" disabled selected>Select Type</option>
-                                    @foreach ($destinations as $destination)
-                                        <option value="{{ $destination->id }}">{{ $destination->name }}</option>
-                                    @endforeach
-
-                                </select>
-                            </div>
 
                             </div>
 
@@ -215,7 +204,30 @@
                                 </select>
                             </div>
 
-                            <!-- Location - All Districts -->
+                        
+
+                        </div>
+
+
+                            <!-- Email & Phone -->
+                            <div class="row mb-3">
+                                <div class="col-lg-4 col-sm-12">
+                                    <label>Email</label>
+                                    <input type="email" class="form-control" name="email" placeholder="example@email.com">
+                                </div>
+
+                                <div class="col-lg-4 col-sm-12">
+                                    <label>Phone</label>
+                                    <input type="text" class="form-control" name="phone" placeholder="+250 7XX XXX XXX">
+                                </div>
+                                <div class="col-lg-4 col-sm-12">
+                                    <label>Hotel Website URL</label>
+                                    <input type="text" class="form-control" name="website" placeholder="Eg: https://www.example.com">
+                                </div>
+                            </div>
+
+                            <!-- Address & City -->
+                            <div class="row mb-3">
                             <div class="col-lg-4 col-sm-12">
                                 <label>Location (District)</label>
                                 <select class="form-control" name="location" required>
@@ -273,43 +285,21 @@
                                 </select>
                             </div>
 
-                        </div>
-
-
-                            <!-- Email & Phone -->
-                            <div class="row mb-3">
                                 <div class="col-lg-4 col-sm-12">
-                                    <label>Email</label>
-                                    <input type="email" class="form-control" name="email" placeholder="example@email.com">
-                                </div>
-
-                                <div class="col-lg-4 col-sm-12">
-                                    <label>Phone</label>
-                                    <input type="text" class="form-control" name="phone" placeholder="+250 7XX XXX XXX">
-                                </div>
-                                <div class="col-lg-4 col-sm-12">
-                                    <label>Hotel Website URL</label>
-                                    <input type="text" class="form-control" name="website" placeholder="Eg: https://www.example.com">
-                                </div>
-                            </div>
-
-                            <!-- Address & City -->
-                            <div class="row mb-3">
-                                <div class="col-lg-6 col-sm-12">
-                                    <label>Address</label>
-                                    <input type="text" class="form-control" name="address" placeholder="Street, Building, etc">
-                                </div>
-
-                                <div class="col-lg-6 col-sm-12">
                                     <label>City</label>
                                     <input type="text" class="form-control" name="city" placeholder="Kigali, Musanze, Rubavu…">
+                                </div>
+
+                                <div class="col-lg-4 col-sm-12">
+                                    <label>Address</label>
+                                    <input type="text" class="form-control" name="address" placeholder="Street, Building, etc">
                                 </div>
                             </div>
 
                             <!-- Description -->
                             <div class="row">
                                 <div class="col-lg-12">
-                                    <label class="form-label">Hotel Description</label>
+                                    <label class="form-label">Property Description</label>
                                     <textarea id="hotelDescription" rows="5" class="form-control" name="description"></textarea>
                                 </div>
                             </div>

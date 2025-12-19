@@ -25,6 +25,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/setting',[App\Http\Controllers\SettingsController::class,'setting'])->name('setting');
     Route::post('/saveSetting',[App\Http\Controllers\SettingsController::class,'saveSetting'])->name('saveSetting');
     
+    Route::get('/getLeftBags',[App\Http\Controllers\SettingsController::class,'getLeftBags'])->name('getLeftBags');
+    Route::post('/updateBags',[App\Http\Controllers\SettingsController::class,'updateBags'])->name('updateBags');
+    
+    Route::get('/getTicketing',[App\Http\Controllers\SettingsController::class,'getTicketing'])->name('getTicketing');
+    Route::post('/updateTicketing',[App\Http\Controllers\SettingsController::class,'updateTicketing'])->name('updateTicketing');
+    
     Route::get('/homePage',[App\Http\Controllers\SettingsController::class,'homePage'])->name('homePage');
     Route::post('/saveHome',[App\Http\Controllers\SettingsController::class,'saveHome'])->name('saveHome');
     
@@ -175,7 +181,11 @@ Route::get('/destination/{slug}', [App\Http\Controllers\HomeController::class, '
 Route::get('/accommodations', [App\Http\Controllers\HomeController::class, 'accommodations'])->name('accommodations');
 Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
 Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
-Route::get('/accommodations/apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
+Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
+Route::get('/services/ticketing', [App\Http\Controllers\HomeController::class, 'ticketing'])->name('ticketing');
+Route::get('/services/left-bags', [App\Http\Controllers\HomeController::class, 'leftBags'])->name('leftBags');
+Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
+Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
 
 Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
 Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
@@ -215,6 +225,7 @@ Route::get('/facilities/{slug}', [App\Http\Controllers\HomeController::class, 'f
 Route::get('/articles', [App\Http\Controllers\HomeController::class, 'blogs'])->name('blogs');
 Route::get('/articles/{slug}', [App\Http\Controllers\HomeController::class, 'singleBlog'])->name('singleBlog');
 Route::get('/terms-and-conditions', [App\Http\Controllers\HomeController::class, 'terms'])->name('terms');
+
 
 Route::get('/connect', [App\Http\Controllers\HomeController::class, 'connect'])->name('connect');
 

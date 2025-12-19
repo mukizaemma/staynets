@@ -23,23 +23,22 @@
                 <i class="fas fa-concierge-bell me-2"></i>Services
             </a>
 
-            <a href="{{ route('getDestinations') }}" class="nav-item nav-link"> 
-                <i class="fas fa-handshake me-2"></i>Destinations
-            </a>
-
             <a href="{{ route('getHotels') }}" class="nav-item nav-link"> 
-                <i class="fas fa-bed me-2"></i>Hotels
+                <i class="fas fa-bed me-2"></i>Properties
             </a>
             <a href="{{ route('getRooms') }}" class="nav-item nav-link"> 
                 <i class="fas fa-bed me-2"></i>Rooms
             </a>
-
+            <a href="{{ route('getDestinations') }}" class="nav-item nav-link"> 
+                <i class="fas fa-handshake me-2"></i>Destinations
+            </a>
             <a href="{{ route('getTrips') }}" class="nav-item nav-link"> 
                 <i class="fas fa-route me-2"></i>Tours
             </a>
 
             <a href="{{ route('getCars') }}" class="nav-item nav-link"> <i class="fas fa-car me-2"></i>Cars</a>
-            <a href="{{ route('getBags') }}" class="nav-item nav-link"> <i class="fas fa-bag me-2"></i>Left Bags</a>
+            <a href="{{ route('getLeftBags') }}" class="nav-item nav-link"> <i class="fas fa-suitcase-rolling me-2"></i>Left Bags</a>
+            <a href="{{ route('getTicketing') }}" class="nav-item nav-link"> <i class="fas fa-ticket-alt me-2"></i>Ticketing</a>
             <a href="{{ route('getBlogs') }}" class="nav-item nav-link"><i class="fas fas fa-handshake me-2"></i>Articles</a> 
             <hr>
             <a href="{{ route('getMessages') }}" class="nav-item nav-link"> <i class="fas fa-briefcase me-2"></i>Requests</a>

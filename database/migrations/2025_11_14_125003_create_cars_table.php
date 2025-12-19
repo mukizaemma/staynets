@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('added_by');
             $table->string('name');
+            $table->string('slug')->nullable();
             $table->string('model')->nullable();
             $table->string('fuel_type')->nullable();
             $table->integer('seats')->nullable();
@@ -28,7 +29,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('added_by')->references('id')->on('partners')->onDelete('cascade');
+            $table->foreign('added_by')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('program_id');
             $table->foreign("program_id")->references("id")->on("programs")->onDelete("cascade");
         });

@@ -57,6 +57,7 @@
 
     <!-- Theme Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    
 
 </head>
 
@@ -186,15 +187,6 @@
                 <ul>
 
                     <li><a href="{{ route('home') }}">Home</a></li>
-                
-                    <li class="menu-item-has-children">
-                        <a href="{{ route('services') }}">Services</a>
-                        <ul class="sub-menu">
-                            @foreach ($services as $service)
-                                <li><a href="{{route('service',['slug'=>$service->slug])}}">{{ $service->title }}</a></li>
-                            @endforeach
-                        </ul>
-                    </li>
 
                     <li>
                         <a href="{{ route('hotels') }}">Hotels</a>
@@ -207,7 +199,7 @@
                     </li>
 
                     <li class="menu-item-has-children">
-                        <a href="{{ route('tours') }}">Trips</a>
+                        <a href="{{ route('destinations') }}">Trips</a>
                         <ul class="sub-menu">
                             @foreach ($destinations as $destination)
                                 <li><a href="{{route('destination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
@@ -215,6 +207,17 @@
                         </ul>
                     </li>
                     
+                    <li>
+                        <a href="{{ route('ticketing') }}">Air Ticketing</a>
+                    </li>
+                    
+                    <li>
+                        <a href="{{ route('leftBags') }}">Left Bags</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('about') }}">About Us</a>
+                    </li>
+
                     <li>
                         <a href="{{ route('connect') }}">Contact</a>
                     </li>
@@ -309,23 +312,24 @@
 
                                     <li><a href="{{ route('home') }}">Home</a></li>
                                 
-                                    <li class="menu-item-has-children">
+                                    {{-- <li class="menu-item-has-children">
                                         <a href="{{ route('services') }}">Services</a>
                                         <ul class="sub-menu">
                                             @foreach ($services as $service)
                                                 <li><a href="{{route('service',['slug'=>$service->slug])}}">{{ $service->title }}</a></li>
                                             @endforeach
                                         </ul>
-                                    </li>
+                                    </li> --}}
 
                                     <li>
                                         <a href="{{ route('hotels') }}">Hotels</a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('accommodations') }}">Apartments</a>
+                                        <a href="{{ route('apartments') }}">Apartments</a>
                                     </li>
+
                                     <li>
-                                        <a href="{{ route('accommodations') }}">Car Rental</a>
+                                        <a href="{{ route('showCars') }}">Car Rental</a>
                                     </li>
 
                                     <li class="menu-item-has-children">
@@ -335,6 +339,18 @@
                                                 <li><a href="{{route('destination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
                                             @endforeach
                                         </ul>
+                                    </li>
+
+                                    <li>
+                                        <a href="{{ route('leftBags') }}">Left Bags</a>
+                                    </li>
+
+                                    <li>
+                                        <a href="{{ route('ticketing') }}">Air Ticketing</a>
+                                    </li>
+                                 
+                                    <li>
+                                        <a href="{{ route('about') }}">About Us</a>
                                     </li>
                                  
                                     <li>

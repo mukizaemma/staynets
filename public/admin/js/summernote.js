@@ -31,6 +31,38 @@ $(document).ready(function() {
   });
 });
 $(document).ready(function() {
+  $('#leftBags').summernote({
+      placeholder: 'Left Bags Description',
+      tabsize: 2,
+      height: 150,
+      toolbar: [
+        ['style', ['style']],
+        ['font', ['bold', 'underline', 'clear']],
+        ['color', ['color']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['table', ['table']],
+        ['insert', ['link', 'picture', 'video']],
+        ['view', ['fullscreen', 'codeview', 'help']]
+      ]
+  });
+});
+$(document).ready(function() {
+  $('#ticketing').summernote({
+      placeholder: 'Ticketing Description',
+      tabsize: 2,
+      height: 150,
+      toolbar: [
+        ['style', ['style']],
+        ['font', ['bold', 'underline', 'clear']],
+        ['color', ['color']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['table', ['table']],
+        ['insert', ['link', 'picture', 'video']],
+        ['view', ['fullscreen', 'codeview', 'help']]
+      ]
+  });
+});
+$(document).ready(function() {
   $('#roomDescription').summernote({
       placeholder: 'Room Description',
       tabsize: 2,

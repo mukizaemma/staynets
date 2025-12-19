@@ -34,4 +34,29 @@ class Car extends Model
     {
         return $this->hasMany(CarRental::class);
     }
+
+    public function images()
+    {
+        return $this->hasMany(Carimage::class);
+    }
+
+
+    public function getDisplayPriceAttribute()
+    {
+        if ($this->price_to_buy > 0) {
+            return ['amount' => $this->price_to_buy, 'label' => 'For Sale'];
+        }
+
+        if ($this->price_per_day > 0) {
+            return ['amount' => $this->price_per_day, 'label' => '/ day'];
+        }
+
+        if ($this->price_per_month > 0) {
+            return ['amount' => $this->price_per_month, 'label' => '/ month'];
+        }
+
+        return null;
+    }
+
+
 }

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use DB;
 use App\Models\Blog;
+use App\Models\Car;
 use App\Models\Hotel;
+use App\Models\Leftbag;
+use App\Models\Ticketing;
 use App\Models\HotelRoom;
 use App\Models\Category;
 use App\Models\Trip;
@@ -33,7 +36,7 @@ class HomeController extends Controller
 
         $slides = Slide::oldest()->get();
         $category = Category::all();
-        $hotels = Hotel::where('type','hotel')->latest()->get();
+        $hotels = Hotel::latest()->get();
         $services = Program::oldest()->get();
         $rooms = HotelRoom::oldest()->get();
         $articles = Blog::latest()->paginate(3);
@@ -97,74 +100,107 @@ class HomeController extends Controller
     
     }
 
-public function apartments(Request $request)
-{
-    try {
+    public function apartments(Request $request)
+    {
+
         $q = $request->input('q');
         $orderby = $request->input('orderby');
-
-        // Make sure the model exists and column names used below match your schema
-        $query = \App\Models\Hotel::query()
-            ->where('status', 'Active')
-            ->where('type', 'apartment'); // verify this is exact value in DB
+        $query = \App\Models\Hotel::query()->where('status','Active')->where('type','apartment');
 
         if (!empty($q)) {
-            $query->where(function($qb) use ($q) {
-                $qb->where('name', 'like', "%{$q}%")
-                   ->orWhere('location', 'like', "%{$q}%")
-                   ->orWhere('city', 'like', "%{$q}%");
+            $query->where(function($qbuilder) use ($q) {
+                $qbuilder->where('name', 'like', "%{$q}%")
+                        ->orWhere('location', 'like', "%{$q}%")
+                        ->orWhere('city', 'like', "%{$q}%");
             });
         }
 
+        // ordering
         switch ($orderby) {
             case 'date':
                 $query->orderBy('created_at', 'desc');
                 break;
             case 'price':
-                $query->orderBy('price', 'asc');
+                $query->orderBy('name', 'asc');
                 break;
             case 'price-desc':
-                $query->orderBy('price', 'desc');
+                $query->orderBy('name', 'desc');
                 break;
             case 'rating':
-                $query->orderBy('rating', 'desc');
+                $query->orderBy('name', 'asc');
                 break;
             default:
-                $query->orderBy('created_at', 'desc');
+                $query->oldest();
         }
 
-        $apartments = $query->paginate(12)->appends($request->query());
+        $rooms = $query->paginate(12)->appends($request->query());
 
         if ($request->ajax()) {
-            $html = view('frontend.partials.accommodations_results', compact('apartments'))->render();
+            // render the partial view and return HTML
+            $html = view('frontend.partials.accommodations_results', compact('rooms'))->render();
             return response()->json(['html' => $html]);
         }
 
-        if (!view()->exists('frontend.apartments')) {
-            \Log::error('View frontend.apartments not found');
-            abort(500, 'View missing: frontend.apartments');
+        return view('frontend.hotels', [
+            'rooms' => $rooms,
+        ]);
+    
+    }
+
+
+
+    public function showCars(Request $request)
+    {
+        $q = $request->input('q');
+        $orderby = $request->input('orderby');
+
+        $query = Car::query()
+            ->where('status', 'available');
+
+        if (!empty($q)) {
+            $query->where(function ($qb) use ($q) {
+                $qb->where('name', 'like', "%{$q}%")
+                ->orWhere('model', 'like', "%{$q}%")
+                ->orWhere('fuel_type', 'like', "%{$q}%")
+                ->orWhere('transmission', 'like', "%{$q}%");
+            });
         }
 
-        return view('frontend.apartments', [
-            'apartments' => $apartments,
-        ]);
-    } catch (\Throwable $e) {
-        \Log::error('Error in apartments controller: '.$e->getMessage(), [
-            'trace' => $e->getTraceAsString()
-        ]);
+        switch ($orderby) {
+            case 'price':
+                $query->orderBy('price_per_day', 'asc');
+                break;
+
+            case 'price-desc':
+                $query->orderBy('price_per_day', 'desc');
+                break;
+
+            case 'date':
+            default:
+                $query->latest();
+        }
+
+        $cars = $query->paginate(12)->appends($request->query());
 
         if ($request->ajax()) {
-            return response()->json(['error' => 'Server error retrieving apartments'], 500);
+            $html = view('frontend.partials.cars_results', compact('cars'))->render();
+            return response()->json(['html' => $html]);
         }
 
-        // in non-production you may want to rethrow to see the full stack trace
-        if (config('app.debug')) {
-            throw $e;
-        }
-
-        abort(500, 'Unable to load apartments at this time');
+        return view('frontend.cars', compact('cars'));
     }
-}
+
+    public function carDetails($slug){
+        $car = Car::with('images')->where('slug', $slug)->firstOrFail();
+
+        $images = $car->images;
+        $allCars = Car::where('id','!=',$car->id)->get();
+        return view('frontend.carDetails',[
+            'car'=>$car,
+            'images'=>$images,
+            'allCars'=>$allCars,
+        ]);
+    }
 
 
     public function about(){
@@ -175,6 +211,24 @@ public function apartments(Request $request)
             'rooms'=>$rooms,
             'setting'=>$setting,
             'about'=>$about,
+        ]);
+    }
+
+    public function leftBags(){
+        $data = Leftbag::first();
+        $trips = Trip::oldest()->get();
+        return view('frontend.leftBags',[
+            'data'=>$data,
+            'trips'=>$trips,
+        ]);
+    }
+
+    public function ticketing(){
+        $data = Ticketing::first();
+        $trips = Trip::oldest()->get();
+        return view('frontend.ticketing',[
+            'data'=>$data,
+            'trips'=>$trips,
         ]);
     }
 

@@ -200,75 +200,57 @@ Service Area
                 <div class="swiper th-slider has-shadow slider-drag-wrap" data-slider-options='{"breakpoints":{"0":{"slidesPerView":1},"576":{"slidesPerView":"1"},"768":{"slidesPerView":"2"},"992":{"slidesPerView":"2"},"1200":{"slidesPerView":"3"},"1300":{"slidesPerView":"4"}}}'>
                     <div class="swiper-wrapper">
 
-                        @foreach($rooms as $r)
-                            <div class="col-xxl-4 col-xl-6 col-md-6">
+                        @forelse($hotels as $hotel)
+                            <div class="col-xxl-4 col-xl-6">
                                 <div class="tour-box th-ani">
                                     <div class="tour-box_img global-img">
-                                        @php
-                                            $imgSrc = asset('assets/img/tour/tour_3_1.jpg');
-                                            if(!empty($r->image)){
-                                                if(preg_match('#^(https?:)?//#', $r->image) || \Illuminate\Support\Str::startsWith($r->image, ['assets/','storage/','public/'])) $imgSrc = $r->image;
-                                                else {
-                                                    $p = storage_path('app/public/images/rooms/' . $r->image);
-                                                    if(file_exists($p)) $imgSrc = asset('storage/images/rooms/' . $r->image);
-                                                }
-                                            }
-                                        @endphp
-
-                                        <img src="{{ $imgSrc }}" alt="{{ $r->room_type }}">
+                                        @if($hotel->image && file_exists(storage_path('app/public/images/hotels/' . $hotel->image)))
+                                            <img src="{{ asset('storage/images/hotels/' . $hotel->image) }}" alt="{{ $hotel->name }}">
+                                        @else
+                                            <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
+                                        @endif
                                     </div>
 
                                     <div class="tour-content">
                                         <h3 class="box-title">
-                                            @php
-                                                $hotelParam = $hotel->slug ?? $hotel->id ?? ($r->hotel->slug ?? $r->hotel->id ?? null);
-                                                $roomParam  = $r->slug  ?? $r->id ?? null;
-                                            @endphp
-
-                                            @if($hotelParam && $roomParam)
-                                                <a href="{{ route('roomDetails', ['hotel' => $hotelParam, 'room' => $roomParam]) }}">{{ $r->room_type }}</a>
-                                            @else
-                                                <a href="#">{{ $r->room_type }}</a>
-                                            @endif
+                                            <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
                                         </h3>
 
-                                        <p class="mb-2" style="margin:6px 0;">
-                                            <strong>Price / night:</strong> {{ number_format($r->price_per_night ?? 0, 2) }}
-                                        </p>
+                                        <div class="tour-rating">
+                                            @php
+                                                $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
+                                                $stars = max(0, min(5, $stars));
+                                            @endphp
 
-                                        <p class="mb-2" style="margin:6px 0;">
-                                            <i class="fa-solid fa-users"></i> Max: {{ $r->max_occupancy ?? 0 }}
-                                            &nbsp;•&nbsp;
-                                            <i class="fa-solid fa-door-open"></i> Available: {{ $r->available_rooms ?? 0 }}
-                                        </p>
-
-                                        @if(!empty($r->description))
-                                            <p class="small" style="margin:6px 0;">{!! \Illuminate\Support\Str::limit($r->description, 120) !!}</p>
-                                        @endif
-
-                                        @if(!empty($r->amenities) && is_array($r->amenities))
-                                            <div class="room-amenities mt-2">
-                                                @foreach($r->amenities as $amen)
-                                                    <span class="badge rounded-pill bg-light text-dark me-1 mb-1">{{ $amen }}</span>
-                                                @endforeach
+                                            <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= $stars)
+                                                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                                    @else
+                                                        <i class="fa-regular fa-star" aria-hidden="true"></i>
+                                                    @endif
+                                                @endfor
+                                                <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="woocommerce-review-link">({{ $stars }} Rating)</a>
                                             </div>
-                                        @endif
+                                        </div>
 
-                                        <div class="tour-action mt-3">
-                                            @if($hotelParam && $roomParam)
-                                                <a href="{{ route('roomDetails', ['hotel' => $hotelParam, 'room' => $roomParam]) }}" class="th-btn style4 th-icon">View</a>
-                                            @elseif($hotelParam)
-                                                <a href="{{ route('hotel', $hotelParam) }}" class="th-btn style4 th-icon">View hotel</a>
-                                            @else
-                                                <button type="button" class="th-btn style4 th-icon" disabled>View</button>
-                                            @endif
+                                        <p class="mb-2" style="margin:6px 0;">
+                                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                            {{ $hotel->location ?? $hotel->city ?? 'Location not specified' }}
+                                        </p>
 
-                                            <a href="{{ route('connect') }}" class="th-btn style3">Book Now</a>
+                                        <div class="tour-action">
+                                            <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
+                                            <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div class="col-12">
+                                <p class="text-center">No hotels found.</p>
+                            </div>
+                        @endforelse
 
 
 

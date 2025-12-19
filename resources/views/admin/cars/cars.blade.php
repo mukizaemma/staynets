@@ -28,38 +28,92 @@
                         {{-- <a href="">Show All</a> --}}
                     </div>
                     <div class="table-responsive">
-                        <table class="table text-start align-middle table-bordered table-hover mb-0">
-                            <thead>
-                                <tr class="text-dark">
-                                    {{-- <th scope="col"><input class="form-check-input" type="checkbox"></th> --}}
-                                    <th scope="col">Trip Title</th>
-                                    <th scope="col">Cover Image</th>
-                                    <th scope="col">Description</th>
-                                    <th scope="col">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($cars as $rs)
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Advert</th>
+                                <th>Cover</th>
+                                <th>Pricing</th>
+                                <th>Description</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @forelse($cars as $rs)
+
                                 <tr>
-                                    {{-- <td><input class="form-check-input" type="checkbox"></td> --}}
-                                    <td><a href="{{ route('editTrip',['id'=>$rs->id]) }}">{{ $rs->title }}</a> 
-                                    <br> <spam>{{$rs->images->count()}} Images  
-                                    </td>
-                                    <td><img src="{{ asset('storage/images/trips/' .$rs->image) }}" alt="" width="120px"></td>
-                                    <td>{!! Str::words($rs->description, 50, '...') !!}</td>
+                                    {{-- Advert --}}
                                     <td>
-                                        <div class="bg-light rounded ">
-                                            <div class="btn-group" role="group">
-                                                {{-- <button type="button" class="btn btn-danger"><i class="fa fa-eye"></i></button> --}}
-                                                <a href="{{ route('editTrip',['id'=>$rs->id]) }}" class="btn btn-info"><i class="fa fa-images"></i></a>
-                                                <a href="{{ route('deleteTrip',['id'=>$rs->id]) }}" class="btn btn-warning"  onclick="return confirm('Are you sure to delete this item?')"><i class="fa fa-trash"></i></a>
+                                        <strong>{{ $rs->name }}</strong>
+                                    </td>
+
+                                    {{-- Cover Image --}}
+                                    <td>
+                                        <a href="{{ route('editHotel', $rs->id) }}">
+                                            <img src="{{ asset('storage/images/cars/' . $rs->image) }}"
+                                                alt="Hotel Image"
+                                                width="80px"
+                                                class="rounded shadow-sm">
+                                        </a>
+                                    </td>
+
+                                    {{-- Price --}}
+                                    <td>
+                                        @if($rs->price_per_day)
+                                            <div><strong>{{ number_format($rs->price_per_day) }}</strong> / day</div>
+                                        @endif
+
+                                        @if($rs->price_per_month)
+                                            <div>{{ number_format($rs->price_per_month) }} / month</div>
+                                        @endif
+
+                                        @if($rs->price_to_buy)
+                                            <div class="text-success">
+                                                Buy: {{ number_format($rs->price_to_buy) }}
                                             </div>
+                                        @endif
+                                    </td>
+
+                                    {{-- Description --}}
+                                    <td>
+                                        {{ Str::limit(strip_tags($rs->description), 80) }}
+                                    </td>
+
+                                    {{-- Actions --}}
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a href="{{ route('editCar', $rs->id) }}"
+                                            class="btn btn-sm btn-info"
+                                            title="Edit">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+
+                                            <a href="{{ route('editCar', $rs->id) }}"
+                                            class="btn btn-sm btn-primary"
+                                            title="Manage Images">
+                                                <i class="fa fa-images"></i>
+                                            </a>
+
+                                            <a href="{{ route('deleteCar', $rs->id) }}"
+                                            class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Delete this car?')"
+                                            title="Delete">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        No cars found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
                     </div>
                 </div>
             </div>
@@ -75,7 +129,7 @@
         
                 <!-- Modal Header -->
                 <div class="modal-header">
-                <h4 class="modal-title">Adding New Trip</h4>
+                <h4 class="modal-title">Adding New Car</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
         
@@ -169,7 +223,7 @@
                             <div class="row mb-3">
                                 <div class="col-lg-12">
                                     <label class="form-label">Car Images</label>
-                                    <input type="file" name="images[]" class="form-control" multiple>
+                                    <input type="file" name="image" class="form-control" multiple>
                                 </div>
                             </div>
 

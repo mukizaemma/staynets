@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Home;
 use App\Models\Term;
+use App\Models\Leftbag;
+use App\Models\Ticketing;
 use App\Models\About;
 use App\Models\Aboutus;
 use App\Models\Setting;
@@ -183,6 +185,112 @@ class SettingsController extends Controller
     
         if($saved){
             return redirect()->back()->with('success', 'About us Page fields have been updated successfully');
+
+        }
+
+        return redirect()->back()->with('error', 'No fields were updated');
+    }
+    public function getLeftBags(){
+        $data = Leftbag::first();
+        $setting = Setting::first();
+        if($data===null)
+        {
+            $data = new Leftbag();
+            $data->heading = 'About Us';
+            $data->description = 'About Us';
+            $data->user_id = 1;
+            $data->save();
+            $data = Leftbag::first();
+        }
+
+        return view('admin.pages.leftBags', ['data'=>$data,'setting'=>$setting]);
+    }
+
+    public function updateBags(Request $request){
+        $data = Leftbag::first();
+        $heading = [];
+        $description = [];
+    
+        if ($data->heading != $request->input('heading')) {
+            $data->heading = $request->input('heading');
+            $heading[] = 'heading';
+        }
+    
+        if ($data->description != $request->input('description')) {
+            $data->description = $request->input('description');
+            $description[] = 'description';
+        }
+
+        // Handle file uploads
+        $dir = 'public/images/leftbags/';
+    
+        if ($request->hasFile('image') && request('image') != '') {
+            // Delete old file
+            File::delete($dir . $data->image);
+            // Store new file
+            $fileName = $request->file('image')->store($dir);
+            $data->image = str_replace($dir, '', $fileName);
+            $image[] = 'image';
+        }
+
+    
+        $saved = $data->update();
+    
+        if($saved){
+            return redirect()->back()->with('success', 'Page fields have been updated successfully');
+
+        }
+
+        return redirect()->back()->with('error', 'No fields were updated');
+    }
+    public function getTicketing(){
+        $data = Ticketing::first();
+        $setting = Setting::first();
+        if($data===null)
+        {
+            $data = new Ticketing();
+            $data->heading = 'About Us';
+            $data->description = 'About Us';
+            $data->user_id = 1;
+            $data->save();
+            $data = Leftbag::first();
+        }
+
+        return view('admin.pages.ticketing', ['data'=>$data,'setting'=>$setting]);
+    }
+
+    public function updateTicketing(Request $request){
+        $data = Ticketing::first();
+        $heading = [];
+        $description = [];
+    
+        if ($data->heading != $request->input('heading')) {
+            $data->heading = $request->input('heading');
+            $heading[] = 'heading';
+        }
+    
+        if ($data->description != $request->input('description')) {
+            $data->description = $request->input('description');
+            $description[] = 'description';
+        }
+
+        // Handle file uploads
+        $dir = 'public/images/ticketing/';
+    
+        if ($request->hasFile('image') && request('image') != '') {
+            // Delete old file
+            File::delete($dir . $data->image);
+            // Store new file
+            $fileName = $request->file('image')->store($dir);
+            $data->image = str_replace($dir, '', $fileName);
+            $image[] = 'image';
+        }
+
+    
+        $saved = $data->update();
+    
+        if($saved){
+            return redirect()->back()->with('success', 'Page fields have been updated successfully');
 
         }
 
