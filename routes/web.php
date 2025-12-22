@@ -179,6 +179,7 @@ Route::get('/our-services/{slug}', [App\Http\Controllers\HomeController::class, 
 Route::get('/destinations', [App\Http\Controllers\HomeController::class, 'destinations'])->name('destinations');
 Route::get('/destination/{slug}', [App\Http\Controllers\HomeController::class, 'destination'])->name('destination');
 Route::get('/accommodations', [App\Http\Controllers\HomeController::class, 'accommodations'])->name('accommodations');
+Route::get('/accommodations/hotelsSearch', [App\Http\Controllers\HomeController::class, 'hotelsSearch'])->name('hotelsSearch');
 Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
 Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
 Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');

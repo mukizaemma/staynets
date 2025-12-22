@@ -41,6 +41,7 @@ class HomeController extends Controller
         $rooms = HotelRoom::oldest()->get();
         $articles = Blog::latest()->paginate(3);
         $trips = Trip::with('images')->oldest()->take(3)->get();
+        $locations = Hotel::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
 
         return view('frontend.index',[
             'slides'=>$slides,
@@ -49,56 +50,104 @@ class HomeController extends Controller
             'articles'=>$articles,
             'trips'=>$trips,
             'services'=>$services,
+            'locations'=>$locations,
             
         ]);
 
     }
 
-    public function hotels(Request $request)
-    {
-        $q = $request->input('q');
-        $orderby = $request->input('orderby');
-        $query = \App\Models\Hotel::query()->where('status','Active')->where('type','hotel');
+public function hotelsSearch(Request $request)
+{
+    $q = $request->input('q');
+    $city = $request->input('city');
+    $address = $request->input('address');
+    $orderby = $request->input('orderby');
 
-        if (!empty($q)) {
-            $query->where(function($qbuilder) use ($q) {
-                $qbuilder->where('name', 'like', "%{$q}%")
-                        ->orWhere('location', 'like', "%{$q}%")
-                        ->orWhere('city', 'like', "%{$q}%");
-            });
-        }
+    $query = Hotel::query()
+        ->where('status', 'Active')
+        ->where('type', 'hotel');
 
-        // ordering
-        switch ($orderby) {
-            case 'date':
-                $query->orderBy('created_at', 'desc');
-                break;
-            case 'price':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'price-desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'rating':
-                $query->orderBy('name', 'asc');
-                break;
-            default:
-                $query->oldest();
-        }
-
-        $rooms = $query->paginate(12)->appends($request->query());
-
-        if ($request->ajax()) {
-            // render the partial view and return HTML
-            $html = view('frontend.partials.accommodations_results', compact('rooms'))->render();
-            return response()->json(['html' => $html]);
-        }
-
-        return view('frontend.hotels', [
-            'rooms' => $rooms,
-        ]);
-    
+    if (!empty($q)) {
+        $query->where('name', 'like', "%{$q}%");
     }
+
+    // Filter by city
+    if (!empty($city)) {
+        $query->where('city', 'like', "%{$city}%");
+    }
+
+    // Filter by address / location
+    if (!empty($address)) {
+        $query->where(function ($q) use ($address) {
+            $q->where('address', 'like', "%{$address}%")
+              ->orWhere('location', 'like', "%{$address}%");
+        });
+    }
+
+    // Ordering
+    switch ($orderby) {
+        case 'date':
+            $query->orderBy('created_at', 'desc');
+            break;
+
+        case 'price':
+            $query->orderBy('name', 'asc'); // replace when price exists
+            break;
+
+        case 'price-desc':
+            $query->orderBy('name', 'desc');
+            break;
+
+        case 'rating':
+            $query->orderBy('stars', 'desc');
+            break;
+
+        default:
+            $query->latest();
+    }
+
+    $rooms = $query->paginate(12)->appends($request->query());
+
+    // AJAX response (FIXED: you were passing $rooms)
+    if ($request->ajax()) {
+        $html = view('frontend.partials.accommodations_results', compact('hotels'))->render();
+        return response()->json(['html' => $html]);
+    }
+
+    return view('frontend.hotelsSearch', compact('rooms'));
+}
+
+
+    public function hotels(Request $request)
+{
+    $query = Hotel::query()
+        ->where('status', 'Active');
+
+    // Search by hotel name
+    if ($request->filled('q')) {
+        $query->where('name', 'like', '%' . $request->q . '%');
+    }
+
+    // Search by location or city
+    if ($request->filled('location')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('location', 'like', '%' . $request->location . '%')
+              ->orWhere('city', 'like', '%' . $request->location . '%');
+        });
+    }
+
+    // Optional: filter by category
+    if ($request->filled('category_id')) {
+        $query->where('category_id', $request->category_id);
+    }
+
+    $rooms = $query->latest()
+                    ->paginate(12)
+                    ->appends($request->query());
+
+    return view('frontend.hotels', compact('rooms'));
+}
+
 
     public function apartments(Request $request)
     {

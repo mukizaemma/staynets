@@ -19,62 +19,72 @@ Hero Area
                     </div>
                 </div>
                 <div class="col-lg-5 col-xl-4">
-                    <form action="mail.php" method="POST" class="hero-form ajax-contact">
-                        <div class="hero-wrap">
-                            <div class="title-area mb-35 text-center">
-                                <span class="sub-title2 text-white">Select a date to explore</span>
-                                <h2 class="sec-title text-white">Make Your Reservation</h2>
-                            </div>
-                            <div class="row gx-24 align-items-center justify-content-between">
-                                <div class="form-group col-12">
-                                    <div class="form-item">
-                                        <label for="name">Check In</label>
-                                        <input type="date" class="form-control" name="date" id="date" value="2024-09-13" placeholder="select Date">
-                                    </div>
-                                </div>
-                                <div class="form-group col-12">
-                                    <div class="form-item">
-                                        <label for="name">Check Out</label>
-                                        <input type="date" class="form-control" name="date" id="date" value="2024-09-16" placeholder="select Date">
-                                    </div>
-                                </div>
-                                <div class="form-group col-12">
-                                    <div class="form-item">
-                                        <label for="name">Rooms</label>
-                                        <select name="subject" id="subject" class="form-select nice-select">
-                                            <option value="1 Room" selected disabled>1 Room</option>
-                                            <option value="2 Room">2 Room</option>
-                                            <option value="3 Room">3 Room</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 form-group">
-                                    <div class="form-item">
-                                        <label for="name">Adults</label>
-                                        <select name="subject" id="subject" class="form-select nice-select">
-                                            <option value="Adults" selected disabled>1</option>
-                                            <option value="2 Room">2</option>
-                                            <option value="3 Room">3</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 form-group">
-                                    <div class="form-item">
-                                        <label for="name">Children</label>
-                                        <select name="subject" id="subject" class="form-select nice-select">
-                                            <option value="1" selected disabled>1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="btn-form">
-                                    <button type="submit" class="th-btn btn-fw style1">Confirm Availability <img src="assets/img/icon/plane2.svg" alt=""></button>
-                                </div>
-                            </div>
-                            <p class="form-messages mb-0 mt-3"></p>
+                <form action="{{ route('hotelsSearch') }}" method="GET" class="hero-form">
+                    <div class="hero-wrap">
+                        <div class="title-area mb-15 text-center">
+                            <h2 class="sec-title text-white">Make Your Reservation</h2>
                         </div>
-                    </form>
+
+                        <div class="row gx-24 align-items-center">
+
+                            <div class="form-group col-12">
+                                <div class="form-item">
+                                    <label>Destination</label>
+                                    <select name="location" class="form-select nice-select">
+                                        @foreach($locations as $location)
+                                            <option value="{{ $location }}"
+                                                {{ request('location') == $location ? 'selected' : '' }}>
+                                                {{ $location }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-12">
+                                <div class="form-item">
+                                    <input type="text" class="form-control" name="address"
+                                        placeholder="Address "
+                                        value="{{ request('address') }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-12">
+                                <div class="form-item">
+                                    <input type="text" class="form-control" name="name"
+                                        placeholder="Type Hotel Name"
+                                        value="{{ request('q') }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-12">
+                                <div class="form-item">
+                                    <label>Check In</label>
+                                    <input type="date" class="form-control" name="checkin"
+                                        value="{{ request('checkin') }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-12">
+                                <div class="form-item">
+                                    <label>Check Out</label>
+                                    <input type="date" class="form-control" name="checkout"
+                                        value="{{ request('checkout') }}">
+                                </div>
+                            </div>
+
+                            <div class="btn-form col-12">
+                                <button type="submit" class="th-btn btn-fw style1">
+                                    Confirm Availability
+                                    <img src="assets/img/icon/plane2.svg" alt="">
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <p class="form-messages mb-0 mt-3"></p>
+                    </div>
+                </form>
                 </div>
             </div>
         </div>

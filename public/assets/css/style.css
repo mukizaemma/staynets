@@ -13295,7 +13295,7 @@ ul.comment-list:has(> .th-comment-item ~ .th-comment-item):first-child > .th-pos
   background-color: transparent;
   border: 1px solid #E1E4E6;
   border-radius: 8px;
-  padding: 14px 24px;
+  padding: 14px 14px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -13323,12 +13323,12 @@ ul.comment-list:has(> .th-comment-item ~ .th-comment-item):first-child > .th-pos
 }
 
 .hero-form .form-item input {
-  max-width: 105px;
+  max-width: 205px;
 }
 
 .hero-form .form-item input,
 .hero-form .form-item .nice-select {
-  color: var(--white-color);
+  color: white;
   height: auto;
   line-height: unset;
   background-color: transparent;
@@ -13355,26 +13355,35 @@ ul.comment-list:has(> .th-comment-item ~ .th-comment-item):first-child > .th-pos
 }
 
 .hero-form .form-item .nice-select option {
-  color: var(--title-color);
+  color: #000000;
 }
 
 .hero-form .form-item .nice-select option.selected {
   color: var(--theme-color) !important;
-  background: var(--theme-color) !important;
+  /* background: var(--theme-color) !important; */
 }
 
 .hero-form .form-item .nice-select option.selected.focus {
-  color: #fff !important;
-  background: var(--theme-color) !important;
+  color: #000000 !important;
+  /* background: var(--theme-color) !important; */
 }
 
 .hero-form .form-item .nice-select option:hover, .hero-form .form-item .nice-select option.focus {
   background: var(--theme-color) !important;
-  color: #fff !important;
+  color: #000000 !important;
 }
 
 .hero-form .form-item .nice-select.open .list {
-  border-bottom: 3px solid var(--theme-color);
+  border-bottom: 1px solid #fff;
+}
+
+.hero-form ::placeholder {
+    color: #ffffff;
+    opacity: 1;
+}
+
+.hero-form select option {
+    color: #000 !important;
 }
 
 /* hero 5 start ----------------------*/
