@@ -392,7 +392,7 @@
                                     <a href="{{route('home')}}"><img src="{{ asset('storage/images') . ($setting->logo ?? '') }}" 
                                        width="120px" alt="Accoomodation Booking Engine" ></a>
                                 </div>
-                                <p class="about-text">Where Lake Kivu meets warm hospitality</p>
+                                <p class="about-text">The Best Hospitality Services Management in Rwanda</p>
                                 <div class="th-social">
                                     <a href="https://www.facebook.com/"><i class="fab fa-facebook-f"></i></a>
                                     <a href="https://instagram.com/"><i class="fab fa-instagram"></i></a>
@@ -412,10 +412,12 @@
                                 <ul class="menu">
 
                                     <li><a href="{{route('about')}}">About Us</a></li>
-                                    <li><a href="{{ route('facilities') }}">Our Services</a></li>
                                     <li><a href="{{ route('destinations') }}">Destinations</a></li>
-                                    <li><a href="{{ route('accommodations') }}">Accommodations</a></li>
-                                    <li><a href="{{ route('promotions') }}">Things to Do in Rwanda</a></li>
+                                    <li><a href="{{ route('hotels') }}">Hotels</a></li>
+                                    <li><a href="{{ route('apartments') }}">Apartments</a></li>
+                                    <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
+                                    <li><a href="{{ route('showCars') }}">Car Rental</a></li>
+                                    <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
                                     <li><a href="{{ route('terms') }}">Our Terms & Conditions</a></li>
                                 </ul>
                             </div>

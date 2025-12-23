@@ -7,47 +7,25 @@
 <form action="{{ route('storeHotel') }}" method="POST" enctype="multipart/form-data">
     @csrf
 
-    <div class="row mb-4">
-        <div class="col-lg-4 col-sm-12">
-            <label>Service</label>
-            <select class="form-control" name="program_id" required>
-                <option value="" disabled selected>Select Service</option>
-                @foreach ($services as $service)
-                    <option value="{{ $service->id }}" @if(old('program_id') == $service->id) selected @endif>{{ $service->title }}</option>
-                @endforeach
-            </select>
-            @error('program_id') <div class="text-danger mt-1">{{ $message }}</div> @enderror
-        </div>
 
-        <div class="col-lg-6 col-sm-12">
-            <label>Hotel Cover Image</label>
-            <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
-            @error('image') <div class="text-danger mt-1">{{ $message }}</div> @enderror
-        </div>
-    </div>
 
     <div class="row mb-3">
         <div class="col-lg-8 col-sm-12">
-            <label>Hotel Name</label>
+            <label>Property Name</label>
             <input type="text" class="form-control" name="name" placeholder="Business name" value="{{ old('name') }}" required>
             @error('name') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>
-
         <div class="col-lg-4 col-sm-12">
-            <label>Location (Category)</label>
-            <select class="form-control" name="category_id" required>
-                <option value="" disabled selected>Select Type</option>
-                @foreach ($destinations as $destination)
-                    <option value="{{ $destination->id }}" @if(old('category_id') == $destination->id) selected @endif>{{ $destination->name }}</option>
-                @endforeach
-            </select>
-            @error('category_id') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+            <label>Property's Cover Image</label>
+            <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
+            @error('image') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>
+
     </div>
 
     <div class="row mb-3">
         <div class="col-lg-4 col-sm-12">
-            <label>Partner Type</label>
+            <label>Property Type</label>
             <select class="form-control" name="type" required>
                 <option value="">Select Type</option>
                 <option value="hotel" @if(old('type')=='hotel') selected @endif>Hotel</option>
@@ -74,6 +52,9 @@
             @error('stars') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>
 
+    </div>
+
+    <div class="row mb-3">
         <div class="col-lg-4 col-sm-12">
             <label>Location (District)</label>
             <select class="form-control" name="location" required>
@@ -121,45 +102,45 @@
             </select>
             @error('location') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>
-    </div>
-
-    <div class="row mb-3">
-        <div class="col-lg-4 col-sm-12">
-            <label>Email</label>
-            <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="example@email.com">
-            @error('email') <div class="text-danger mt-1">{{ $message }}</div> @enderror
-        </div>
 
         <div class="col-lg-4 col-sm-12">
-            <label>Phone</label>
-            <input type="text" class="form-control" name="phone" value="{{ old('phone') }}" placeholder="+250 7XX XXX XXX">
-            @error('phone') <div class="text-danger mt-1">{{ $message }}</div> @enderror
-        </div>
-
-        <div class="col-lg-4 col-sm-12">
-            <label>Hotel Website URL</label>
-            <input type="text" class="form-control" name="website" value="{{ old('website') }}" placeholder="Eg: https://www.example.com">
-            @error('website') <div class="text-danger mt-1">{{ $message }}</div> @enderror
-        </div>
-    </div>
-
-    <div class="row mb-3">
-        <div class="col-lg-6 col-sm-12">
             <label>Address</label>
             <input type="text" class="form-control" name="address" value="{{ old('address') }}" placeholder="Street, Building, etc">
             @error('address') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>
 
-        <div class="col-lg-6 col-sm-12">
+        <div class="col-lg-4 col-sm-12">
             <label>City</label>
             <input type="text" class="form-control" name="city" value="{{ old('city') }}" placeholder="Kigali, Musanze, Rubavu…">
             @error('city') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>
     </div>
 
+
+    <div class="row mb-3">
+        <div class="col-lg-4 col-sm-12">
+            <label>Contact Email</label>
+            <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="example@email.com">
+            @error('email') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="col-lg-4 col-sm-12">
+            <label>Contact Phone</label>
+            <input type="text" class="form-control" name="phone" value="{{ old('phone') }}" placeholder="+250 7XX XXX XXX">
+            @error('phone') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="col-lg-4 col-sm-12">
+            <label>Website URL</label>
+            <input type="text" class="form-control" name="website" value="{{ old('website') }}" placeholder="Eg: https://www.example.com">
+            @error('website') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+    </div>
+
+
     <div class="row mb-3">
         <div class="col-lg-12">
-            <label class="form-label">Hotel Description</label>
+            <label class="form-label">Property Description</label>
             <textarea id="hotelDescription" rows="5" class="form-control" name="description">{{ old('description') }}</textarea>
             @error('description') <div class="text-danger mt-1">{{ $message }}</div> @enderror
         </div>

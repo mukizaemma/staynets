@@ -13,8 +13,8 @@ Hero Area
                         <span class="sub-title style1 text-white">Welcome to Booking Engine</span>
                         <h1 class="hero-title text-white">Serene Countryside Retreat at Tourm Best Hotel</h1>
                         <div class="btn-group">
-                            <a href="{{ route('connect') }}" class="th-btn th-icon">Book A Room</a>
-                            <a href="{{ route('connect') }}" class="th-btn style2 th-icon">Things To Do</a>
+                            <a href="{{ route('hotels') }}" class="th-btn th-icon style3">Hotels</a>
+                            <a href="{{ route('apartments') }}" class="th-btn style2 th-icon">Apartments</a>
                         </div>
                     </div>
                 </div>
@@ -74,7 +74,7 @@ Hero Area
                             </div>
 
                             <div class="btn-form col-12">
-                                <button type="submit" class="th-btn btn-fw style1">
+                                <button type="submit" class="th-btn btn-fw style3">
                                     Confirm Availability
                                     <img src="assets/img/icon/plane2.svg" alt="">
                                 </button>

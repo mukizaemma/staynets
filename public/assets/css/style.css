@@ -88,9 +88,9 @@ Last Update: 20-07-2024
 /*------------------- 1.2. Function -------------------*/
 /*------------------- 1.3. Variable-------------------*/
 :root {
-  --theme-color: #1CA8CB;
-  --primary-color: #1CA8CB;
-  --title-color: #2F74B3;
+  --theme-color: #2F74B3;
+  --primary-color: #2F74B3;
+  --title-color: #1CA8CB;
   --body-color: #6E7070;
   --smoke-color: #E9F6F9;
   --smoke-color2: #F3F4F6;
@@ -99,7 +99,7 @@ Last Update: 20-07-2024
   --gray-color: #E1E4E5;
   --white-color: #ffffff;
   --light-color: #E1E4E5;
-  --yellow-color: #2F74B3;
+  --yellow-color: #1CA8CB;
   --success-color: #28a745;
   --error-color: #dc3545;
   --th-border-color: #E9EDF5;
@@ -206,7 +206,7 @@ a {
 }
 
 a:hover {
-  color: var(--title-color);
+  color: #2F74B3;
 }
 
 
@@ -599,7 +599,7 @@ figure.wp-block-gallery {
 
 .wp-block-button .wp-block-button__link:hover {
   color: #fff;
-  background-color: var(--theme-color);
+  background-color: #2F74B3;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link {

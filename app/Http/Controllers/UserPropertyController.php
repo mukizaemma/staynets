@@ -13,18 +13,26 @@ use Illuminate\Validation\Rule;
 
 class UserPropertyController extends Controller
 {
-    public function index()
-    {
-        $hotels = collect();
+public function index()
+{
+    $hotels = collect();
+    $amenities = collect();
 
-        if (auth()->check()) {
-            $hotels = \App\Models\Hotel::where('added_by', auth()->id())->latest()->get();
-        }
+    if (auth()->check()) {
+        $hotels = \App\Models\Hotel::where('added_by', auth()->id())
+            ->latest()
+            ->get();
 
-        return view('frontend.myProperties', [
-            'hotels' => $hotels,
-        ]);
+        $amenities = \App\Models\Amenity::orderBy('title')->get();
     }
+
+    return view('frontend.myProperties', [
+        'hotels' => $hotels,
+        'amenities' => $amenities,
+    ]);
+}
+
+
 
     public function myPropertyCreate()
     {
@@ -40,35 +48,54 @@ class UserPropertyController extends Controller
     }
 
 
-    public function storeHotel(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:hotels,slug',
-            'type' => 'nullable|string|max:100',
-            'stars' => 'nullable|string|max:10',
-            'location' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'city' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:4096',
-            'category_id' => 'nullable|integer',
-            'program_id' => 'nullable|integer',
-        ]);
-
-        $data['added_by'] = auth()->id();
-        $data['slug'] = $data['slug'] ?? Str::slug($data['name']) . '-' . Str::random(5);
+public function storeHotel(Request $request)
+{
+try {
+        $fileName = '';
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('public/images/hotels');
-            $data['image'] = basename($path);
+            $file = $request->file('image');
+            $path = $file->store('public/images/hotels');
+            $fileName = basename($path);
         }
 
-        $hotel = Hotel::create($data);
+        $slug = Str::slug($request->name);
+        $partnerUid = Str::uuid();
 
-        return redirect()->route('frontend.myProperties', $hotel)->with('success', 'Hotel created successfully. Add rooms next.');
+        $hotel = Hotel::create([
+            'partner_uid' => $partnerUid,
+            'name' => $request->name,
+            'type' => $request->type,
+            'stars' => $request->stars,
+            'location' => $request->location,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'city' => $request->city,
+            'description' => $request->description,
+            'image' => $fileName,
+            'website' => $request->website,
+            'category_id' => 1,
+            'program_id' => 1,
+            'added_by' => $request->user()->id,
+            'slug' => $slug,
+        ]);
+
+        if (!$hotel) {
+            return back()
+                ->withInput()
+                ->with('error', 'Hotel could not be saved. Please try again.');
+        }
+
+        return redirect('myProperties')
+            ->with('success', 'New Hotel has been saved successfully');
+
+    } catch (\Throwable $e) {
+        return back()
+            ->withInput()
+            ->with('error', 'Something went wrong while saving the hotel.');
     }
+}
+
 
     public function editHotel(Hotel $hotel)
     {
