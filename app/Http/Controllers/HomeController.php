@@ -6,6 +6,8 @@ use DB;
 use App\Models\Blog;
 use App\Models\Car;
 use App\Models\Hotel;
+use App\Models\Property;
+use App\Models\HotelBooking;
 use App\Models\Leftbag;
 use App\Models\Ticketing;
 use App\Models\HotelRoom;
@@ -26,6 +28,10 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
+use App\Mail\BookingNotification;
+use App\Mail\BookingConfirmation;
 use Illuminate\Support\Collection;
 
 
@@ -43,6 +49,40 @@ class HomeController extends Controller
         $trips = Trip::with('images')->oldest()->take(3)->get();
         $locations = Hotel::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
 
+        // Get destinations (categories) with property count
+        $destinations = Category::where('status', 'Active')
+            ->withCount(['hotels' => function($query) {
+                $query->where('status', 'Active');
+            }])
+            ->whereHas('hotels', function($query) {
+                $query->where('status', 'Active');
+            })
+            ->oldest()
+            ->get();
+
+        // Get latest 6 properties
+        $latestProperties = Hotel::where('status', 'Active')
+            ->with(['rooms' => function($q) {
+                $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
+            }, 'reviews'])
+            ->latest()
+            ->take(6)
+            ->get();
+
+        // Get popular trip activities
+        $popularTrips = Trip::where('status', 'Active')
+            ->with(['images', 'reviews', 'destination'])
+            ->withCount('reviews')
+            ->orderBy('reviews_count', 'desc')
+            ->take(6)
+            ->get();
+
+        // Get general business reviews (testimonials) - only approved ones
+        $businessReviews = Review::where('is_approved', true)
+            ->latest()
+            ->take(6)
+            ->get();
+
         return view('frontend.index',[
             'slides'=>$slides,
             'hotels'=>$hotels,
@@ -51,6 +91,10 @@ class HomeController extends Controller
             'trips'=>$trips,
             'services'=>$services,
             'locations'=>$locations,
+            'destinations'=>$destinations,
+            'latestProperties'=>$latestProperties,
+            'popularTrips'=>$popularTrips,
+            'businessReviews'=>$businessReviews,
             
         ]);
 
@@ -61,12 +105,22 @@ public function hotelsSearch(Request $request)
     $q = $request->input('q');
     $city = $request->input('city');
     $address = $request->input('address');
+    $location = $request->input('location');
+    $propertyType = $request->input('property_type');
+    $guests = $request->input('guests');
+    $checkin = $request->input('checkin');
+    $checkout = $request->input('checkout');
     $orderby = $request->input('orderby');
 
-    $query = Hotel::query()
-        ->where('status', 'Active')
-        ->where('type', 'hotel');
+    $query = Property::query()
+        ->where('status', 'Active');
 
+    // Filter by property type
+    if (!empty($propertyType)) {
+        $query->where('property_type', $propertyType);
+    }
+
+    // Search by name
     if (!empty($q)) {
         $query->where('name', 'like', "%{$q}%");
     }
@@ -76,12 +130,35 @@ public function hotelsSearch(Request $request)
         $query->where('city', 'like', "%{$city}%");
     }
 
-    // Filter by address / location
+    // Filter by location/destination
+    if (!empty($location)) {
+        $query->where(function ($q) use ($location) {
+            $q->where('location', 'like', "%{$location}%")
+              ->orWhere('city', 'like', "%{$location}%");
+        });
+    }
+
+    // Filter by address
     if (!empty($address)) {
         $query->where(function ($q) use ($address) {
             $q->where('address', 'like', "%{$address}%")
               ->orWhere('location', 'like', "%{$address}%");
         });
+    }
+
+    // Filter by guests (if units relationship exists, filter properties with available units)
+    // This is a basic implementation - you may want to enhance this based on your Unit model
+    if (!empty($guests)) {
+        // For now, we'll just store this in session for later use in booking
+        session(['search_guests' => $guests]);
+    }
+
+    // Store check-in/check-out dates in session for booking flow
+    if (!empty($checkin)) {
+        session(['search_checkin' => $checkin]);
+    }
+    if (!empty($checkout)) {
+        session(['search_checkout' => $checkout]);
     }
 
     // Ordering
@@ -108,9 +185,9 @@ public function hotelsSearch(Request $request)
 
     $rooms = $query->paginate(12)->appends($request->query());
 
-    // AJAX response (FIXED: you were passing $rooms)
+    // AJAX response
     if ($request->ajax()) {
-        $html = view('frontend.partials.accommodations_results', compact('hotels'))->render();
+        $html = view('frontend.partials.accommodations_results', compact('rooms'))->render();
         return response()->json(['html' => $html]);
     }
 
@@ -120,15 +197,22 @@ public function hotelsSearch(Request $request)
 
     public function hotels(Request $request)
 {
-    $query = Hotel::query()
-        ->where('status', 'Active');
+    $query = Property::query()
+        ->where('status', 'Active')
+        ->where('property_type', 'hotel');
 
-    // Search by hotel name
+    // Enhanced search: search by name OR location when q is provided
     if ($request->filled('q')) {
-        $query->where('name', 'like', '%' . $request->q . '%');
+        $searchTerm = $request->q;
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('name', 'like', '%' . $searchTerm . '%')
+              ->orWhere('location', 'like', '%' . $searchTerm . '%')
+              ->orWhere('city', 'like', '%' . $searchTerm . '%')
+              ->orWhere('address', 'like', '%' . $searchTerm . '%');
+        });
     }
 
-    // Search by location or city
+    // Search by location or city (separate filter)
     if ($request->filled('location')) {
         $query->where(function ($q) use ($request) {
             $q->where('location', 'like', '%' . $request->location . '%')
@@ -141,20 +225,76 @@ public function hotelsSearch(Request $request)
         $query->where('category_id', $request->category_id);
     }
 
-    $rooms = $query->latest()
-                    ->paginate(12)
-                    ->appends($request->query());
+    // Ordering
+    $orderby = $request->input('orderby', 'menu_order');
+    switch ($orderby) {
+        case 'date':
+            $query->orderBy('created_at', 'desc');
+            break;
+        case 'price':
+            $query->orderBy('name', 'asc'); // Replace when price exists
+            break;
+        case 'price-desc':
+            $query->orderBy('name', 'desc');
+            break;
+        case 'rating':
+            $query->orderBy('stars', 'desc');
+            break;
+        case 'popularity':
+            // You can implement popularity based on bookings/views
+            $query->orderBy('created_at', 'desc');
+            break;
+        default:
+            $query->latest();
+    }
 
-    return view('frontend.hotels', compact('rooms'));
+    $rooms = $query->with('units')->paginate(12)->appends($request->query());
+
+    // Get unique locations for the search dropdown
+    $locations = Property::where('status', 'Active')
+        ->where('property_type', 'hotel')
+        ->whereNotNull('location')
+        ->where('location', '!=', '')
+        ->distinct()
+        ->pluck('location')
+        ->filter()
+        ->sort()
+        ->values()
+        ->toArray();
+
+    // Also include cities
+    $cities = Property::where('status', 'Active')
+        ->where('property_type', 'hotel')
+        ->whereNotNull('city')
+        ->where('city', '!=', '')
+        ->distinct()
+        ->pluck('city')
+        ->filter()
+        ->sort()
+        ->values()
+        ->toArray();
+
+    // Merge and remove duplicates
+    $allLocations = array_unique(array_merge($locations, $cities));
+    sort($allLocations);
+
+    // AJAX response
+    if ($request->ajax()) {
+        $html = view('frontend.partials.hotels_results', compact('rooms'))->render();
+        return response()->json(['html' => $html]);
+    }
+
+    return view('frontend.hotels', compact('rooms', 'allLocations'));
 }
 
 
     public function apartments(Request $request)
     {
-
         $q = $request->input('q');
         $orderby = $request->input('orderby');
-        $query = \App\Models\Hotel::query()->where('status','Active')->where('type','apartment');
+        $query = Property::query()
+            ->where('status', 'Active')
+            ->where('property_type', 'apartment');
 
         if (!empty($q)) {
             $query->where(function($qbuilder) use ($q) {
@@ -176,22 +316,54 @@ public function hotelsSearch(Request $request)
                 $query->orderBy('name', 'desc');
                 break;
             case 'rating':
-                $query->orderBy('name', 'asc');
+                $query->orderBy('stars', 'desc');
+                break;
+            case 'popularity':
+                $query->orderBy('created_at', 'desc');
                 break;
             default:
-                $query->oldest();
+                $query->latest();
         }
 
-        $rooms = $query->paginate(12)->appends($request->query());
+        $properties = $query->with('units')->paginate(12)->appends($request->query());
+
+        // Get unique locations for the search dropdown (apartments)
+        $locations = Property::where('status', 'Active')
+            ->where('property_type', 'apartment')
+            ->whereNotNull('location')
+            ->where('location', '!=', '')
+            ->distinct()
+            ->pluck('location')
+            ->filter()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Also include cities
+        $cities = Property::where('status', 'Active')
+            ->where('property_type', 'apartment')
+            ->whereNotNull('city')
+            ->where('city', '!=', '')
+            ->distinct()
+            ->pluck('city')
+            ->filter()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Merge and remove duplicates
+        $allLocations = array_unique(array_merge($locations, $cities));
+        sort($allLocations);
 
         if ($request->ajax()) {
             // render the partial view and return HTML
-            $html = view('frontend.partials.accommodations_results', compact('rooms'))->render();
+            $html = view('frontend.partials.hotels_results', compact('properties'))->render();
             return response()->json(['html' => $html]);
         }
 
         return view('frontend.hotels', [
-            'rooms' => $rooms,
+            'rooms' => $properties, // Keep 'rooms' for backward compatibility with view
+            'allLocations' => $allLocations,
         ]);
     
     }
@@ -360,10 +532,24 @@ public function accommodations(Request $request)
 
 public function showAccommodation(Request $request, $slug)
 {
-    $hotel = Hotel::with(['hotelRooms' => function($q) {
-        $q->where('status', 'Available')
-            ->orderBy('price_per_night', 'asc');
-    }])
+    $hotel = Property::with([
+        'units' => function($q) {
+            $q->where('status', 'Available')
+                ->with(['images', 'facilities'])
+                ->orderBy('base_price_per_night', 'asc');
+        },
+        'images' => function($q) {
+            $q->orderBy('is_primary', 'desc')->orderBy('sort_order');
+        },
+        'facilities.category' => function($q) {
+            $q->where('is_active', true);
+        },
+        'reviews' => function($q) {
+            $q->latest()->take(10);
+        },
+        'owner',
+        'category'
+    ])
     ->where(function($q) use ($slug) {
         if (is_numeric($slug)) {
             $q->where('id', $slug);
@@ -374,10 +560,98 @@ public function showAccommodation(Request $request, $slug)
     ->where('status', 'Active') 
     ->firstOrFail();
 
+    // Group amenities by category
+    $amenitiesByCategory = $hotel->facilities->groupBy('facility_category_id')->map(function($amenities) {
+        return $amenities->first()->category ?? null;
+    })->filter();
+
     return view('frontend.accommodation', [
         'hotel' => $hotel,
-        'rooms' => $hotel->hotelRooms, 
+        'rooms' => $hotel->units,
+        'amenitiesByCategory' => $amenitiesByCategory,
     ]);
+}
+
+/**
+ * Store a booking for a property unit
+ */
+public function storeBooking(Request $request)
+{
+    $request->validate([
+        'property_id' => 'required|exists:properties,id',
+        'unit_id' => 'required|exists:units,id',
+        'check_in' => 'required|date|after_or_equal:today',
+        'check_out' => 'required|date|after:check_in',
+        'guests_count' => 'required|integer|min:1',
+    ]);
+
+    // Check if user is authenticated
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Please login to make a booking.');
+    }
+
+    // Check if email is verified
+    if (!Auth::user()->hasVerifiedEmail()) {
+        return redirect()->back()->with('error', 'Please verify your email address before making a booking. Check your inbox for the verification link.');
+    }
+
+    // Get unit to calculate price
+    $unit = \App\Models\Unit::findOrFail($request->unit_id);
+    $property = Property::findOrFail($request->property_id);
+
+    // Verify unit belongs to property
+    if ($unit->property_id != $property->id) {
+        return redirect()->back()->with('error', 'Invalid unit for this property.');
+    }
+
+    // Calculate number of nights
+    $checkIn = new \DateTime($request->check_in);
+    $checkOut = new \DateTime($request->check_out);
+    $nights = $checkIn->diff($checkOut)->days;
+
+    // Calculate total amount
+    $pricePerNight = $unit->base_price_per_night ?? 0;
+    $totalAmount = $pricePerNight * $nights;
+
+    // Generate reference number
+    $referenceNumber = 'BK' . strtoupper(uniqid());
+
+    // Create booking
+    $booking = HotelBooking::create([
+        'user_id' => Auth::id(),
+        'hotel_id' => null, // Using property_id instead for new system
+        'property_id' => $request->property_id,
+        'room_id' => null, // Using unit_id instead for new system
+        'unit_id' => $request->unit_id,
+        'check_in' => $request->check_in,
+        'check_out' => $request->check_out,
+        'guests_count' => $request->guests_count,
+        'total_amount' => $totalAmount,
+        'reference_number' => $referenceNumber,
+        'payment_status' => 'pending',
+        'booking_status' => 'pending',
+    ]);
+
+    // Load relationships for email
+    $booking->load(['user', 'property', 'unit']);
+
+    // Send email notification to admin
+    try {
+        Mail::to('info@iremetech.com')->send(new BookingNotification($booking));
+    } catch (\Exception $e) {
+        // Log error but don't fail the booking
+        \Log::error('Failed to send admin booking notification: ' . $e->getMessage());
+    }
+
+    // Send confirmation email to client
+    try {
+        Mail::to($booking->user->email)->send(new BookingConfirmation($booking));
+    } catch (\Exception $e) {
+        // Log error but don't fail the booking
+        \Log::error('Failed to send client booking confirmation: ' . $e->getMessage());
+    }
+
+    return redirect()->route('hotel', $property->slug)->with('success', 'Booking submitted successfully! Reference: ' . $referenceNumber . '. We will contact you soon to confirm your booking.');
 }
 
 
@@ -395,19 +669,29 @@ public function destinations()
 public function destination($slug)
 {
     $category = Category::where('slug', $slug)->firstOrFail();
-    $trips = Trip::Oldest()->get();
+    
+    // Get all active properties for this destination
     $hotels = $category
         ->hotels()
-        ->where('status', 'Active')           
+        ->where('status', 'Active')
+        ->with(['rooms' => function($q) {
+            $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
+        }, 'reviews'])
         ->orderBy('created_at', 'desc')         
-        ->paginate(9);                      
+        ->paginate(12);
 
+    // Get tour activities for this destination
+    // Trips table has category_id field that references categories
+    $trips = Trip::where('status', 'Active')
+        ->where('category_id', $category->id)
+        ->with(['images', 'reviews', 'destination'])
+        ->latest()
+        ->get();
 
     return view('frontend.destination', [
-
         'trips' => $trips,
         'category' => $category,
-        'hotels'   => $hotels,
+        'hotels' => $hotels,
     ]);
 }
 
@@ -679,11 +963,34 @@ public function bookNow(Request $request)
 
 
     public function tours(){
-        $tours = Trip::oldest()->get();
+        // Show trip destinations instead of trips directly
+        $destinations = \App\Models\TripDestination::where('status', 'Active')->with('trips')->oldest()->get();
         $setting = Setting::first();
         $about = About::first();
         return view('frontend.tours',[
-            'tours'=>$tours,
+            'destinations'=>$destinations,
+            'setting'=>$setting,
+            'about'=>$about,
+        ]);
+    }
+
+    public function tripDestination($slug){
+        $destination = \App\Models\TripDestination::with(['trips' => function($query) {
+            $query->where('status', 'Active')->oldest();
+        }, 'images'])->where('slug', $slug)->where('status', 'Active')->firstOrFail();
+        
+        $relatedDestinations = \App\Models\TripDestination::where('id', '!=', $destination->id)
+            ->where('status', 'Active')
+            ->oldest()
+            ->take(3)
+            ->get();
+        
+        $setting = Setting::first();
+        $about = About::first();
+        
+        return view('frontend.tripDestination',[
+            'destination'=>$destination,
+            'relatedDestinations'=>$relatedDestinations,
             'setting'=>$setting,
             'about'=>$about,
         ]);
@@ -718,6 +1025,50 @@ public function bookNow(Request $request)
             'rooms'=>$rooms,
             'facilities'=>$facilities,
         ]);
+    }
+
+    public function tripInquiry(Request $request)
+    {
+        $validatedData = $request->validate([
+            'trip_id' => 'required|exists:trips,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:255',
+            'preferred_date' => 'nullable|date|after_or_equal:today',
+            'number_of_people' => 'nullable|integer|min:1',
+            'message' => 'nullable|string',
+        ]);
+
+        // Build the message with all details
+        $messageContent = "Trip Reservation Inquiry\n\n";
+        $messageContent .= "Trip: " . ($request->input('trip_title') ?? 'N/A') . "\n";
+        if ($request->filled('preferred_date')) {
+            $messageContent .= "Preferred Date: " . $request->input('preferred_date') . "\n";
+        }
+        if ($request->filled('number_of_people')) {
+            $messageContent .= "Number of People: " . $request->input('number_of_people') . "\n";
+        }
+        if ($request->filled('message')) {
+            $messageContent .= "\nAdditional Message:\n" . $request->input('message');
+        }
+
+        // Create reservation using the Reservation model
+        // Using facility_id to store trip_id for trip inquiries
+        $reservation = \App\Models\Reservation::create([
+            'names' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'message' => $messageContent,
+            'facility_id' => $validatedData['trip_id'],
+            'guests' => $request->input('number_of_people') ?? 1,
+            'status' => 'pending',
+        ]);
+
+        if ($reservation) {
+            return redirect()->back()->with('success', '✅ Your reservation inquiry has been received! We\'ll contact you soon to confirm your booking.');
+        } else {
+            return redirect()->back()->with('error', '❌ Sorry, your inquiry could not be submitted. Please try again.');
+        }
     }
 
 
@@ -849,5 +1200,17 @@ public function bookNow(Request $request)
         }
     }
 
+    /**
+     * Logout the authenticated user
+     */
+    public function logouts()
+    {
+        Auth::logout();
+        
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+        
+        return redirect()->route('home')->with('success', 'You have been logged out successfully.');
+    }
 
 }

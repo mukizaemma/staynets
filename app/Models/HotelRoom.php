@@ -11,12 +11,15 @@ class HotelRoom extends Model
 
     protected $fillable = [
         'hotel_id',
+        'added_by',
         'slug',
         'room_type',
+        'image',
         'max_occupancy',
         'price_per_night',
         'total_rooms',
         'available_rooms',
+        'description',
         'amenities',
         'status',
     ];

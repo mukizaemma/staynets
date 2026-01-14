@@ -13,10 +13,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('added_by');
             $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('program_id');
+            $table->unsignedBigInteger('partner_id')->nullable(); // Added from start
             $table->string('name');
             $table->string('slug');
             $table->string('type')->nullable();
             $table->string('stars')->nullable();
+            $table->string('address')->nullable(); // Added from start
             $table->string('location')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
@@ -30,9 +33,15 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('added_by')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
-            $table->unsignedBigInteger('program_id');
-            $table->foreign("program_id")->references("id")->on("programs")->onDelete("cascade");
+            if (Schema::hasTable('categories')) {
+                $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            }
+            if (Schema::hasTable('programs')) {
+                $table->foreign('program_id')->references('id')->on('programs')->onDelete('cascade');
+            }
+            if (Schema::hasTable('partners')) {
+                $table->foreign('partner_id')->references('id')->on('partners')->onDelete('set null');
+            }
         });
     }
 

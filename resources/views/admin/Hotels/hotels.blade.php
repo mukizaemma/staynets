@@ -21,6 +21,21 @@
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h6 class="mb-0">Our Partner Hotels</h6>
 
+                        <div class="col-dm3">
+
+                            <button type="button" class="btn btn-primary float-left" data-bs-toggle="modal" data-bs-target="#NewDestination">
+                                <i class="fa fa-plus"></i> Add New Hotel
+                            </button>
+                            <a href="{{ route('admin.units.index') }}" class="btn btn-secondary float-left me-2">
+                                <i class="fa fa-route"></i> Hotel Rooms
+                            </a>
+
+                            <a href="{{ route('getDestinations') }}" class="btn btn-secondary float-left me-2">
+                                <i class="fa fa-route"></i> Hotel Destinations
+                            </a>
+
+                        </div>
+
                         <a href="{{ route('getRooms') }}" class="btn btn-primary btn-sm">Hotel Rooms</a>
 
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#slideImage">

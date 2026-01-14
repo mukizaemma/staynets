@@ -4,15 +4,106 @@
 
 <section class="space">
     <div class="container">
-        <div class="th-sort-bar">
+        <!-- Search Card with Auto-Search -->
+        <div class="row mb-40">
+            <div class="col-12">
+                <div class="search-card" style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 100%); border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05);">
+                    <form id="hotelsSearchForm" method="get" action="{{ url()->current() }}">
+                        <div class="row g-3 align-items-end">
+                            <!-- Search Input with Auto-Search -->
+                            <div class="col-lg-5 col-md-6">
+                                <div class="form-item position-relative">
+                                    <label class="form-label mb-2" style="font-weight: 600; color: #333; font-size: 14px;">
+                                        <i class="fas fa-search me-2"></i>Search by Property Name or Location
+                                    </label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-search position-absolute" style="left: 15px; top: 50%; transform: translateY(-50%); color: #999; z-index: 10; pointer-events: none;"></i>
+                                        <input type="text" 
+                                               name="q" 
+                                               id="searchInput" 
+                                               value="{{ request('q') }}" 
+                                               placeholder="Type property name, city, or location..."
+                                               class="form-control"
+                                               style="padding-left: 45px; height: 50px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; transition: all 0.3s ease;"
+                                               autocomplete="off">
+                                        <button type="button" id="clearSearch" aria-label="Clear search"
+                                            style="position:absolute; right:15px; top:50%; transform:translateY(-50%); border:none; background:none; font-size:20px; cursor:pointer; color:#999; display: {{ request('q') ? 'inline-block' : 'none' }}; z-index: 10;">
+                                            &times;
+                                        </button>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block" style="font-size: 12px;">
+                                        <i class="fas fa-info-circle me-1"></i>Search automatically updates as you type
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Location Filter (Optional) -->
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-item">
+                                    <label class="form-label mb-2" style="font-weight: 600; color: #333; font-size: 14px;">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Filter by Location
+                                    </label>
+                                    <select name="location" id="locationFilter" class="form-select" style="height: 50px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px;">
+                                        <option value="">All Locations</option>
+                                        @if(isset($allLocations) && is_array($allLocations))
+                                            @foreach($allLocations as $loc)
+                                                <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>
+                                                    {{ $loc }}
+                                                </option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Sort Order -->
+                            <div class="col-lg-2 col-md-6">
+                                <div class="form-item">
+                                    <label class="form-label mb-2" style="font-weight: 600; color: #333; font-size: 14px;">
+                                        <i class="fas fa-sort me-2"></i>Sort By
+                                    </label>
+                                    <select name="orderby" id="orderBy" class="form-select" style="height: 50px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px;">
+                                        <option value="menu_order" {{ request('orderby') == 'menu_order' ? 'selected' : '' }}>Default</option>
+                                        <option value="popularity" {{ request('orderby') == 'popularity' ? 'selected' : '' }}>Popularity</option>
+                                        <option value="rating" {{ request('orderby') == 'rating' ? 'selected' : '' }}>Rating</option>
+                                        <option value="date" {{ request('orderby') == 'date' ? 'selected' : '' }}>Latest</option>
+                                        <option value="price" {{ request('orderby') == 'price' ? 'selected' : '' }}>Price: Low to High</option>
+                                        <option value="price-desc" {{ request('orderby') == 'price-desc' ? 'selected' : '' }}>Price: High to Low</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- View Toggle -->
+                            <div class="col-lg-2 col-md-6">
+                                <div class="form-item">
+                                    <label class="form-label mb-2" style="font-weight: 600; color: #333; font-size: 14px;">
+                                        <i class="fas fa-th me-2"></i>View
+                                    </label>
+                                    <div class="btn-group w-100" role="group" style="height: 50px;">
+                                        <a href="#" id="tab-destination-grid" class="btn btn-outline-primary active" data-bs-toggle="tab" data-bs-target="#tab-grid" style="border-radius: 12px 0 0 12px; border: 2px solid #e0e0e0;">
+                                            <i class="fa-light fa-grid-2"></i>
+                                        </a>
+                                        <a href="#" id="tab-destination-list" class="btn btn-outline-primary" data-bs-toggle="tab" data-bs-target="#tab-list" style="border-radius: 0 12px 12px 0; border: 2px solid #e0e0e0; border-left: none;">
+                                            <i class="fa-solid fa-list"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="th-sort-bar" style="display: none;">
             <div class="row justify-content-between align-items-center">
                 <div class="col-md-4">
                     <div class="search-form-area">
                         <form id="accommodationsSearchForm" class="search-form" method="get" action="{{ url()->current() }}" style="position: relative;">
-                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Search" id="searchInput">
+                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Search" id="searchInputOld">
 
                             <!-- Clear button always present (hidden when input empty) -->
-                            <button type="button" id="clearSearch" aria-label="Clear search"
+                            <button type="button" id="clearSearchOld" aria-label="Clear search"
                                 style="
                                     position:absolute;
                                     right:45px;
@@ -66,13 +157,25 @@
                         <div class="tab-pane fade active show" id="tab-grid" role="tabpanel" aria-labelledby="tab-destination-grid">
                             <div class="row gy-30">
                                 @forelse($rooms as $hotel)
-                                    <div class="col-xxl-4 col-xl-6">
-                                        <div class="tour-box th-ani">
-                                            <div class="tour-box_img global-img">
-                                                @if($hotel->image && file_exists(storage_path('app/public/images/hotels/' . $hotel->image)))
-                                                    <img src="{{ asset('storage/images/hotels/' . $hotel->image) }}" alt="{{ $hotel->name }}">
-                                                @else
-                                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="tour-box th-ani" style="height: 100%;">
+                                            <div class="tour-box_img global-img" style="position: relative;">
+                                                @php
+                                                    // Property model uses featured_image, stored in properties folder
+                                                    $imagePath = $hotel->featured_image ? asset('storage/images/properties/' . $hotel->featured_image) : asset('assets/img/tour/tour_3_1.jpg');
+                                                @endphp
+                                                <img src="{{ $imagePath }}" alt="{{ $hotel->name }}">
+                                                @php
+                                                    // Get min price from units relationship (Property model uses units, not rooms)
+                                                    $minPrice = $hotel->min_price ?? null;
+                                                    if (!$minPrice && $hotel->units && $hotel->units->isNotEmpty()) {
+                                                        $minPrice = $hotel->units->where('base_price_per_night', '>', 0)->min('base_price_per_night');
+                                                    }
+                                                @endphp
+                                                @if($minPrice)
+                                                    <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                                                        ${{ number_format($minPrice, 0) }}/night
+                                                    </div>
                                                 @endif
                                             </div>
 
@@ -81,27 +184,37 @@
                                                     <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
                                                 </h3>
 
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <div class="tour-rating">
                                                     @php
                                                         $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
                                                         $stars = max(0, min(5, $stars));
+                                                            $avgRating = $hotel->average_rating ?? 0;
+                                                            $totalReviews = $hotel->total_reviews ?? 0;
                                                     @endphp
 
                                                     <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
                                                         @for($i = 1; $i <= 5; $i++)
                                                             @if($i <= $stars)
-                                                                <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                                                    <i class="fa-solid fa-star text-warning" aria-hidden="true"></i>
+                                                                @else
+                                                                    <i class="fa-regular fa-star text-warning" aria-hidden="true"></i>
+                                                                @endif
+                                                            @endfor
+                                                            @if($totalReviews > 0)
+                                                                <span class="ms-2" style="font-size: 14px; color: #666;">
+                                                                    {{ number_format($avgRating, 1) }} ({{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }})
+                                                                </span>
                                                             @else
-                                                                <i class="fa-regular fa-star" aria-hidden="true"></i>
+                                                                <span class="ms-2" style="font-size: 14px; color: #666;">No reviews yet</span>
                                                             @endif
-                                                        @endfor
-                                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="woocommerce-review-link">({{ $stars }} Rating)</a>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <p class="mb-2" style="margin:6px 0;">
-                                                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                                    {{ $hotel->location ?? $hotel->city ?? 'Location not specified' }}
+                                                <p class="mb-3" style="margin:6px 0; color: #666;">
+                                                    <i class="fa-solid fa-location-dot text-primary me-2" aria-hidden="true"></i>
+                                                    <strong>{{ $hotel->location ?? $hotel->city ?? 'Location not specified' }}</strong>
                                                 </p>
 
                                                 <div class="tour-action">
@@ -126,11 +239,11 @@
                                     <div class="col-12">
                                         <div class="tour-box style-flex th-ani">
                                             <div class="tour-box_img global-img">
-                                                @if($hotel->image && file_exists(storage_path('app/public/images/hotels/' . $hotel->image)))
-                                                    <img src="{{ asset('storage/images/hotels/' . $hotel->image) }}" alt="{{ $hotel->name }}">
-                                                @else
-                                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
-                                                @endif
+                                                @php
+                                                    // Property model uses featured_image, stored in properties folder
+                                                    $imagePath = $hotel->featured_image ? asset('storage/images/properties/' . $hotel->featured_image) : asset('assets/img/tour/tour_3_1.jpg');
+                                                @endphp
+                                                <img src="{{ $imagePath }}" alt="{{ $hotel->name }}">
                                             </div>
 
                                             <div class="tour-content">
@@ -196,14 +309,16 @@
 
 <script>
 (function () {
-    // Elements
+    // Elements - Updated to use new form IDs
     const resultsContainer = document.getElementById('accommodations-results');
     const searchInput = document.getElementById('searchInput');
-    const orderSelect = document.querySelector('.woocommerce-ordering select[name="orderby"]');
+    const locationFilter = document.getElementById('locationFilter');
+    const orderSelect = document.getElementById('orderBy');
     const clearBtn = document.getElementById('clearSearch');
+    const searchForm = document.getElementById('hotelsSearchForm');
 
     // Debounce utility
-    function debounce(fn, wait = 300) {
+    function debounce(fn, wait = 400) {
         let t;
         return function(...args) {
             clearTimeout(t);
@@ -211,12 +326,11 @@
         };
     }
 
-    // AJAX fetch function (exposed globally so clear button or other scripts can call it)
+    // AJAX fetch function
     async function fetchResults(params = {}) {
-        // ensure results container exists
         if (!resultsContainer) return;
 
-        // build url with current querystring + params
+        // Build URL with current querystring + params
         const url = new URL(window.location.href);
         Object.keys(params).forEach(k => {
             if (params[k] === null || params[k] === undefined || params[k] === '') {
@@ -226,20 +340,23 @@
             }
         });
 
-        // loading indication
+        // Loading indication
         resultsContainer.style.opacity = '0.5';
+        resultsContainer.style.pointerEvents = 'none';
 
         try {
             const res = await fetch(url.toString(), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
             });
 
-            // expect JSON: { html: '...' }
             const json = await res.json();
 
             if (json && json.html !== undefined) {
                 resultsContainer.innerHTML = json.html;
-                bindPaginationLinks(); // rebind links inside injected html
+                bindPaginationLinks();
             } else if (typeof json === 'string') {
                 resultsContainer.innerHTML = json;
                 bindPaginationLinks();
@@ -247,72 +364,105 @@
                 console.warn('Unexpected AJAX response', json);
             }
 
-            // update URL so user can bookmark/share and back works
+            // Update URL without reload
             window.history.pushState({}, '', url.toString());
         } catch (err) {
             console.error('Search fetch error', err);
         } finally {
             resultsContainer.style.opacity = '1';
+            resultsContainer.style.pointerEvents = 'auto';
         }
     }
 
-    // Expose for other scripts
+    // Expose globally
     window.fetchAccommodationsResults = fetchResults;
 
-    // Bind pagination links inside results to load via AJAX
+    // Bind pagination links
     function bindPaginationLinks() {
         if (!resultsContainer) return;
-        // find pagination anchors (support both your .th-pagination and Laravel .pagination)
         const pagerLinks = resultsContainer.querySelectorAll('.th-pagination a, .pagination a');
         pagerLinks.forEach(a => {
-            // remove previous handlers by cloning (defensive)
             const newA = a.cloneNode(true);
             a.parentNode.replaceChild(newA, a);
 
             newA.addEventListener('click', function(e) {
                 const href = this.getAttribute('href');
                 if (!href) return;
-                // parse page param from href
                 const linkUrl = new URL(href, window.location.origin);
                 const page = linkUrl.searchParams.get('page');
                 if (page) {
                     e.preventDefault();
                     const q = searchInput ? searchInput.value : '';
+                    const location = locationFilter ? locationFilter.value : '';
                     const orderby = orderSelect ? orderSelect.value : '';
-                    fetchResults({ q, orderby, page });
+                    fetchResults({ q, location, orderby, page });
                 }
             });
         });
     }
 
-    // Hook search input (debounced)
+    // Auto-search on input (debounced) - searches by property name OR location
     if (searchInput) {
         const onInput = debounce(function() {
-            const q = this.value;
+            const q = this.value.trim();
+            const location = locationFilter ? locationFilter.value : '';
             const orderby = orderSelect ? orderSelect.value : '';
-            fetchResults({ q, orderby, page: 1 });
-        }, 350);
-        searchInput.addEventListener('input', onInput);
+            fetchResults({ q, location, orderby, page: 1 });
+        }, 400);
+        
+        searchInput.addEventListener('input', function() {
+            toggleClearBtn();
+            onInput.call(this);
+        });
+
+        // Add focus effect
+        searchInput.addEventListener('focus', function() {
+            this.style.borderColor = '#25D366';
+            this.style.boxShadow = '0 0 0 0.2rem rgba(37, 211, 102, 0.1)';
+        });
+
+        searchInput.addEventListener('blur', function() {
+            this.style.borderColor = '#e0e0e0';
+            this.style.boxShadow = 'none';
+        });
     }
 
-    // Hook order select (change)
+    // Location filter change
+    if (locationFilter) {
+        locationFilter.addEventListener('change', function() {
+            const q = searchInput ? searchInput.value : '';
+            const location = this.value;
+            const orderby = orderSelect ? orderSelect.value : '';
+            fetchResults({ q, location, orderby, page: 1 });
+        });
+    }
+
+    // Order select change
     if (orderSelect) {
         orderSelect.addEventListener('change', function() {
             const q = searchInput ? searchInput.value : '';
-            fetchResults({ q, orderby: this.value, page: 1 });
+            const location = locationFilter ? locationFilter.value : '';
+            const orderby = this.value;
+            fetchResults({ q, location, orderby, page: 1 });
         });
     }
 
-    // Clear button behavior: full reload and redirect to accommodations route
+    // Clear button
     if (clearBtn) {
         clearBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            // full-page redirect to accommodations route (server will show unfiltered list)
-            window.location.href = {!! json_encode(route('accommodations')) !!};
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+                toggleClearBtn();
+                const location = locationFilter ? locationFilter.value : '';
+                const orderby = orderSelect ? orderSelect.value : '';
+                fetchResults({ q: '', location, orderby, page: 1 });
+            }
         });
     }
 
-    // Update clear button visibility as user types
+    // Toggle clear button visibility
     function toggleClearBtn() {
         if (!clearBtn || !searchInput) return;
         if (searchInput.value && searchInput.value.trim().length > 0) {
@@ -321,28 +471,64 @@
             clearBtn.style.display = 'none';
         }
     }
-    if (searchInput) {
-        searchInput.addEventListener('input', toggleClearBtn);
-        toggleClearBtn();
+
+    // Prevent form submission (we use AJAX)
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const q = searchInput ? searchInput.value : '';
+            const location = locationFilter ? locationFilter.value : '';
+            const orderby = orderSelect ? orderSelect.value : '';
+            fetchResults({ q, location, orderby, page: 1 });
+        });
     }
 
     // Handle browser back/forward
     window.addEventListener('popstate', function() {
         const url = new URL(window.location.href);
         const q = url.searchParams.get('q') || '';
+        const location = url.searchParams.get('location') || '';
         const orderby = url.searchParams.get('orderby') || '';
         const page = url.searchParams.get('page') || 1;
 
         if (searchInput) searchInput.value = q;
+        if (locationFilter) locationFilter.value = location;
         if (orderSelect) orderSelect.value = orderby;
+        toggleClearBtn();
 
-        fetchResults({ q, orderby, page });
+        fetchResults({ q, location, orderby, page });
     });
 
-    // initial bindings
+    // Initial bindings
     bindPaginationLinks();
+    toggleClearBtn();
 
 })();
 </script>
+
+<style>
+.search-card .form-control:focus,
+.search-card .form-select:focus {
+    border-color: #25D366 !important;
+    box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.1) !important;
+    outline: none;
+}
+
+.search-card .btn-outline-primary.active {
+    background-color: #25D366;
+    border-color: #25D366;
+    color: white;
+}
+
+.search-card .btn-outline-primary:not(.active) {
+    color: #25D366;
+}
+
+.search-card .btn-outline-primary:hover {
+    background-color: #25D366;
+    border-color: #25D366;
+    color: white;
+}
+</style>
 
 @endsection

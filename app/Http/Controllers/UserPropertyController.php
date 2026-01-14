@@ -7,9 +7,12 @@ use App\Models\Program;
 use App\Models\Category;
 use App\Models\Hotel;
 use App\Models\HotelRoom;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AdminNotification;
 
 class UserPropertyController extends Controller
 {
@@ -20,6 +23,7 @@ public function index()
 
     if (auth()->check()) {
         $hotels = \App\Models\Hotel::where('added_by', auth()->id())
+            ->with(['rooms', 'images'])
             ->latest()
             ->get();
 
@@ -78,12 +82,46 @@ try {
             'program_id' => 1,
             'added_by' => $request->user()->id,
             'slug' => $slug,
+            'status' => 'Pending', // New properties created by users default to Pending for admin review
         ]);
 
         if (!$hotel) {
             return back()
                 ->withInput()
                 ->with('error', 'Hotel could not be saved. Please try again.');
+        }
+
+        // Notify the property owner (user) about the new property submission
+        $owner = $request->user();
+        if ($owner) {
+            $ownerDetails = [
+                'subject'  => 'Your property has been submitted for review',
+                'greeting' => 'Hello ' . $owner->name . ',',
+                'body'     => "Thank you for adding your property \"{$hotel->name}\" to our platform.\n\n"
+                             . "Our admin team will review your submission shortly. You will be notified once it is approved or if any changes are required.",
+                'lastline' => 'You can log in any time to view your properties in the My Properties section.',
+            ];
+
+            Mail::to($owner->email)->send(new AdminNotification($ownerDetails));
+        }
+
+        // Notify all admins (role = 1) about the new property created
+        $admins = User::where('role', 1)->get();
+        if ($admins->isNotEmpty()) {
+            $adminDetails = [
+                'subject'  => 'New property submitted for approval',
+                'greeting' => 'Hello Admin,',
+                'body'     => "A new property has been submitted by a user.\n\n"
+                             . "Property: {$hotel->name}\n"
+                             . "Owner: {$owner->name} ({$owner->email})\n\n"
+                             . "You can review and approve/reject this property here:\n"
+                             . route('admin.properties.index') . '?status=Pending',
+                'lastline' => 'Please log in to the admin dashboard to approve or reject this property.',
+            ];
+
+            foreach ($admins as $admin) {
+                Mail::to($admin->email)->send(new AdminNotification($adminDetails));
+            }
         }
 
         return redirect('myProperties')
@@ -120,6 +158,7 @@ try {
             'image' => 'nullable|image|max:4096',
             'category_id' => 'nullable|integer',
             'program_id' => 'nullable|integer',
+            // Note: 'status' is intentionally NOT included - only admins can change status
         ]);
 
         if ($request->hasFile('image')) {
@@ -134,7 +173,7 @@ try {
 
         $hotel->update($data);
 
-        return redirect()->route('frontend.myProperties')->with('success', 'Hotel updated.');
+        return redirect()->route('myProperties')->with('success', 'Hotel updated.');
     }
 
     public function showHotel(Hotel $hotel)
@@ -181,7 +220,7 @@ try {
 
         HotelRoom::create($data);
 
-        return redirect()->route('frontend.myProperties', $hotel)->with('success', 'Room added.');
+        return redirect()->route('myProperties')->with('success', 'Room added.');
     }
 
     public function editRoom(HotelRoom $room)
@@ -221,7 +260,50 @@ try {
 
         $room->update($data);
 
-        return redirect()->route('frontend.myProperties', $hotel)->with('success', 'Room updated.');
+        return redirect()->route('myProperties')->with('success', 'Room updated.');
+    }
+
+    /**
+     * Delete a property owned by the logged-in user (and its rooms).
+     */
+    public function destroyHotel(Hotel $hotel)
+    {
+        $this->authorizeOwner($hotel);
+
+        // Delete related rooms first to keep things clean
+        foreach ($hotel->rooms as $room) {
+            if ($room->image && Storage::exists('public/images/rooms/'.$room->image)) {
+                Storage::delete('public/images/rooms/'.$room->image);
+            }
+            $room->delete();
+        }
+
+        // Delete hotel cover image
+        if ($hotel->image && Storage::exists('public/images/hotels/' . $hotel->image)) {
+            Storage::delete('public/images/hotels/' . $hotel->image);
+        }
+
+        $hotel->delete();
+
+        return redirect()->route('myProperties')->with('success', 'Property has been removed successfully.');
+    }
+
+    /**
+     * Delete a room owned by the logged-in user.
+     */
+    public function destroyRoom(HotelRoom $room)
+    {
+        $hotel = $room->hotel;
+        $this->authorizeOwner($hotel);
+
+        // Delete room image
+        if ($room->image && Storage::exists('public/images/rooms/'.$room->image)) {
+            Storage::delete('public/images/rooms/'.$room->image);
+        }
+
+        $room->delete();
+
+        return redirect()->route('myProperties')->with('success', 'Room has been removed successfully.');
     }
 
     protected function authorizeOwner(Hotel $hotel)

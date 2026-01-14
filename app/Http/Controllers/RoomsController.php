@@ -19,11 +19,21 @@ class RoomsController extends Controller
     public function index(Request $request)
     {
         $userId = auth()->id();
+        $user = auth()->user();
+        $isAdmin = $user && $user->role == 1; // Check if user is admin (role = 1)
+        
         $search = $request->search;
         $hotels = Hotel::latest()->get();
-        $hotelIds = Hotel::where('added_by', $userId)->pluck('id');
+        
+        // If admin, show ALL rooms. Otherwise, only show rooms from user's hotels
+        if ($isAdmin) {
+            $roomsQuery = HotelRoom::with(['hotel', 'hotel.owner']);
+        } else {
+            $hotelIds = Hotel::where('added_by', $userId)->pluck('id');
+            $roomsQuery = HotelRoom::whereIn('hotel_id', $hotelIds);
+        }
 
-        $rooms = HotelRoom::whereIn('hotel_id', $hotelIds)
+        $rooms = $roomsQuery
             ->when($search, function ($q) use ($search) {
                 $q->where('room_type', 'LIKE', "%$search%")
                 ->orWhere('description', 'LIKE', "%$search%")
@@ -39,6 +49,7 @@ class RoomsController extends Controller
             'amenities' => Amenity::all(),
             'setting'   => Setting::first(),
             'search'    => $search,
+            'isAdmin'   => $isAdmin,
         ]);
     }
 
@@ -80,7 +91,15 @@ class RoomsController extends Controller
     
 public function edit($id)
 {
-    $room = HotelRoom::with('images')->findOrFail($id);
+    $room = HotelRoom::with(['images', 'hotel', 'hotel.owner'])->findOrFail($id);
+    $user = auth()->user();
+    $isAdmin = $user && $user->role == 1;
+    
+    // If not admin, check if user owns the hotel that this room belongs to
+    if (!$isAdmin && $room->hotel && $room->hotel->added_by !== $user->id) {
+        abort(403, 'You do not have permission to edit this room.');
+    }
+    
     $hotels = Hotel::latest()->get();
     $selectedAmenities = $room->amenities ? json_decode($room->amenities, true) : [];
 
@@ -96,6 +115,7 @@ public function edit($id)
         'images' => $images,
         'hotels' => $hotels,
         'totalImages' => $totalImages,
+        'isAdmin' => $isAdmin,
     ]);
 }
 
@@ -113,7 +133,14 @@ public function edit($id)
 public function update(Request $request, $id)
 {
     try {
-        $room = HotelRoom::findOrFail($id);
+        $room = HotelRoom::with('hotel')->findOrFail($id);
+        $user = auth()->user();
+        $isAdmin = $user && $user->role == 1;
+        
+        // If not admin, check if user owns the hotel that this room belongs to
+        if (!$isAdmin && $room->hotel && $room->hotel->added_by !== $user->id) {
+            abort(403, 'You do not have permission to update this room.');
+        }
 
         // Upload new cover image
         if ($request->hasFile('image')) {

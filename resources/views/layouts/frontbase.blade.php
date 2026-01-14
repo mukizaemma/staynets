@@ -58,6 +58,353 @@
     <!-- Theme Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
     
+    <!-- Custom Footer Styles -->
+    <style>
+        /* Enhanced Footer Styling */
+        .footer-wrapper.bg-title {
+            background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer-wrapper.bg-title::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .widget-area {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .footer-widget {
+            margin-bottom: 30px;
+        }
+        
+        .footer-widget .widget_title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #ffffff;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .footer-widget .widget_title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #25D366, #128C7E);
+            border-radius: 2px;
+        }
+        
+        /* Header User Dropdown Styles */
+        .header-user-dropdown {
+            position: relative;
+        }
+        
+        .header-user-dropdown .menu-item-has-children {
+            position: relative;
+        }
+        
+        .header-user-dropdown .sub-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: #fff;
+            min-width: 200px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            padding: 10px 0;
+            margin-top: 10px;
+            z-index: 999;
+            list-style: none;
+        }
+        
+        .header-user-dropdown .menu-item-has-children:hover .sub-menu {
+            display: block;
+        }
+        
+        .header-user-dropdown .sub-menu li {
+            margin: 0;
+        }
+        
+        .header-user-dropdown .sub-menu li a,
+        .header-user-dropdown .sub-menu li button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .header-user-dropdown .sub-menu li a:hover,
+        .header-user-dropdown .sub-menu li button:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .th-widget-about .about-logo img {
+            transition: transform 0.3s ease;
+            filter: brightness(1.1);
+        }
+        
+        .th-widget-about .about-logo:hover img {
+            transform: scale(1.05);
+        }
+        
+        .th-widget-about .about-text {
+            color: #E9F6F9;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        
+        .th-social a {
+            width: 45px;
+            height: 45px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            margin-right: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .th-social a:hover {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu li a {
+            color: #E9F6F9;
+            text-decoration: none;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+            padding-left: 0;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu li a::before {
+            content: '→';
+            position: absolute;
+            left: -20px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            color: #25D366;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu li a:hover {
+            color: #25D366;
+            padding-left: 20px;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu li a:hover::before {
+            opacity: 1;
+            left: 0;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu.menu-two-columns {
+            column-count: 2;
+            column-gap: 30px;
+            column-rule: none;
+        }
+        
+        .footer-widget.widget_nav_menu ul.menu.menu-two-columns li {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        
+        @media (max-width: 991px) {
+            .footer-widget.widget_nav_menu ul.menu.menu-two-columns {
+                column-count: 1;
+            }
+        }
+        
+        .info-box_text {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-box_text:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .info-box_text .icon {
+            background: rgba(37, 211, 102, 0.2);
+            border: 1px solid rgba(37, 211, 102, 0.3);
+        }
+        
+        .info-box_text:hover .icon {
+            background: rgba(37, 211, 102, 0.3);
+            border-color: #25D366;
+        }
+        
+        .info-box_text .details p,
+        .info-box_text .details a {
+            color: #E9F6F9;
+            font-size: 14px;
+        }
+        
+        .info-box_text .details a:hover {
+            color: #25D366;
+        }
+        
+        .destination-btn .th-btn {
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+        
+        .destination-btn .th-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+        }
+        
+        .copyright-wrap {
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .copyright-text {
+            color: #E9F6F9;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .copyright-text a {
+            color: #25D366;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .copyright-text a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        
+        .footer-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .footer-card .title {
+            color: #E9F6F9;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .footer-card img {
+            max-height: 35px;
+            filter: brightness(1.2);
+        }
+        
+        @media (max-width: 991px) {
+            .footer-widget {
+                margin-bottom: 40px;
+            }
+            
+            .widget-area {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+        }
+        
+        /* WhatsApp Floating Button */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            animation: pulse 2s infinite;
+        }
+        
+        .whatsapp-float:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 6px 25px rgba(37, 211, 102, 0.6);
+            background: linear-gradient(135deg, #128C7E, #25D366);
+        }
+        
+        .whatsapp-float i {
+            color: #ffffff;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 30px rgba(37, 211, 102, 0.6);
+            }
+            100% {
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .whatsapp-float {
+                width: 55px;
+                height: 55px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 24px;
+            }
+        }
+    </style>
 
 </head>
 
@@ -199,11 +546,15 @@
                     </li>
 
                     <li class="menu-item-has-children">
-                        <a href="{{ route('destinations') }}">Trips</a>
+                        <a href="{{ route('tours') }}">Trips</a>
                         <ul class="sub-menu">
-                            @foreach ($destinations as $destination)
-                                <li><a href="{{route('destination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
-                            @endforeach
+                            @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
+                                @foreach ($tripDestinations as $destination)
+                                    <li><a href="{{route('tripDestination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
+                                @endforeach
+                            @else
+                                <li><a href="{{ route('tours') }}">View All Destinations</a></li>
+                            @endif
                         </ul>
                     </li>
                     
@@ -224,10 +575,10 @@
 
                     {{-- Mobile login/register or user dropdown --}}
                     @if(auth()->check())
+                        <li><a href="{{ route('myPropertyCreate') }}">Add Property</a></li>
                         <li class="menu-item-has-children">
                             <a href="javascript:void(0)">{{ auth()->user()->name }}</a>
                             <ul class="sub-menu">
-                                <li><a href="">Profile</a></li>
                                 <li><a href="{{ route('myProperties') }}">My Properties</a></li>
                                 <li>
                                     <form id="logout-mobile-form" action="{{ route('logout') }}" method="POST">
@@ -238,6 +589,7 @@
                             </ul>
                         </li>
                     @else
+                        <li><a href="{{ route('myPropertyCreate') }}">Add Property</a></li>
                         <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a></li>
                     @endif
 
@@ -254,7 +606,7 @@
                     <div class="col-auto d-none d-md-block">
                         <div class="header-links">
                             <ul>
-                                <li class="d-none d-xl-inline-block"><i class="fa-sharp fa-regular  fa-location-dot"></i>
+                                <li class="d-none d-xl-inline-block"><i class="fa-sharp fa-regular fa-location-dot"></i>
                                     <span>{{ $setting->address ?? '' }}</span>
                                 </li>
                                 <li class="d-none d-xl-inline-block"><i class="fa-regular fa-clock"></i>
@@ -267,16 +619,49 @@
                         <div class="header-right">
                             <div class="header-links">
                                 <ul>
-                                    <li class="d-none d-md-inline-block"><a href="{{ route('home') }}">FAQ</a></li>
-                                    <li class="d-none d-md-inline-block"><a href="{{ route('home') }}">Support</a></li>
+                                    {{-- Social Media Icons --}}
+                                    @if($setting->facebook ?? null)
+                                        <li class="d-none d-md-inline-block">
+                                            <a href="{{ $setting->facebook }}" target="_blank" title="Facebook">
+                                                <i class="fab fa-facebook-f"></i>
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if($setting->twitter ?? null)
+                                        <li class="d-none d-md-inline-block">
+                                            <a href="{{ $setting->twitter }}" target="_blank" title="Twitter">
+                                                <i class="fab fa-twitter"></i>
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if($setting->instagram ?? null)
+                                        <li class="d-none d-md-inline-block">
+                                            <a href="{{ $setting->instagram }}" target="_blank" title="Instagram">
+                                                <i class="fab fa-instagram"></i>
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if($setting->linkedin ?? null)
+                                        <li class="d-none d-md-inline-block">
+                                            <a href="{{ $setting->linkedin }}" target="_blank" title="LinkedIn">
+                                                <i class="fab fa-linkedin-in"></i>
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if($setting->youtube ?? null)
+                                        <li class="d-none d-md-inline-block">
+                                            <a href="{{ $setting->youtube }}" target="_blank" title="YouTube">
+                                                <i class="fab fa-youtube"></i>
+                                            </a>
+                                        </li>
+                                    @endif
 
-                                    {{-- Desktop: show user name + dropdown when logged in, otherwise sign-in link --}}
+                                    {{-- User Menu --}}
                                     @if(auth()->check())
+                                        <li><a href="{{ route('myProperties') }}">My Properties</a></li>
                                         <li class="menu-item-has-children">
                                             <a href="javascript:void(0)">{{ auth()->user()->name }} <i class="far fa-caret-down"></i></a>
                                             <ul class="sub-menu">
-                                                <li><a href="{">Profile</a></li>
-                                                <li><a href="{{ route('myProperties') }}">My Properties</a></li>
                                                 <li>
                                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:inline;">
                                                         @csrf
@@ -288,7 +673,6 @@
                                     @else
                                         <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a></li>
                                     @endif
-
                                 </ul>
                             </div>
                         </div>
@@ -335,9 +719,13 @@
                                     <li class="menu-item-has-children">
                                         <a href="{{ route('tours') }}">Trips</a>
                                         <ul class="sub-menu">
-                                            @foreach ($destinations as $destination)
-                                                <li><a href="{{route('destination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
-                                            @endforeach
+                                            @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
+                                                @foreach ($tripDestinations as $destination)
+                                                    <li><a href="{{route('tripDestination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
+                                                @endforeach
+                                            @else
+                                                <li><a href="{{ route('tours') }}">View All Destinations</a></li>
+                                            @endif
                                         </ul>
                                     </li>
 
@@ -349,12 +737,17 @@
                                         <a href="{{ route('ticketing') }}">Air Ticketing</a>
                                     </li>
                                  
-                                    <li>
+                                    {{-- <li>
                                         <a href="{{ route('about') }}">About Us</a>
-                                    </li>
+                                    </li> --}}
                                  
                                     <li>
                                         <a href="{{ route('connect') }}">Contact</a>
+                                    </li>
+                                    
+                                    {{-- Main-menu Add Property (visible on large screens, auth-protected route) --}}
+                                    <li class="d-none d-xl-inline-block">
+                                        <a href="{{ route('myPropertyCreate') }}">Add Property</a>
                                     </li>
                                 </ul>
                             </nav>
@@ -362,8 +755,7 @@
                         </div>
                         <div class="col-auto d-none d-xl-block">
                             <div class="header-button">
-                                <a href="{{ route('myProperties') }}" class="th-btn style3 th-icon">List Your Property</a>
-
+                                <a href="{{ route('myPropertyCreate') }}" class="th-btn style3 th-icon">Add Property</a>
                             </div>
                         </div>
                     </div>
@@ -409,8 +801,7 @@
                         <div class="widget widget_nav_menu footer-widget">
                             <h3 class="widget_title">Quick Links</h3>
                             <div class="menu-all-pages-container">
-                                <ul class="menu">
-
+                                <ul class="menu menu-two-columns">
                                     <li><a href="{{route('about')}}">About Us</a></li>
                                     <li><a href="{{ route('destinations') }}">Destinations</a></li>
                                     <li><a href="{{ route('hotels') }}">Hotels</a></li>
@@ -418,6 +809,7 @@
                                     <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
                                     <li><a href="{{ route('showCars') }}">Car Rental</a></li>
                                     <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
+                                    <li><a href="{{ route('connect') }}">About Us</a></li>
                                     <li><a href="{{ route('terms') }}">Our Terms & Conditions</a></li>
                                 </ul>
                             </div>
@@ -476,6 +868,11 @@
             <img src="assets/img/shape/shape_8.png" alt="shape">
         </div>
     </footer>
+    
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/250788316330" target="_blank" class="whatsapp-float" aria-label="Contact us on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
     <!--********************************
 			Code End  Here 
@@ -494,27 +891,157 @@ modal Area
     <div id="login-form" class="popup-login-register mfp-hide">
         <ul class="nav" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-menu" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="false">Login</button>
+                <button class="nav-menu active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Login</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-menu active" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="true">Register</button>
+                <button class="nav-menu" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Register</button>
             </li>
         </ul>
         <div class="tab-content" id="pills-tabContent">
-            <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+            <div class="tab-pane fade active show" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
                 <h3 class="box-title mb-30">Sign in to your account</h3>
                 <div class="th-login-form">
-
                     @include('frontend.includes.login')
-
+                </div>
+                <div class="text-center mt-3">
+                    <p class="mb-0">Don't have an account? <a href="javascript:void(0)" onclick="switchToRegister()" class="text-primary" style="text-decoration: none; font-weight: 600;">Register here</a></p>
                 </div>
             </div>
-            <div class="tab-pane fade active show" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
-                <h3 class="th-form-title mb-30">Sign in to your account</h3>
-
-            </div>    @include('frontend.includes.register')
+            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                <h3 class="th-form-title mb-30">Create your account</h3>
+                <div class="th-register-form">
+                    @include('frontend.includes.register')
+                </div>
+                <div class="text-center mt-3">
+                    <p class="mb-0">Already have an account? <a href="javascript:void(0)" onclick="switchToLogin()" class="text-primary" style="text-decoration: none; font-weight: 600;">Login here</a></p>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+    function switchToRegister() {
+        $('#pills-profile-tab').tab('show');
+    }
+    
+    function switchToLogin() {
+        $('#pills-home-tab').tab('show');
+    }
+    
+    // Ensure login tab is active when modal opens
+    $(document).on('click', '.popup-content', function() {
+        setTimeout(function() {
+            $('#pills-home-tab').tab('show');
+        }, 100);
+    });
+    </script>
+
+    <!--==============================
+    Forgot Password Modal
+==============================-->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid #e0e0e0; padding: 20px 25px;">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel" style="font-weight: 600; color: #333;">
+                        <i class="fas fa-key me-2" style="color: #25D366;"></i>Reset Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 25px;">
+                    <p class="text-muted mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+                    
+                    <form id="forgot-password-form" method="POST" action="{{ route('password.email') }}">
+                        @csrf
+                        
+                        <div class="form-group mb-4">
+                            <label for="forgot_email" class="form-label" style="font-weight: 600;">
+                                <i class="fas fa-envelope me-2"></i>Email Address
+                            </label>
+                            <input
+                                type="email"
+                                class="form-control form-control-lg"
+                                id="forgot_email"
+                                name="email"
+                                placeholder="Enter your email"
+                                required
+                                style="border-radius: 8px; border: 2px solid #e0e0e0; padding: 12px 15px;"
+                            >
+                            <div class="invalid-feedback d-none" id="forgot-email-error"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="forgot-submit-btn" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none; border-radius: 8px; padding: 12px; font-weight: 600;">
+                                <i class="fas fa-paper-plane me-2"></i>Send Reset Link
+                            </button>
+                        </div>
+
+                        <div class="mt-3">
+                            <p class="form-messages mb-0 text-center" id="forgot-message"></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    #forgotPasswordModal .modal-content {
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    
+    #forgotPasswordModal .form-control-lg:focus {
+        border-color: #25D366;
+        box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.25);
+    }
+    
+    #forgotPasswordModal .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+    }
+    </style>
+
+    <script>
+    $(document).ready(function() {
+        $('#forgot-password-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            var $btn = $('#forgot-submit-btn');
+            var origText = $btn.html();
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Sending...');
+            $('#forgot-message').text('').removeClass('text-danger text-success');
+            $('#forgot_email').removeClass('is-invalid');
+            
+            $.ajax({
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: $(this).serialize(),
+                dataType: 'json'
+            }).done(function(res) {
+                $('#forgot-message').addClass('text-success').html(
+                    '<i class="fas fa-check-circle me-2"></i>Password reset link has been sent to your email address!'
+                );
+                $('#forgot-password-form')[0].reset();
+                setTimeout(function() {
+                    $('#forgotPasswordModal').modal('hide');
+                }, 2000);
+            }).fail(function(xhr) {
+                $btn.prop('disabled', false).html(origText);
+                
+                if (xhr.status === 422 && xhr.responseJSON) {
+                    var errors = xhr.responseJSON.errors || {};
+                    if (errors.email) {
+                        $('#forgot_email').addClass('is-invalid');
+                        $('#forgot-email-error').removeClass('d-none').text(errors.email[0]);
+                    }
+                }
+                
+                var msg = xhr.responseJSON?.message || 'Unable to send reset link. Please try again.';
+                $('#forgot-message').addClass('text-danger').text(msg);
+            });
+        });
+    });
+    </script>
 
 
 
@@ -555,9 +1082,7 @@ modal Area
     <script src="assets/js/main.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <a href="https://wa.me/250788316330" target="_blank" class="whatsapp-float">
-        <i class="fab fa-whatsapp"></i>
-    </a>
+
 </body>
 
 </html>

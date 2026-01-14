@@ -18,22 +18,23 @@
         <div class="navbar-nav w-100">
             <a href="{{ route('dashboard') }}" class="nav-item nav-link active"><i class="fas fa-grip-horizontal me-2"></i>Dashboard</a>
              
-            <a href="{{ route('aboutPage') }}" class="nav-item nav-link"> <i class="fas fa-home me-2"></i>About Us</a>
             <a href="{{ route('getServices') }}" class="nav-item nav-link"> 
                 <i class="fas fa-concierge-bell me-2"></i>Services
             </a>
 
-            <a href="{{ route('getHotels') }}" class="nav-item nav-link"> 
-                <i class="fas fa-bed me-2"></i>Properties
+            <a href="{{ route('admin.properties.index') }}" class="nav-item nav-link"> 
+                <i class="fas fa-building me-2"></i>Properties
             </a>
-            <a href="{{ route('getRooms') }}" class="nav-item nav-link"> 
-                <i class="fas fa-bed me-2"></i>Rooms
+            <a href="{{ route('admin.units.index') }}" class="nav-item nav-link"> 
+                <i class="fas fa-door-open me-2"></i>Units/Rooms
             </a>
-            <a href="{{ route('getDestinations') }}" class="nav-item nav-link"> 
-                <i class="fas fa-handshake me-2"></i>Destinations
-            </a>
+
             <a href="{{ route('getTrips') }}" class="nav-item nav-link"> 
-                <i class="fas fa-route me-2"></i>Tours
+                <i class="fas fa-route me-2"></i>Trip Activities
+            </a>
+
+            <a href="{{ route('admin.bookings.index') }}" class="nav-item nav-link"> 
+                <i class="fas fa-calendar-check me-2"></i>Bookings
             </a>
 
             <a href="{{ route('getCars') }}" class="nav-item nav-link"> <i class="fas fa-car me-2"></i>Cars</a>
@@ -41,8 +42,19 @@
             <a href="{{ route('getTicketing') }}" class="nav-item nav-link"> <i class="fas fa-ticket-alt me-2"></i>Ticketing</a>
             <a href="{{ route('getBlogs') }}" class="nav-item nav-link"><i class="fas fas fa-handshake me-2"></i>Articles</a> 
             <hr>
-            <a href="{{ route('getMessages') }}" class="nav-item nav-link"> <i class="fas fa-briefcase me-2"></i>Requests</a>
-            <a href="{{ route('setting') }}" class="nav-item nav-link"> <i class="fas fa-hashtag me-2"></i>Settings</a>
+
+            <a href="{{ route('getDestinations') }}" class="nav-item nav-link"> 
+                <i class="fas fa-handshake me-2"></i>Hotel Destinations
+            </a>
+            <a href="{{ route('getTripDestinations') }}" class="nav-item nav-link"> 
+                <i class="fas fa-map-marked-alt me-2"></i>Trip Destinations
+            </a>
+            <a href="{{ route('amenities.index') }}" class="nav-item nav-link"> 
+                <i class="fas fa-list me-2"></i>Amenities
+            </a>
+            <a href="{{ route('aboutPage') }}" class="nav-item nav-link"> <i class="fas fa-home me-2"></i>About Us</a>
+            {{-- <a href="{{ route('getMessages') }}" class="nav-item nav-link"> <i class="fas fa-briefcase me-2"></i>Requests</a> --}}
+            <a href="{{ route('setting') }}" class="nav-item nav-link"> <i class="fas fa-hashtag me-2"></i>Contacts</a>
 
             @if(Auth::user()->email == 'admin@iremetech.com' )
             <a href="{{ route('users') }}" class="nav-item nav-link"><i class="fa fa-users me-2"></i> Users</a>

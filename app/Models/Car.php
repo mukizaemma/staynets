@@ -40,6 +40,20 @@ class Car extends Model
         return $this->hasMany(Carimage::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(CarReview::class)->where('is_approved', true);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    public function getTotalReviewsAttribute()
+    {
+        return $this->reviews()->count();
+    }
 
     public function getDisplayPriceAttribute()
     {

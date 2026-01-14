@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'TrackVisits' => \App\Http\Middleware\TrackVisits::class,
+        'redirect.admin' => \App\Http\Middleware\RedirectAdminToDashboard::class,
     ];
 }

@@ -73,13 +73,16 @@
                                     <!-- Room Type -->
                                     <td>
                                         <a href="{{ route('editRoom', ['id' => $rs->id]) }}">
-                                            {{ $rs->room_type }}
+                                            <strong>{{ $rs->room_type }}</strong>
                                         </a>
                                         <br>
-                                        <span class="text-muted">
+                                        <span class="text-muted small">
                                             {{ $rs->max_occupancy }} Persons • 
                                             {{ $rs->available_rooms }}/{{ $rs->total_rooms }} Available<br>
-                                            {{ $rs->hotel->name ?? '' }}
+                                            <strong>Property:</strong> {{ $rs->hotel->name ?? 'N/A' }}<br>
+                                            @if(isset($isAdmin) && $isAdmin && $rs->hotel && $rs->hotel->owner)
+                                                <strong>Owner:</strong> {{ $rs->hotel->owner->name ?? 'N/A' }} ({{ $rs->hotel->owner->email ?? 'N/A' }})
+                                            @endif
                                         </span>
                                     </td>
 

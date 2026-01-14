@@ -69,4 +69,33 @@ class Hotel extends Model
     {
         return $this->hasMany(HotelBooking::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(PropertyReview::class, 'hotel_id')->where('reviewable_type', 'hotel')->where('is_approved', true);
+    }
+
+    public function getMinPriceAttribute()
+    {
+        $cheapestRoom = $this->rooms()->where('status', 'Active')->orderBy('price_per_night', 'asc')->first();
+        return $cheapestRoom ? $cheapestRoom->price_per_night : null;
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    public function getTotalReviewsAttribute()
+    {
+        return $this->reviews()->count();
+    }
+
+    /**
+     * Get the user who added this hotel (owner).
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'added_by');
+    }
 }

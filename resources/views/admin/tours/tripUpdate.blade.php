@@ -54,7 +54,11 @@
                                     <div  class="row mt-3">
                                         <div class="col-lg-4 col-sm-12">
                                             <label for="image" class="form-label">Cover Image</label>
-                                            <img src="{{ asset('storage/images/facilities/' . $trip->image) }}" alt="" width="120px">
+                                            @if($trip->image)
+                                                <img src="{{ asset('storage/images/trips/' . $trip->image) }}" alt="" width="120px" style="object-fit: cover; border-radius: 4px;">
+                                            @else
+                                                <span class="text-muted">No image</span>
+                                            @endif
                                         </div>
                                         <div class="col-lg-4 col-sm-12">
                                             <label for="image" class="form-label">Change Cover Image</label>
@@ -92,15 +96,29 @@
                                     </div>
                             
                                     <div class="row mb-3">
-                                        <div class="col-lg-4 col-sm-12">
+                                        <div class="col-lg-6 col-sm-12">
+                                            <label for="trip_destination_id" class="form-label">Trip Destination <span class="text-primary">(Recommended)</span></label>
+                                            @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
+                                                <select name="trip_destination_id" id="trip_destination_id" class="form-control">
+                                                    <option value="">-- Select Trip Destination --</option>
+                                                    @foreach($tripDestinations as $dest)
+                                                        <option value="{{ $dest->id }}" {{ $trip->trip_destination_id == $dest->id ? 'selected' : '' }}>{{ $dest->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <input type="text" name="trip_destination_id" class="form-control" id="trip_destination_id" value="{{ $trip->trip_destination_id }}" placeholder="Trip Destination ID">
+                                                <small class="text-muted">No trip destinations found. <a href="{{ route('getTripDestinations') }}">Create one first</a></small>
+                                            @endif
+                                        </div>
+                                        <div class="col-lg-2 col-sm-12">
                                             <label for="currency" class="form-label">Currency</label>
                                             <input type="text" name="currency" class="form-control" id="currency"  value="{{ $trip->currency }}">
                                         </div>
-                                        <div class="col-lg-4 col-sm-12">
+                                        <div class="col-lg-2 col-sm-12">
                                             <label for="maxPeople" class="form-label">Max People</label>
                                             <input type="text" name="maxPeople" class="form-control" id="maxPeople"  value="{{ $trip->maxPeople }}">
                                         </div>
-                                        <div class="col-lg-4 col-sm-12">
+                                        <div class="col-lg-2 col-sm-12">
                                             <label for="minAge" class="form-label">Min Age</label>
                                             <input type="text" name="minAge" class="form-control" id="minAge"  value="{{ $trip->minAge }}">
                                         </div>
@@ -115,36 +133,12 @@
                                             <label for="couplePrice" class="form-label">Couple Price</label>
                                             <input type="number" name="couplePrice" class="form-control" id="couplePrice"  value="{{ $trip->couplePrice }}">
                                         </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label for="summernote" class="form-label">Trip Itinerary</label>
-                                            <textarea id="itinerary" rows="5" class="form-control" name="itinerary">{!!$trip->itinerary!!}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label for="summernote" class="form-label">Trip expectations</label>
-                                            <textarea id="expectations" rows="5" class="form-control" name="expectations">{!!$trip->expectations!!}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label for="summernote" class="form-label">Trip recommendations</label>
-                                            <textarea id="recommendations" rows="5" class="form-control" name="recommendations">{!!$trip->recommendations!!}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label for="summernote" class="form-label">Trip inclusions</label>
-                                            <textarea id="inclusions" rows="5" class="form-control" name="inclusions">{!!$trip->inclusions!!}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="mb-3">
-                                            <label for="summernote" class="form-label">Trip exclusions</label>
-                                            <textarea id="exclusions" rows="5" class="form-control" name="exclusions">{!!$trip->exclusions!!}</textarea>
+                                        <div class="col-lg-4 col-sm-12">
+                                            <label for="status" class="form-label">Status</label>
+                                            <select name="status" id="status" class="form-control">
+                                                <option value="Active" {{ $trip->status == 'Active' ? 'selected' : '' }}>Active</option>
+                                                <option value="Inactive" {{ $trip->status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                            </select>
                                         </div>
                                     </div>
 

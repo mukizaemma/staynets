@@ -62,7 +62,6 @@ if ($images->isEmpty()) {
                             <div class="page-meta mb-3">
                                 @if(!empty($trip->duration)) <span class="me-3"><i class="fa-regular fa-clock"></i> {{ $trip->duration }}</span> @endif
                                 @if(!empty($trip->languages)) <span class="me-3"><i class="fa-regular fa-language"></i> {{ $trip->languages }}</span> @endif
-                                @if(!empty($trip->currency) && isset($trip->price)) <span class="me-3"><i class="fa-solid fa-money-bill"></i> {{ number_format($trip->price, 2) }} {{ $trip->currency }}</span> @endif
                             </div>
 
                             {{-- Description --}}
@@ -158,7 +157,7 @@ if ($images->isEmpty()) {
 
                                             <div class="tour-content">
                                                 <h3 class="box-title">
-                                                    <a href="{{ route('trip', ['slug' => $r->slug ?? $r->id]) }}">{{ $r->title }}</a>
+                                                    <a href="{{ route('tour', $r->slug ?? $r->id) }}">{{ $r->title }}</a>
                                                 </h3>
 
                                                 <p class="mb-2 small" style="margin:6px 0;">
@@ -166,8 +165,7 @@ if ($images->isEmpty()) {
                                                 </p>
 
                                                 <div class="tour-action">
-                                                    <a href="{{ route('trip', ['slug' => $r->slug ?? $r->id]) }}" class="th-btn style4 th-icon">View Details</a>
-                                                    <a href="{{ route('connect') }}" class="th-btn style3">Book Now</a>
+                                                    <a href="{{ route('tour', $r->slug ?? $r->id) }}" class="th-btn style4 th-icon">View Details</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -186,9 +184,6 @@ if ($images->isEmpty()) {
                             <div class="card-body p-4">
                                 <h4 style="margin-bottom:6px;">{{ $trip->title }}</h4>
                                 @if(!empty($trip->location)) <p class="text-muted mb-1"><i class="fa-solid fa-location-dot"></i> {{ $trip->location }}</p> @endif
-                                <p class="mb-2" style="font-size:18px; font-weight:700;">
-                                    {{ number_format($trip->price ?? 0, 2) }} {{ $trip->currency ?? '' }}
-                                </p>
 
                                 <ul class="list-unstyled mb-3 small">
                                     @if(!empty($trip->duration)) <li><strong>Duration:</strong> {{ $trip->duration }}</li> @endif
@@ -196,29 +191,56 @@ if ($images->isEmpty()) {
                                     @if(!empty($trip->maxPeople)) <li><strong>Max People:</strong> {{ $trip->maxPeople }}</li> @endif
                                     @if(!empty($trip->minAge)) <li><strong>Min Age:</strong> {{ $trip->minAge }}</li> @endif
                                 </ul>
-
-                                <a href="{{ route('connect') }}" class="th-btn style4 th-icon w-100 d-inline-block text-center">Contact / Book</a>
                             </div>
                         </div>
 
-                        {{-- Small contact form --}}
+                        {{-- Reservation Form --}}
                         <div class="card mt-4" style="border-radius:10px;">
-                            <div class="card-body p-3">
-                                <h5 class="mb-2">Request booking info</h5>
-                                <form action="{{ route('tripInquiry') }}" method="POST">
+                            <div class="card-body p-4">
+                                <h4 class="mb-3" style="font-weight: 600;">Make a Reservation</h4>
+                                <p class="text-muted mb-3" style="font-size: 14px;">Fill in the form below to book this trip. We'll contact you shortly to confirm your reservation.</p>
+                                <form action="{{ route('tripInquiry') }}" method="POST" id="trip-reservation-form">
                                     @csrf
                                     <input type="hidden" name="trip_id" value="{{ $trip->id }}">
-                                    <div class="mb-2">
-                                        <input type="text" name="name" class="form-control" placeholder="Full name" required>
+                                    <input type="hidden" name="trip_title" value="{{ $trip->title }}">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Full Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="name" class="form-control" placeholder="Enter your full name" required>
                                     </div>
-                                    <div class="mb-2">
-                                        <input type="email" name="email" class="form-control" placeholder="Email" required>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Email Address <span class="text-danger">*</span></label>
+                                        <input type="email" name="email" class="form-control" placeholder="your.email@example.com" required>
                                     </div>
-                                    <div class="mb-2">
-                                        <input type="tel" name="phone" class="form-control" placeholder="Phone">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Phone Number <span class="text-danger">*</span></label>
+                                        <input type="tel" name="phone" class="form-control" placeholder="+250 788 123 456" required>
                                     </div>
-                                    <div class="mb-2">
-                                        <button class="th-btn w-100" type="submit">Send inquiry</button>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Preferred Date</label>
+                                        <input type="date" name="preferred_date" class="form-control" min="{{ date('Y-m-d') }}">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Number of People</label>
+                                        <input type="number" name="number_of_people" class="form-control" placeholder="e.g. 2" min="1" @if(!empty($trip->maxPeople)) max="{{ $trip->maxPeople }}" @endif>
+                                        @if(!empty($trip->maxPeople))
+                                            <small class="text-muted">Maximum: {{ $trip->maxPeople }} people</small>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Additional Message</label>
+                                        <textarea name="message" class="form-control" rows="4" placeholder="Any special requests or questions?"></textarea>
+                                    </div>
+                                    
+                                    <div class="mb-0">
+                                        <button class="th-btn style4 th-icon w-100" type="submit" style="padding: 12px;">
+                                            <i class="fas fa-paper-plane me-2"></i>Submit Reservation
+                                        </button>
                                     </div>
                                 </form>
                             </div>

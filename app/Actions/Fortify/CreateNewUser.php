@@ -5,9 +5,11 @@ namespace App\Actions\Fortify;
 use Ramsey\Uuid\Uuid;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
+use App\Mail\AdminNotification;
 
 
 class CreateNewUser implements CreatesNewUsers
@@ -28,7 +30,7 @@ class CreateNewUser implements CreatesNewUsers
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'userName' => $input['email'],
@@ -36,5 +38,25 @@ class CreateNewUser implements CreatesNewUsers
             'user_id' => Uuid::uuid4(),
             'password' => Hash::make($input['password']),
         ]);
+
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
+        // Notify all admins (role = 1) that a new user account has been created
+        $admins = User::where('role', 1)->get();
+        if ($admins->isNotEmpty()) {
+            $details = [
+                'subject'  => 'New user registered on Accommodation Booking Engine',
+                'greeting' => 'Hello Admin,',
+                'body'     => "A new user account has been created.\n\nName: {$user->name}\nEmail: {$user->email}",
+                'lastline' => 'Please log in to the admin dashboard to review this user if needed.',
+            ];
+
+            foreach ($admins as $admin) {
+                Mail::to($admin->email)->send(new AdminNotification($details));
+            }
+        }
+
+        return $user;
     }
 }

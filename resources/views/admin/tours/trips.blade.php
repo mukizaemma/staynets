@@ -19,40 +19,78 @@
             <div class="container-fluid pt-4 px-4">
                 <div class="bg-light text-center rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h6 class="mb-0">Our Recent Published Destination Activities</h6>
+                        <h6 class="mb-0">Trip Activities (Tours)</h6>
                         <div class="col-dm3">
+                            <a href="{{ route('getTripDestinations') }}" class="btn btn-secondary float-left me-2">
+                                <i class="fa fa-map-marked-alt"></i> Manage Destinations
+                            </a>
                             <button type="button" class="btn btn-primary float-left" data-bs-toggle="modal" data-bs-target="#NewProduct">
-                                Add New Activity
-                              </button>
+                                <i class="fa fa-plus"></i> Add New Activity
+                            </button>
                         </div>
-                        {{-- <a href="">Show All</a> --}}
                     </div>
+                    @if(isset($selectedDestination) && $selectedDestination)
+                        @php
+                            $selectedDest = $tripDestinations->firstWhere('id', $selectedDestination);
+                        @endphp
+                        @if($selectedDest)
+                            <div class="alert alert-info mb-3">
+                                <i class="fa fa-filter"></i> Filtered by: <strong>{{ $selectedDest->name }}</strong> 
+                                <a href="{{ route('getTrips') }}" class="btn btn-sm btn-light ms-2">Clear Filter</a>
+                            </div>
+                        @endif
+                    @endif
                     <div class="table-responsive">
                         <table class="table text-start align-middle table-bordered table-hover mb-0">
                             <thead>
                                 <tr class="text-dark">
-                                    {{-- <th scope="col"><input class="form-check-input" type="checkbox"></th> --}}
                                     <th scope="col">Activity Name</th>
+                                    <th scope="col">Trip Destination</th>
                                     <th scope="col">Cover Image</th>
                                     <th scope="col">Description</th>
+                                    <th scope="col">Status</th>
                                     <th scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($trips as $rs)
                                 <tr>
-                                    {{-- <td><input class="form-check-input" type="checkbox"></td> --}}
-                                    <td><a href="{{ route('editTrip',['id'=>$rs->id]) }}">{{ $rs->title }}</a> 
-                                    <br> <spam>{{$rs->images->count()}} Images  
+                                    <td>
+                                        <a href="{{ route('editTrip',['id'=>$rs->id]) }}">{{ $rs->title }}</a> 
+                                        <br> 
+                                        <small class="text-muted">
+                                            <i class="fa fa-images"></i> {{$rs->images->count()}} Images
+                                        </small>
                                     </td>
-                                    <td><img src="{{ asset('storage/images/trips/' .$rs->image) }}" alt="" width="120px"></td>
+                                    <td>
+                                        @if($rs->tripDestination)
+                                            <a href="{{ route('editTripDestination', ['id' => $rs->tripDestination->id]) }}" class="badge bg-primary">
+                                                {{ $rs->tripDestination->name }}
+                                            </a>
+                                        @elseif($rs->destination)
+                                            <span class="badge bg-secondary">Legacy: {{ $rs->destination->name }}</span>
+                                        @else
+                                            <span class="badge bg-warning">No Destination</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($rs->image)
+                                            <img src="{{ asset('storage/images/trips/' .$rs->image) }}" alt="" width="120px" style="object-fit: cover; border-radius: 4px;">
+                                        @else
+                                            <span class="text-muted">No image</span>
+                                        @endif
+                                    </td>
                                     <td>{!! Str::words($rs->description, 50, '...') !!}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $rs->status == 'Active' ? 'success' : 'secondary' }}">
+                                            {{ $rs->status }}
+                                        </span>
+                                    </td>
                                     <td>
                                         <div class="bg-light rounded ">
                                             <div class="btn-group" role="group">
-                                                {{-- <button type="button" class="btn btn-danger"><i class="fa fa-eye"></i></button> --}}
-                                                <a href="{{ route('editTrip',['id'=>$rs->id]) }}" class="btn btn-info"><i class="fa fa-images"></i></a>
-                                                <a href="{{ route('deleteTrip',['id'=>$rs->id]) }}" class="btn btn-warning"  onclick="return confirm('Are you sure to delete this item?')"><i class="fa fa-trash"></i></a>
+                                                <a href="{{ route('editTrip',['id'=>$rs->id]) }}" class="btn btn-info" title="Edit & Manage Gallery"><i class="fa fa-images"></i></a>
+                                                <a href="{{ route('deleteTrip',['id'=>$rs->id]) }}" class="btn btn-warning" onclick="return confirm('Are you sure to delete this activity?')" title="Delete"><i class="fa fa-trash"></i></a>
                                             </div>
                                         </div>
                                     </td>
@@ -86,7 +124,7 @@
                     <div class="modal-body">
 
                         <div class="row mb-3">
-                            <div class="col-lg-4 col-sm-12">
+                            <div class="col-lg-6 col-sm-12">
                                 <label for="program_id" class="form-label">Service</label>
 
                                 @if(isset($programs) && $programs->isNotEmpty())
@@ -101,20 +139,22 @@
                                 @endif
                             </div>
 
-                            <div class="col-lg-4 col-sm-12">
-                                <label for="category_id" class="form-label">Destination</label>
+                            <div class="col-lg-6 col-sm-12">
+                                <label for="trip_destination_id" class="form-label">Trip Destination <span class="text-primary">(Recommended)</span></label>
 
-                                @if(isset($categories) && $categories->isNotEmpty())
-                                    <select name="category_id" id="category_id" class="form-control">
-                                        <option value="">-- Select category --</option>
-                                        @foreach($categories as $cat)
-                                            <option value="{{ $cat->id }}" @if(old('category_id') == $cat->id) selected @endif>{{ $cat->name ?? $cat->title ?? $cat->id }}</option>
+                                @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
+                                    <select name="trip_destination_id" id="trip_destination_id" class="form-control">
+                                        <option value="">-- Select Trip Destination --</option>
+                                        @foreach($tripDestinations as $dest)
+                                            <option value="{{ $dest->id }}" @if(old('trip_destination_id') == $dest->id) selected @endif>{{ $dest->name }}</option>
                                         @endforeach
                                     </select>
                                 @else
-                                    <input type="text" name="category_id" class="form-control" id="category_id" placeholder="Category id or name" value="{{ old('category_id') }}">
+                                    <input type="text" name="trip_destination_id" class="form-control" id="trip_destination_id" placeholder="Trip Destination ID" value="{{ old('trip_destination_id') }}">
+                                    <small class="text-muted">No trip destinations found. <a href="{{ route('getTripDestinations') }}">Create one first</a></small>
                                 @endif
                             </div>
+
 
 
                         </div>
@@ -168,6 +208,16 @@
                             <div class="col-lg-4 col-sm-12">
                                 <label for="price" class="form-label">Price</label>
                                 <input type="number" name="price" class="form-control" id="price" placeholder="Eg: 1000" value="{{ old('price', 0) }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-lg-6 col-sm-12">
+                                <label for="status" class="form-label">Status</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="Active" {{ old('status', 'Active') == 'Active' ? 'selected' : '' }}>Active</option>
+                                    <option value="Inactive" {{ old('status') == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                </select>
                             </div>
                         </div>
 

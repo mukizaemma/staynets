@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Facility;
 use App\Models\Partner;
 use App\Models\Category;
+use App\Models\TripDestination;
 use App\Models\Program;
 use App\Models\Setting;
 use App\Models\About;
@@ -53,6 +54,14 @@ public function boot(): void
             return \App\Models\About::first();
         } catch (\Throwable $e) {
             return null;
+        }
+    }));
+
+    View::share('tripDestinations', cache()->remember('shared_trip_destinations', 60 * 60, function () {
+        try {
+            return \App\Models\TripDestination::where('status', 'Active')->oldest()->get();
+        } catch (\Throwable $e) {
+            return collect();
         }
     }));
 }

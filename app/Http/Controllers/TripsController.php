@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use App\Models\Trip;
 use App\Models\Category;
+use App\Models\TripDestination;
 use App\Models\Program;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -14,12 +15,19 @@ use Illuminate\Support\Facades\Storage;
 
 class TripsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-    
-        $trips = Trip::latest()->get();
+        $query = Trip::with(['tripDestination', 'images']);
+        
+        // Filter by destination if provided
+        if ($request->has('destination') && $request->destination) {
+            $query->where('trip_destination_id', $request->destination);
+        }
+        
+        $trips = $query->latest()->get();
 
         $categories = Category::oldest()->get();
+        $tripDestinations = TripDestination::oldest()->get();
         $programs   = Program::oldest()->get();
         $setting = Setting::first();
     
@@ -27,7 +35,9 @@ class TripsController extends Controller
             'trips' => $trips,
             'setting' => $setting,
             'categories' => $categories,
+            'tripDestinations' => $tripDestinations,
             'programs' => $programs,
+            'selectedDestination' => $request->destination,
         ]);
     }
     
@@ -60,7 +70,9 @@ class TripsController extends Controller
         $blog->minAge = $request->input('minAge');
         $blog->price = $request->input('price');
         $blog->program_id = $request->input('program_id');
-        $blog->category_id = $request->input('category_id');
+        $blog->category_id = $request->input('category_id'); // Keep for backward compatibility
+        $blog->trip_destination_id = $request->input('trip_destination_id');
+        $blog->status = $request->input('status', 'Active');
         $blog->image = $fileName;
         $blog->slug = $slug;
         $blog->added_by = $request->user()->id;
@@ -75,11 +87,19 @@ class TripsController extends Controller
         $trip = Trip::find($id);
         $images = $trip->images ?? collect();
         $totalImages = $images->count();
+        $tripDestinations = TripDestination::oldest()->get();
+        $categories = Category::oldest()->get();
+        $programs = Program::oldest()->get();
+        $setting = Setting::first();
 
         return view('admin.tours.tripUpdate', [
             'trip'=>$trip,
             'images'=>$images,
             'totalImages'=>$totalImages,
+            'tripDestinations'=>$tripDestinations,
+            'categories'=>$categories,
+            'programs'=>$programs,
+            'setting'=>$setting,
         ]);
     }
     public function view($id)
@@ -107,7 +127,7 @@ class TripsController extends Controller
             $fields = [
                 'title', 'description', 'status','itinerary','expectations','currency','maxPeople',
                 'recommendations','inclusions','exclusions','location','duration','languages',
-                'minAge','price','couplePrice',
+                'minAge','price','couplePrice','trip_destination_id','category_id','program_id',
                 ];
             foreach ($fields as $field) {
                 if ($request->has($field) && $request->input($field) !== $trip->$field) {

@@ -40,19 +40,298 @@
                                 {{ Str::limit(strip_tags($hotel->description),120) }}
                             </p>
 
-                            <div class="d-flex justify-content-between">
-                                <button class="th-btn style3"
+                            <div class="d-flex flex-wrap gap-1" style="font-size: 0.85rem;">
+                                <button class="btn btn-sm btn-info"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#editHotelModal{{ $hotel->id }}">
-                                    Edit
+                                    data-bs-target="#viewHotelModal{{ $hotel->id }}">
+                                    <i class="fa fa-eye"></i> View
                                 </button>
 
-                                <button class="th-btn style4"
+                                <button class="btn btn-sm btn-warning"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editHotelModal{{ $hotel->id }}">
+                                    <i class="fa fa-edit"></i> Edit
+                                </button>
+
+                                <button class="btn btn-sm btn-primary"
                                     data-bs-toggle="modal"
                                     data-bs-target="#addRoomModal"
                                     onclick="selectHotel({{ $hotel->id }})">
-                                    Add Room
+                                    <i class="fa fa-plus"></i> Add Room
                                 </button>
+
+                                <form action="{{ route('my.properties.hotels.destroy', $hotel->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this property?');" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- VIEW HOTEL MODAL --}}
+                <div class="modal fade" id="viewHotelModal{{ $hotel->id }}">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">{{ $hotel->name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    {{-- Property Details --}}
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold mb-3">Property Details</h6>
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Name:</strong></td>
+                                                <td>{{ $hotel->name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Type:</strong></td>
+                                                <td>{{ ucfirst(str_replace('_', ' ', $hotel->type ?? 'N/A')) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Stars:</strong></td>
+                                                <td>{{ $hotel->stars ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Status:</strong></td>
+                                                <td>
+                                                    @if($hotel->status == 'Active')
+                                                        <span class="badge bg-success">Active</span>
+                                                    @elseif($hotel->status == 'Pending')
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    @else
+                                                        <span class="badge bg-danger">Inactive</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Location:</strong></td>
+                                                <td>{{ $hotel->location ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>City:</strong></td>
+                                                <td>{{ $hotel->city ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Address:</strong></td>
+                                                <td>{{ $hotel->address ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Phone:</strong></td>
+                                                <td>{{ $hotel->phone ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Email:</strong></td>
+                                                <td>{{ $hotel->email ?? 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Website:</strong></td>
+                                                <td>{{ $hotel->website ? '<a href="'.$hotel->website.'" target="_blank">'.$hotel->website.'</a>' : 'N/A' }}</td>
+                                            </tr>
+                                        </table>
+                                        @if($hotel->description)
+                                            <div class="mt-3">
+                                                <strong>Description:</strong>
+                                                <p class="text-muted small">{{ $hotel->description }}</p>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Property Images --}}
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold mb-3">Property Images</h6>
+                                        <div class="row g-2">
+                                            @php
+                                                $coverImg = $hotel->image && file_exists(storage_path('app/public/images/hotels/'.$hotel->image))
+                                                    ? asset('storage/images/hotels/'.$hotel->image)
+                                                    : asset('assets/img/tour/tour_3_1.jpg');
+                                            @endphp
+                                            <div class="col-6">
+                                                <div class="position-relative">
+                                                    <img src="{{ $coverImg }}" alt="Cover" class="img-fluid rounded" style="height:150px;object-fit:cover;width:100%;">
+                                                    <span class="badge bg-primary position-absolute top-0 start-0 m-2">Cover</span>
+                                                </div>
+                                            </div>
+                                            @if($hotel->images && $hotel->images->count() > 0)
+                                                @foreach($hotel->images->take(5) as $img)
+                                                    <div class="col-6">
+                                                        <img src="{{ asset('storage/images/hotels/'.$img->image) }}" alt="Image" class="img-fluid rounded" style="height:150px;object-fit:cover;width:100%;">
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <div class="col-12">
+                                                    <p class="text-muted small">No additional images</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Rooms Section --}}
+                                <div class="mt-4">
+                                    <h6 class="fw-bold mb-3">Rooms ({{ $hotel->rooms->count() }})</h6>
+                                    @if($hotel->rooms && $hotel->rooms->count() > 0)
+                                        <div class="row g-3">
+                                            @foreach($hotel->rooms as $room)
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="row g-0">
+                                                            <div class="col-4">
+                                                                @php
+                                                                    $roomImg = $room->image && file_exists(storage_path('app/public/images/rooms/'.$room->image))
+                                                                        ? asset('storage/images/rooms/'.$room->image)
+                                                                        : asset('assets/img/tour/tour_3_1.jpg');
+                                                                @endphp
+                                                                <img src="{{ $roomImg }}" class="img-fluid rounded-start" style="height:100px;object-fit:cover;width:100%;" alt="{{ $room->room_type }}">
+                                                            </div>
+                                                            <div class="col-8">
+                                                                <div class="card-body p-2">
+                                                                    <h6 class="card-title mb-1" style="font-size:0.9rem;">{{ $room->room_type }}</h6>
+                                                                    <p class="card-text small mb-1">
+                                                                        <strong>Price:</strong> ${{ number_format($room->price_per_night ?? 0, 2) }}/night<br>
+                                                                        <strong>Max Occupancy:</strong> {{ $room->max_occupancy ?? 'N/A' }}<br>
+                                                                        <strong>Available:</strong> {{ $room->available_rooms ?? 0 }}/{{ $room->total_rooms ?? 0 }}
+                                                                    </p>
+                                                                    @if($room->status)
+                                                                        <span class="badge bg-{{ $room->status == 'Available' ? 'success' : 'danger' }}">{{ $room->status }}</span>
+                                                                    @endif
+                                                                    <div class="mt-2 d-flex gap-1">
+                                                                        <button class="btn btn-sm btn-warning" 
+                                                                            data-bs-toggle="modal" 
+                                                                            data-bs-target="#editRoomModal{{ $room->id }}">
+                                                                            <i class="fa fa-edit"></i> Edit
+                                                                        </button>
+                                                                        <form action="{{ route('my.properties.rooms.destroy', $room->id) }}" 
+                                                                            method="POST" 
+                                                                            onsubmit="return confirm('Are you sure you want to delete this room?');"
+                                                                            style="display:inline;">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                                                <i class="fa fa-trash"></i> Delete
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- EDIT ROOM MODAL --}}
+                                                <div class="modal fade" id="editRoomModal{{ $room->id }}">
+                                                    <div class="modal-dialog modal-lg">
+                                                        <div class="modal-content">
+                                                            <form action="{{ route('my.properties.rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data">
+                                                                @csrf
+                                                                @method('PUT')
+
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">Edit Room</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+
+                                                                <div class="modal-body">
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-6">
+                                                                            <label>Room Type</label>
+                                                                            <input type="text" class="form-control" name="room_type" value="{{ $room->room_type }}" required>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label>Price per Night</label>
+                                                                            <input type="number" step="0.01" class="form-control" name="price_per_night" value="{{ $room->price_per_night }}" required>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-4">
+                                                                            <label>Max Occupancy</label>
+                                                                            <input type="number" class="form-control" name="max_occupancy" value="{{ $room->max_occupancy }}">
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <label>Total Rooms</label>
+                                                                            <input type="number" class="form-control" name="total_rooms" value="{{ $room->total_rooms }}">
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <label>Available Rooms</label>
+                                                                            <input type="number" class="form-control" name="available_rooms" value="{{ $room->available_rooms }}">
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-6">
+                                                                            <label>Status</label>
+                                                                            <select class="form-control" name="status">
+                                                                                <option value="Available" @selected($room->status == 'Available')>Available</option>
+                                                                                <option value="Unavailable" @selected($room->status == 'Unavailable')>Unavailable</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label>Change Room Image</label>
+                                                                            <input type="file" class="form-control" name="image" accept="image/*">
+                                                                            @if($room->image)
+                                                                                <small class="text-muted">Current: {{ $room->image }}</small>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="mb-3">
+                                                                        <label>Description</label>
+                                                                        <textarea class="form-control" name="description" rows="3">{{ $room->description }}</textarea>
+                                                                    </div>
+
+                                                                    <div class="row mt-3">
+                                                                        <div class="col-lg-12">
+                                                                            <label class="form-label">Select Room Amenities</label>
+                                                                            <div class="row">
+                                                                                @php
+                                                                                    $selectedAmenities = $room->amenities ? (is_array($room->amenities) ? $room->amenities : json_decode($room->amenities, true)) : [];
+                                                                                @endphp
+                                                                                @foreach($amenities as $amenity)
+                                                                                    <div class="col-md-4 mb-2">
+                                                                                        <div class="form-check">
+                                                                                            <input class="form-check-input" type="checkbox"
+                                                                                                name="amenities[]" 
+                                                                                                value="{{ $amenity->id }}" 
+                                                                                                id="amenity{{ $room->id }}_{{ $amenity->id }}"
+                                                                                                @if(in_array($amenity->id, $selectedAmenities ?? [])) checked @endif>
+
+                                                                                            <label class="form-check-label" for="amenity{{ $room->id }}_{{ $amenity->id }}">
+                                                                                                {{ $amenity->title }}
+                                                                                            </label>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="modal-footer">
+                                                                    <button class="btn btn-primary" type="submit">
+                                                                        <i class="fa fa-save"></i> Update Room
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <p class="text-muted">No rooms added yet. Click "Add Room" to add rooms to this property.</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
@@ -63,7 +342,7 @@
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
 
-                        <form action="{{ route('updateHotel', $hotel->id) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('my.properties.hotels.update', $hotel->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
 
@@ -122,11 +401,8 @@
 
                                     <div class="col-lg-4 col-sm-12">
                                         <label>Status</label>
-                                        <select class="form-control" name="status" required>
-                                            <option value="Active" @selected($hotel->status=='Active')>Active</option>
-                                            <option value="Inactive" @selected($hotel->status=='Inactive')>Inactive</option>
-                                            <option value="Draft" @selected($hotel->status=='Draft')>Draft</option>
-                                        </select>
+                                        <input type="text" class="form-control" value="{{ $hotel->status ?? 'Pending' }}" disabled readonly>
+                                        <small class="text-muted">Only admins can change property status. Contact admin for approval.</small>
                                     </div>
                                 </div>
 
@@ -226,7 +502,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
-            <form action="{{ route('storeRoom') }}" method="POST" enctype="multipart/form-data">
+            <form id="add-room-form" action="" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="hotel_id" id="selectedHotel">
 
@@ -310,6 +586,9 @@
 <script>
     function selectHotel(id) {
         document.getElementById('selectedHotel').value = id;
+        // Point the form to the correct rooms store route for this hotel
+        var form = document.getElementById('add-room-form');
+        form.action = "{{ url('/my-properties/hotels') }}/" + id + "/rooms";
     }
 </script>
 @endsection

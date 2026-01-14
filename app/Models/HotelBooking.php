@@ -12,7 +12,9 @@ class HotelBooking extends Model
     protected $fillable = [
         'user_id',
         'hotel_id',
+        'property_id',
         'room_id',
+        'unit_id',
         'check_in',
         'check_out',
         'guests_count',
@@ -20,6 +22,7 @@ class HotelBooking extends Model
         'payment_status',
         'booking_status',
         'reference_number',
+        'description',
     ];
 
     public function user()
@@ -35,5 +38,15 @@ class HotelBooking extends Model
     public function room()
     {
         return $this->belongsTo(HotelRoom::class);
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 }

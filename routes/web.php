@@ -6,12 +6,17 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     Route::get('/logouts', [App\Http\Controllers\AdminController::class, 'logouts'])->name('logouts');
+    
+    // Users Management Routes - Only accessible to admins (role == 1)
     Route::get('/Users', [App\Http\Controllers\AdminController::class, 'users'])->name('users');
-    Route::get('/Users/{id}', [App\Http\Controllers\AdminController::class, 'makeAdmin'])->name('makeAdmin');
+    Route::get('/Users/{id}/show', [App\Http\Controllers\AdminController::class, 'showUser'])->name('admin.users.show');
+    Route::get('/Users/{id}/verify', [App\Http\Controllers\AdminController::class, 'verifyUserEmail'])->name('admin.users.verify');
+    Route::get('/Users/{id}/makeAdmin', [App\Http\Controllers\AdminController::class, 'makeAdmin'])->name('makeAdmin');
     Route::get('/deleteUser/{id}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('deleteUser');
+    
+    Route::get('/Comments', [App\Http\Controllers\AdminController::class, 'blogsComment'])->name('blogsComment');
 
  
-    Route::get('/Comments', [App\Http\Controllers\AdminController::class, 'blogsComment'])->name('blogsComment');
     Route::post('/Comment/approve/{comment}', [App\Http\Controllers\AdminController::class, 'commentApprove'])->name('commentApprove');
     Route::get('/CommentDelete/{id}', [App\Http\Controllers\AdminController::class, 'destroyBlogComment'])->name('destroyBlogComment');
 
@@ -80,22 +85,60 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/UpdateService/{id}', [App\Http\Controllers\ServicesController::class, 'update'])->name('updateService');
     Route::get('/DeleteService/{id}', [App\Http\Controllers\ServicesController::class, 'destroy'])->name('deleteService');
 
-        // Hotels
-    Route::get('/getHotels', [App\Http\Controllers\HotelsController::class, 'index'])->name('getHotels');
-    Route::post('/saveHotel', [App\Http\Controllers\HotelsController::class, 'store'])->name('saveHotel');
-    Route::get('/editHotel/{id}', [App\Http\Controllers\HotelsController::class, 'edit'])->name('editHotel');
-    Route::post('/updateHotel/{id}', [App\Http\Controllers\HotelsController::class, 'update'])->name('updateHotel');
-    Route::get('/destroyHotel/{id}', [App\Http\Controllers\HotelsController::class, 'destroy'])->name('destroyHotel');
-
-    // Rooms
-    Route::get('/getRooms', [App\Http\Controllers\RoomsController::class, 'index'])->name('getRooms');
-    Route::post('/storeRoom', [App\Http\Controllers\RoomsController::class, 'store'])->name('storeRoom');
-    Route::get('/editRoom/{id}', [App\Http\Controllers\RoomsController::class, 'edit'])->name('editRoom');
-    Route::post('/updateRoom/{id}', [App\Http\Controllers\RoomsController::class, 'update'])->name('updateRoom');
-    Route::get('/deleteRoom/{id}', [App\Http\Controllers\RoomsController::class, 'destroy'])->name('deleteRoom');
-
-    Route::post('/addRoomImage', [App\Http\Controllers\RoomsController::class, 'addRoomImage'])->name('addRoomImage');
-    Route::get('/deleteRoomImage/{id}', [App\Http\Controllers\RoomsController::class, 'deleteRoomImage'])->name('deleteRoomImage');
+    // Amenities Management
+    Route::get('/amenities', [App\Http\Controllers\AmenitiesController::class, 'index'])->name('amenities.index');
+    Route::post('/amenities', [App\Http\Controllers\AmenitiesController::class, 'store'])->name('amenities.store');
+    Route::get('/amenities/{id}/edit', [App\Http\Controllers\AmenitiesController::class, 'edit'])->name('amenities.edit');
+    Route::post('/amenities/{id}', [App\Http\Controllers\AmenitiesController::class, 'update'])->name('amenities.update');
+    Route::get('/amenities/{id}/delete', [App\Http\Controllers\AmenitiesController::class, 'destroy'])->name('amenities.destroy');
+    
+    // Properties Management (Hotels & Apartments)
+    Route::get('/admin/properties', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'index'])->name('admin.properties.index');
+    Route::get('/admin/properties/create', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'create'])->name('admin.properties.create');
+    Route::post('/admin/properties', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'store'])->name('admin.properties.store');
+    Route::get('/admin/properties/{id}/edit', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'edit'])->name('admin.properties.edit');
+    Route::get('/admin/properties/{id}/delete', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'destroy'])->name('admin.properties.destroy');
+    Route::get('/admin/properties/{id}/status/{status}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'updateStatus'])->name('admin.properties.updateStatus.get'); // GET route for direct status updates (must come before generic {id} route)
+    Route::post('/admin/properties/{id}/status', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'updateStatus'])->name('admin.properties.updateStatus'); // POST route for AJAX status updates
+    Route::put('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update');
+    Route::post('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update.post'); // Fallback for forms without @method
+    Route::get('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'show'])->name('admin.properties.show'); // Generic show route (must be last)
+    
+    // Property Images
+    Route::post('/admin/properties/{propertyId}/images', [App\Http\Controllers\Admin\PropertyImagesController::class, 'store'])->name('admin.properties.images.store');
+    Route::put('/admin/properties/images/{id}', [App\Http\Controllers\Admin\PropertyImagesController::class, 'update'])->name('admin.properties.images.update');
+    Route::get('/admin/properties/images/{id}/delete', [App\Http\Controllers\Admin\PropertyImagesController::class, 'destroy'])->name('admin.properties.images.destroy');
+    Route::get('/admin/properties/images/{id}/primary', [App\Http\Controllers\Admin\PropertyImagesController::class, 'setPrimary'])->name('admin.properties.images.primary');
+    
+    // Units Management
+    Route::get('/admin/units', [App\Http\Controllers\Admin\AdminUnitsController::class, 'index'])->name('admin.units.index');
+    Route::get('/admin/units/create', [App\Http\Controllers\Admin\AdminUnitsController::class, 'create'])->name('admin.units.create');
+    Route::post('/admin/units', [App\Http\Controllers\Admin\AdminUnitsController::class, 'store'])->name('admin.units.store');
+    Route::get('/admin/units/{id}/edit', [App\Http\Controllers\Admin\AdminUnitsController::class, 'edit'])->name('admin.units.edit');
+    Route::get('/admin/units/{id}/delete', [App\Http\Controllers\Admin\AdminUnitsController::class, 'destroy'])->name('admin.units.destroy');
+    Route::post('/admin/units/{id}', [App\Http\Controllers\Admin\AdminUnitsController::class, 'update'])->name('admin.units.update');
+    
+    // Unit Images
+    Route::post('/admin/units/{unitId}/images', [App\Http\Controllers\Admin\UnitImagesController::class, 'store'])->name('admin.units.images.store');
+    Route::put('/admin/units/images/{id}', [App\Http\Controllers\Admin\UnitImagesController::class, 'update'])->name('admin.units.images.update');
+    Route::get('/admin/units/images/{id}/delete', [App\Http\Controllers\Admin\UnitImagesController::class, 'destroy'])->name('admin.units.images.destroy');
+    Route::get('/admin/units/images/{id}/primary', [App\Http\Controllers\Admin\UnitImagesController::class, 'setPrimary'])->name('admin.units.images.primary');
+    
+    // Unit Pricing
+    Route::post('/admin/units/{unitId}/pricing', [App\Http\Controllers\Admin\UnitPricingController::class, 'store'])->name('admin.units.pricing.store');
+    Route::post('/admin/units/pricing/{id}', [App\Http\Controllers\Admin\UnitPricingController::class, 'update'])->name('admin.units.pricing.update');
+    Route::get('/admin/units/pricing/{id}/delete', [App\Http\Controllers\Admin\UnitPricingController::class, 'destroy'])->name('admin.units.pricing.destroy');
+    
+    // Unit Availability
+    Route::post('/admin/units/{unitId}/availability', [App\Http\Controllers\Admin\UnitAvailabilityController::class, 'store'])->name('admin.units.availability.store');
+    Route::post('/admin/units/{unitId}/availability/bulk', [App\Http\Controllers\Admin\UnitAvailabilityController::class, 'bulkUpdate'])->name('admin.units.availability.bulk');
+    Route::get('/admin/units/availability/{id}/delete', [App\Http\Controllers\Admin\UnitAvailabilityController::class, 'destroy'])->name('admin.units.availability.destroy');
+    
+    // Bookings Management
+    Route::get('/admin/bookings', [App\Http\Controllers\Admin\AdminBookingsController::class, 'index'])->name('admin.bookings.index');
+    Route::get('/admin/bookings/{id}', [App\Http\Controllers\Admin\AdminBookingsController::class, 'show'])->name('admin.bookings.show');
+    Route::post('/admin/bookings/{id}/status', [App\Http\Controllers\Admin\AdminBookingsController::class, 'updateStatus'])->name('admin.bookings.updateStatus');
+    Route::get('/admin/bookings/{id}/delete', [App\Http\Controllers\Admin\AdminBookingsController::class, 'destroy'])->name('admin.bookings.destroy');
 
     // Facilities
     Route::get('/getFacilities', [App\Http\Controllers\FacilitiesController::class, 'index'])->name('getFacilities');
@@ -116,6 +159,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::post('/addTripImage', [App\Http\Controllers\TripsController::class, 'addTripImage'])->name('addTripImage');
     Route::get('/deleteTripImage/{id}', [App\Http\Controllers\TripsController::class, 'deleteTripImage'])->name('deleteTripImage');
+
+    // Trip Destinations
+    Route::get('/getTripDestinations', [App\Http\Controllers\TripDestinationController::class, 'index'])->name('getTripDestinations');
+    Route::post('/storeTripDestination', [App\Http\Controllers\TripDestinationController::class, 'store'])->name('storeTripDestination');
+    Route::get('/editTripDestination/{id}', [App\Http\Controllers\TripDestinationController::class, 'edit'])->name('editTripDestination');
+    Route::post('/updateTripDestination/{id}', [App\Http\Controllers\TripDestinationController::class, 'update'])->name('updateTripDestination');
+    Route::get('/deleteTripDestination/{id}', [App\Http\Controllers\TripDestinationController::class, 'destroy'])->name('deleteTripDestination');
+    Route::post('/addTripDestinationImage', [App\Http\Controllers\TripDestinationController::class, 'addDestinationImage'])->name('addTripDestinationImage');
+    Route::get('/deleteTripDestinationImage/{id}', [App\Http\Controllers\TripDestinationController::class, 'deleteDestinationImage'])->name('deleteTripDestinationImage');
 
     // Tours
     Route::get('/getTours', [App\Http\Controllers\ToursController::class, 'index'])->name('getTours');
@@ -172,32 +224,36 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 });
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/about-us', [App\Http\Controllers\HomeController::class, 'about'])->name('about');
-Route::get('/our-services', [App\Http\Controllers\HomeController::class, 'services'])->name('services');
-Route::get('/our-services/{slug}', [App\Http\Controllers\HomeController::class, 'service'])->name('service');
-Route::get('/destinations', [App\Http\Controllers\HomeController::class, 'destinations'])->name('destinations');
-Route::get('/destination/{slug}', [App\Http\Controllers\HomeController::class, 'destination'])->name('destination');
-Route::get('/accommodations', [App\Http\Controllers\HomeController::class, 'accommodations'])->name('accommodations');
-Route::get('/accommodations/hotelsSearch', [App\Http\Controllers\HomeController::class, 'hotelsSearch'])->name('hotelsSearch');
-Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
-Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
-Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
-Route::get('/services/ticketing', [App\Http\Controllers\HomeController::class, 'ticketing'])->name('ticketing');
-Route::get('/services/left-bags', [App\Http\Controllers\HomeController::class, 'leftBags'])->name('leftBags');
-Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
-Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
+// Frontend routes - admins will be redirected to dashboard via middleware
+Route::middleware(['redirect.admin'])->group(function () {
+    Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::get('/about-us', [App\Http\Controllers\HomeController::class, 'about'])->name('about');
+    Route::get('/our-services', [App\Http\Controllers\HomeController::class, 'services'])->name('services');
+    Route::get('/our-services/{slug}', [App\Http\Controllers\HomeController::class, 'service'])->name('service');
+    Route::get('/destinations', [App\Http\Controllers\HomeController::class, 'destinations'])->name('destinations');
+    Route::get('/destination/{slug}', [App\Http\Controllers\HomeController::class, 'destination'])->name('destination');
+    Route::get('/accommodations', [App\Http\Controllers\HomeController::class, 'accommodations'])->name('accommodations');
+    Route::get('/accommodations/hotelsSearch', [App\Http\Controllers\HomeController::class, 'hotelsSearch'])->name('hotelsSearch');
+    Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
+    Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
+    Route::post('/bookings', [App\Http\Controllers\HomeController::class, 'storeBooking'])->name('bookings.store')->middleware('auth');
+    Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
+    Route::get('/services/ticketing', [App\Http\Controllers\HomeController::class, 'ticketing'])->name('ticketing');
+    Route::get('/services/left-bags', [App\Http\Controllers\HomeController::class, 'leftBags'])->name('leftBags');
+    Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
+    Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
+    Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
+    Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
+});
 
-Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
-Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
 
 
-
-Route::middleware(['auth'])->group(function () {
-    // Properties listing & creation
+Route::middleware(['auth', 'redirect.admin'])->group(function () {
+    // Properties listing & creation - only for regular users (admins redirected)
     Route::get('/my-properties', [App\Http\Controllers\UserPropertyController::class, 'index'])->name('myProperties');
     Route::get('/my-properties/hotels/create', [App\Http\Controllers\UserPropertyController::class, 'myPropertyCreate'])->name('myPropertyCreate');
     Route::post('/my-properties/hotels', [App\Http\Controllers\UserPropertyController::class, 'storeHotel'])->name('storeHotel');
+    Route::delete('/my-properties/hotels/{hotel}', [App\Http\Controllers\UserPropertyController::class, 'destroyHotel'])->name('my.properties.hotels.destroy');
 
     // Hotel owner page, edit
     Route::get('/my-properties/hotels/{hotel}', [App\Http\Controllers\UserPropertyController::class, 'showHotel'])->name('my.properties.hotels.show');
@@ -209,6 +265,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/my-properties/hotels/{hotel}/rooms', [App\Http\Controllers\UserPropertyController::class, 'storeRoom'])->name('my.properties.rooms.store');
     Route::get('/my-properties/rooms/{room}/edit', [App\Http\Controllers\UserPropertyController::class, 'editRoom'])->name('my.properties.rooms.edit');
     Route::put('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'updateRoom'])->name('my.properties.rooms.update');
+    Route::delete('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'destroyRoom'])->name('my.properties.rooms.destroy');
 });
 
 
@@ -216,6 +273,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/our-rooms/all', [App\Http\Controllers\HomeController::class, 'room'])->name('room');
 Route::get('/events', [App\Http\Controllers\HomeController::class, 'events'])->name('events');
 Route::get('/tours', [App\Http\Controllers\HomeController::class, 'tours'])->name('tours');
+Route::get('/trip-destination/{slug}', [App\Http\Controllers\HomeController::class, 'tripDestination'])->name('tripDestination');
 Route::get('/tour/{slug}', [App\Http\Controllers\HomeController::class, 'tour'])->name('tour');
 Route::get('/gallery', [App\Http\Controllers\HomeController::class, 'gallery'])->name('gallery');
 Route::get('/contact', [App\Http\Controllers\HomeController::class, 'contact'])->name('contact');
@@ -228,13 +286,28 @@ Route::get('/articles/{slug}', [App\Http\Controllers\HomeController::class, 'sin
 Route::get('/terms-and-conditions', [App\Http\Controllers\HomeController::class, 'terms'])->name('terms');
 
 
-Route::get('/connect', [App\Http\Controllers\HomeController::class, 'connect'])->name('connect');
+Route::middleware(['redirect.admin'])->group(function () {
+    Route::get('/connect', [App\Http\Controllers\HomeController::class, 'connect'])->name('connect');
+    Route::post('/subscribe', [App\Http\Controllers\HomeController::class, 'subscribe'])->name('subscribe');
+    Route::post('/sendMessage', [App\Http\Controllers\HomeController::class, 'sendMessage'])->name('sendMessage');
+    Route::post('/sendComment', [App\Http\Controllers\HomeController::class, 'sendComment'])->name('sendComment');
+    Route::post('/book-now', [App\Http\Controllers\HomeController::class, 'bookNow'])->name('bookNow');
+    Route::post('/testimony', [App\Http\Controllers\HomeController::class, 'testimony'])->name('testimony');
+    Route::post('/trip-inquiry', [App\Http\Controllers\HomeController::class, 'tripInquiry'])->name('tripInquiry');
+});
 
+// Logout route - accessible to all authenticated users
 Route::get('/logouts', [App\Http\Controllers\HomeController::class, 'logouts'])->name('logouts');
-Route::post('/subscribe', [App\Http\Controllers\HomeController::class, 'subscribe'])->name('subscribe');
 
-Route::post('/sendMessage', [App\Http\Controllers\HomeController::class, 'sendMessage'])->name('sendMessage');
-Route::post('/sendComment', [App\Http\Controllers\HomeController::class, 'sendComment'])->name('sendComment');
-Route::post('/book-now', [App\Http\Controllers\HomeController::class, 'bookNow'])->name('bookNow');
-Route::post('/testimony', [App\Http\Controllers\HomeController::class, 'testimony'])->name('testimony');
+// Email Verification Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/email/verify', [App\Http\Controllers\Auth\VerificationController::class, 'show'])
+        ->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\Auth\VerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [App\Http\Controllers\Auth\VerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+});
 

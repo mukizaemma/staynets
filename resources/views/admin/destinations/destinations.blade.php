@@ -25,7 +25,7 @@
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#NewProduct">
                                 Add New Destination
                               </button>
-                              <a href="{{ route('getHotels') }}" class="btn btn-light">Hotels</a>
+                              <a href="" class="btn btn-light">Hotels</a>
                               <a href="{{ route('getTrips') }}" class="btn btn-light">Trips</a>
                         </div>
                         {{-- <a href="">Show All</a> --}}

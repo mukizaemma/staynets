@@ -30,7 +30,7 @@ Product Area
 
                                     {{-- Location --}}
                                     <p class="mb-2" style="margin:6px 0;">
-                                        <p>{{ \Illuminate\Support\Str::limit(strip_tags($destination->description), 100) }}</p>
+                                        <p>{!! \Illuminate\Support\Str::limit(strip_tags($destination->description), 100) !!}</p>
                                     </p>
 
                                     {{-- View more button --}}
