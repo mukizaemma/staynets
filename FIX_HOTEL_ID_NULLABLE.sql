@@ -8,3 +8,6 @@ ALTER TABLE `hotel_bookings`
 MODIFY COLUMN `room_id` BIGINT UNSIGNED NULL;
 
 
+
+
+

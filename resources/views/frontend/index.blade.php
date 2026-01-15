@@ -13,8 +13,8 @@ Hero Area
             <div class="row">
                 <div class="col-12">
                     <div class="hero-style7" style="padding: 100px 0 30px 0;">
-                        <span class="sub-title style1 text-white">Welcome to Booking Engine</span>
-                        {{-- <h1 class="hero-title text-white">Serene Countryside Retreat at Tourm Best Hotel</h1> --}}
+                        <span class="sub-title style1 text-white mb-20">Welcome to <strong>{{ $setting->company }}</strong></span>
+                        <h1 class="hero-title text-white">Your Travel Booking Partner</h1>
                         <div class="btn-group mb-4">
                             <a href="{{ route('hotels') }}" class="th-btn th-icon style3">Hotels</a>
                             <a href="{{ route('apartments') }}" class="th-btn style2 th-icon">Apartments</a>

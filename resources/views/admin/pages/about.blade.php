@@ -27,13 +27,12 @@
                                 </div>
                                 <!-- ./card-header -->
                                 <div class="card-body">
-                                    <form action="{{ route('saveAbout', $data->id) }}"
+                                    <form action="{{ route('saveAbout') }}"
                                         method="POST"
                                         enctype="multipart/form-data"
                                         style="padding:20px;background:#f9f9f9;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);">
 
                                         @csrf
-                                        @method('PUT')
 
                                         {{-- Heading --}}
                                         <div class="mb-4">

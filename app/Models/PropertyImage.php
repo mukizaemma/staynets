@@ -52,3 +52,6 @@ class PropertyImage extends Model
 
 
 
+
+
+

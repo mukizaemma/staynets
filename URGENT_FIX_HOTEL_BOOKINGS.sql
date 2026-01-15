@@ -27,3 +27,6 @@ MODIFY COLUMN `room_id` BIGINT UNSIGNED NULL;
 -- FOREIGN KEY (`room_id`) REFERENCES `hotel_rooms` (`id`) ON DELETE CASCADE;
 
 
+
+
+
