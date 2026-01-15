@@ -44,10 +44,30 @@ public function index()
         $destinations = Category::all();
         $services = Program::all();
         $hotels = Hotel::where('added_by', $userId)->latest()->get();
+        
+        // Get facility categories for hotels and apartments
+        $hotelCategories = \App\Models\FacilityCategory::where('property_type', 'hotel')
+            ->where('is_active', true)
+            ->with(['facilities' => function($query) {
+                $query->where('is_active', true)->orderBy('sort_order');
+            }])
+            ->orderBy('sort_order')
+            ->get();
+            
+        $apartmentCategories = \App\Models\FacilityCategory::where('property_type', 'apartment')
+            ->where('is_active', true)
+            ->with(['facilities' => function($query) {
+                $query->where('is_active', true)->orderBy('sort_order');
+            }])
+            ->orderBy('sort_order')
+            ->get();
+        
         return view('frontend.myPropertyCreate',[
             'destinations'=>$destinations,
             'services'=>$services,
             'hotels'=>$hotels,
+            'hotelCategories'=>$hotelCategories,
+            'apartmentCategories'=>$apartmentCategories,
         ]);
     }
 
@@ -89,6 +109,11 @@ try {
             return back()
                 ->withInput()
                 ->with('error', 'Hotel could not be saved. Please try again.');
+        }
+
+        // Save amenities if provided
+        if ($request->has('amenities') && is_array($request->amenities)) {
+            $hotel->amenities()->sync($request->amenities);
         }
 
         // Notify the property owner (user) about the new property submission

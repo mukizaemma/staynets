@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use DB;
 use App\Models\Blog;
 use App\Models\Car;
+use App\Models\CarRental;
+use App\Models\User;
 use App\Models\Hotel;
 use App\Models\Property;
 use App\Models\HotelBooking;
@@ -32,6 +34,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\BookingNotification;
 use App\Mail\BookingConfirmation;
+use App\Mail\AdminNotification;
 use Illuminate\Support\Collection;
 
 
@@ -376,7 +379,8 @@ public function hotelsSearch(Request $request)
         $orderby = $request->input('orderby');
 
         $query = Car::query()
-            ->where('status', 'available');
+            ->where('status', 'available')
+            ->with('images'); // Eager load images for better performance
 
         if (!empty($q)) {
             $query->where(function ($qb) use ($q) {
@@ -415,12 +419,127 @@ public function hotelsSearch(Request $request)
         $car = Car::with('images')->where('slug', $slug)->firstOrFail();
 
         $images = $car->images;
-        $allCars = Car::where('id','!=',$car->id)->get();
+        $allCars = Car::where('id','!=',$car->id)->where('status', 'available')->limit(3)->get();
         return view('frontend.carDetails',[
             'car'=>$car,
             'images'=>$images,
             'allCars'=>$allCars,
         ]);
+    }
+
+    public function storeCarBooking(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'car_id' => 'required|exists:cars,id',
+                'booking_type' => 'required|in:view_car,rent,buy',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:50',
+                'preferred_date' => 'required_if:booking_type,view_car|nullable|date|after_or_equal:today',
+                'preferred_time' => 'nullable',
+                'pickup_date' => 'required_if:booking_type,rent|nullable|date|after_or_equal:today',
+                'dropoff_date' => 'required_if:booking_type,rent|nullable|date|after:pickup_date',
+                'pickup_location' => 'nullable|string|max:255',
+                'dropoff_location' => 'nullable|string|max:255',
+                'message' => 'nullable|string|max:1000',
+            ], [
+                'car_id.required' => 'Car ID is required.',
+                'car_id.exists' => 'Selected car does not exist.',
+                'booking_type.required' => 'Please select a booking type.',
+                'booking_type.in' => 'Invalid booking type selected.',
+                'name.required' => 'Your name is required.',
+                'email.required' => 'Your email is required.',
+                'email.email' => 'Please enter a valid email address.',
+                'phone.required' => 'Your phone number is required.',
+                'preferred_date.required_if' => 'Preferred date is required for viewing appointments.',
+                'preferred_date.after_or_equal' => 'Preferred date must be today or later.',
+                'pickup_date.required_if' => 'Pickup date is required for rentals.',
+                'pickup_date.after_or_equal' => 'Pickup date must be today or later.',
+                'dropoff_date.required_if' => 'Drop-off date is required for rentals.',
+                'dropoff_date.after' => 'Drop-off date must be after pickup date.',
+            ]);
+
+            $car = Car::findOrFail($request->car_id);
+            
+            // Calculate total amount if rent
+            $totalAmount = null;
+            if ($request->booking_type === 'rent' && $request->pickup_date && $request->dropoff_date) {
+                $pickup = new \DateTime($request->pickup_date);
+                $dropoff = new \DateTime($request->dropoff_date);
+                $days = $pickup->diff($dropoff)->days;
+                
+                if ($days > 0) {
+                    if ($days >= 30 && $car->price_per_month) {
+                        $months = floor($days / 30);
+                        $remainingDays = $days % 30;
+                        $totalAmount = ($months * $car->price_per_month) + ($remainingDays * $car->price_per_day);
+                    } elseif ($car->price_per_day) {
+                        $totalAmount = $days * $car->price_per_day;
+                    }
+                }
+            } elseif ($request->booking_type === 'buy' && $car->price_to_buy) {
+                $totalAmount = $car->price_to_buy;
+            }
+
+            // Create booking
+            $booking = \App\Models\CarRental::create([
+                'car_id' => $car->id,
+                'user_id' => auth()->id() ?? null,
+                'booking_type' => $request->booking_type,
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'preferred_date' => $request->preferred_date,
+                'preferred_time' => $request->preferred_time,
+                'pickup_location' => $request->pickup_location,
+                'dropoff_location' => $request->dropoff_location,
+                'pickup_date' => $request->pickup_date,
+                'dropoff_date' => $request->dropoff_date,
+                'message' => $request->message,
+                'total_amount' => $totalAmount,
+                'rental_status' => 'pending',
+                'payment_status' => 'pending',
+            ]);
+
+            // Notify all admins (role = 1)
+            $admins = \App\Models\User::where('role', 1)->get();
+            if ($admins->isNotEmpty()) {
+                $bookingTypeLabel = match($request->booking_type) {
+                    'view_car' => 'View Car Request',
+                    'rent' => 'Car Rental Booking',
+                    'buy' => 'Car Purchase Request',
+                    default => 'Car Booking'
+                };
+
+                $adminDetails = [
+                    'subject' => 'New Car Booking Request: ' . $bookingTypeLabel,
+                    'greeting' => 'Hello Admin,',
+                    'body' => "A new car booking request has been submitted.\n\n"
+                             . "Car: {$car->name}\n"
+                             . "Booking Type: {$bookingTypeLabel}\n"
+                             . "Customer: {$request->name} ({$request->email})\n"
+                             . "Phone: {$request->phone}\n"
+                             . ($totalAmount ? "Total Amount: " . number_format($totalAmount) . " RWF\n" : "")
+                             . "\nYou can view and manage this booking in the admin panel:\n"
+                             . route('admin.carBookings.index'),
+                    'lastline' => 'Please log in to review and respond to this booking request.',
+                ];
+
+                foreach ($admins as $admin) {
+                    Mail::to($admin->email)
+                        ->send(new AdminNotification($adminDetails));
+                }
+            }
+
+            return redirect()->route('carDetails', $car->slug)
+                ->with('success', 'Your booking request has been submitted successfully! We will contact you soon.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withInput()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            \Log::error('Car booking error: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Something went wrong. Please try again: ' . $e->getMessage());
+        }
     }
 
 
@@ -941,22 +1060,79 @@ public function terms(){
 
 public function bookNow(Request $request)
 {
-    $booking = \App\Models\Reservation::create([
-        'room_id'     => $request->room_id,
-        'facility_id' => $request->facility_id,
-        'nights'      => $request->nights,
-        'guests'      => $request->guests,
-        'message'     => $request->message,
-        'names'       => $request->names,
-        'email'       => $request->email,
-        'phone'       => $request->phone,
-        'status'      => 'pending',
-    ]);
+    try {
+        // Validate based on service type
+        $rules = [
+            'service_type' => 'required|in:enquiry,hotel_booking,tour_booking,question',
+            'names' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:50',
+            'message' => 'required|string',
+        ];
 
-    if ($booking) {
-        return redirect()->back()->with('success', '✅ Your booking request has been received! We’ll contact you soon to confirm availability.');
-    } else {
-        return redirect()->back()->with('error', '❌ Sorry, your booking could not be submitted. Please try again.');
+        // Add validation rules based on service type
+        if ($request->service_type === 'hotel_booking') {
+            $rules['room_id'] = 'required|exists:hotel_rooms,id';
+            $rules['nights'] = 'nullable|integer|min:1';
+            $rules['guests'] = 'nullable|integer|min:1';
+            $rules['checkin_date'] = 'nullable|date|after_or_equal:today';
+            $rules['checkout_date'] = 'nullable|date|after:checkin_date';
+            $rules['facility_id'] = 'nullable|exists:facilities,id';
+        } elseif ($request->service_type === 'tour_booking') {
+            $rules['tour_id'] = 'nullable|exists:trips,id';
+            $rules['tour_date'] = 'nullable|date|after_or_equal:today';
+            $rules['tour_people'] = 'nullable|integer|min:1';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Prepare data based on service type
+        $bookingData = [
+            'service_type' => $request->service_type,
+            'names' => $request->names,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'message' => $request->message,
+            'status' => 'pending',
+        ];
+
+        // Add hotel booking specific fields
+        if ($request->service_type === 'hotel_booking') {
+            $bookingData['room_id'] = $request->room_id;
+            $bookingData['facility_id'] = $request->facility_id;
+            $bookingData['nights'] = $request->nights;
+            $bookingData['guests'] = $request->guests;
+            $bookingData['checkin_date'] = $request->checkin_date;
+            $bookingData['checkout_date'] = $request->checkout_date;
+        }
+
+        // Add tour booking specific fields
+        if ($request->service_type === 'tour_booking') {
+            $bookingData['tour_id'] = $request->tour_id;
+            $bookingData['tour_date'] = $request->tour_date;
+            $bookingData['tour_people'] = $request->tour_people;
+        }
+
+        $booking = \App\Models\Reservation::create($bookingData);
+
+        if ($booking) {
+            $successMessages = [
+                'enquiry' => "✅ Your enquiry has been received! We'll contact you soon.",
+                'hotel_booking' => "✅ Your hotel booking request has been received! We'll contact you soon to confirm availability.",
+                'tour_booking' => "✅ Your tour booking request has been received! We'll contact you soon to confirm details.",
+                'question' => "✅ Your question has been received! We'll get back to you soon.",
+            ];
+
+            $message = $successMessages[$request->service_type] ?? "✅ Your request has been received! We'll contact you soon.";
+            return redirect()->back()->with('success', $message);
+        } else {
+            return redirect()->back()->withInput()->with('error', '❌ Sorry, your request could not be submitted. Please try again.');
+        }
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return redirect()->back()->withInput()->withErrors($e->errors());
+    } catch (\Exception $e) {
+        \Log::error('Contact form error: ' . $e->getMessage());
+        return redirect()->back()->withInput()->with('error', '❌ Something went wrong. Please try again.');
     }
 }
 

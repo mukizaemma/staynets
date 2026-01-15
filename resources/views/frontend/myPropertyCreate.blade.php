@@ -146,6 +146,110 @@
         </div>
     </div>
 
+    <!-- Facilities/Amenities Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="mb-3 border-bottom pb-2">Facilities & Amenities</h5>
+            <p class="text-muted mb-3">Select amenities for your property. Categories will change based on property type.</p>
+        </div>
+        
+        @php
+            $selectedAmenities = old('amenities', []);
+        @endphp
+        
+        <!-- Hotel Amenities (shown when type is hotel, lodge, guest_house, motel, resort) -->
+        <div id="hotel-amenities" class="amenities-section" style="display:none;">
+            @if(isset($hotelCategories) && $hotelCategories->count() > 0)
+                @foreach($hotelCategories as $category)
+                    <div class="col-12 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    @if($category->icon)
+                                        <i class="{{ $category->icon }} me-2"></i>
+                                    @endif
+                                    {{ $category->name }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2" id="amenities-list-{{ $category->id }}">
+                                    @if($category->facilities && $category->facilities->count() > 0)
+                                        @foreach($category->facilities as $amenity)
+                                            <div class="col-md-6 col-lg-4">
+                                                <label class="form-check-label d-flex align-items-center">
+                                                    <input type="checkbox" 
+                                                           name="amenities[]" 
+                                                           value="{{ $amenity->id }}"
+                                                           class="form-check-input me-2"
+                                                           {{ in_array($amenity->id, $selectedAmenities) ? 'checked' : '' }}>
+                                                    <span>{{ $amenity->title }}</span>
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="col-12">
+                                            <p class="text-muted text-center">No amenities in this category yet.</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="col-12">
+                    <p class="text-muted">Hotel amenities categories are not available yet. Please contact admin.</p>
+                </div>
+            @endif
+        </div>
+        
+        <!-- Apartment Amenities (shown when type is apartment) -->
+        <div id="apartment-amenities" class="amenities-section" style="display:none;">
+            @if(isset($apartmentCategories) && $apartmentCategories->count() > 0)
+                @foreach($apartmentCategories as $category)
+                    <div class="col-12 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    @if($category->icon)
+                                        <i class="{{ $category->icon }} me-2"></i>
+                                    @endif
+                                    {{ $category->name }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2" id="amenities-list-{{ $category->id }}">
+                                    @if($category->facilities && $category->facilities->count() > 0)
+                                        @foreach($category->facilities as $amenity)
+                                            <div class="col-md-6 col-lg-4">
+                                                <label class="form-check-label d-flex align-items-center">
+                                                    <input type="checkbox" 
+                                                           name="amenities[]" 
+                                                           value="{{ $amenity->id }}"
+                                                           class="form-check-input me-2"
+                                                           {{ in_array($amenity->id, $selectedAmenities) ? 'checked' : '' }}>
+                                                    <span>{{ $amenity->title }}</span>
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="col-12">
+                                            <p class="text-muted text-center">No amenities in this category yet.</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                <div class="col-12">
+                    <p class="text-muted">Apartment amenities categories are not available yet. Please contact admin.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <div class="row mb-3">
         <div class="col-12 d-flex gap-2">
             <button class="btn btn-primary text-black" type="submit"><i class="fa fa-save"></i> Add New</button>
@@ -155,4 +259,32 @@
 </form>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.querySelector('select[name="type"]');
+    const hotelAmenities = document.getElementById('hotel-amenities');
+    const apartmentAmenities = document.getElementById('apartment-amenities');
+    
+    function toggleAmenities() {
+        const selectedType = typeSelect.value;
+        // Hide all amenities sections first
+        hotelAmenities.style.display = 'none';
+        apartmentAmenities.style.display = 'none';
+        
+        // Show appropriate amenities based on type
+        if (selectedType === 'apartment') {
+            apartmentAmenities.style.display = 'block';
+        } else if (['hotel', 'lodge', 'guest_house', 'motel', 'resort'].includes(selectedType)) {
+            hotelAmenities.style.display = 'block';
+        }
+    }
+    
+    // Initial toggle based on old input or default
+    toggleAmenities();
+    
+    // Toggle on change
+    typeSelect.addEventListener('change', toggleAmenities);
+});
+</script>
 @endsection

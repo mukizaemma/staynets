@@ -20,10 +20,16 @@
                 <div class="bg-light text-center rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h6 class="mb-0">Our Recent Published Cars</h6>
-                        <div class="col-dm3">
-                            <button type="button" class="btn btn-primary float-left" data-bs-toggle="modal" data-bs-target="#NewProduct">
-                                Add New Car
-                              </button>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.carBookings.index') }}" class="btn btn-info">
+                                <i class="fa fa-calendar-check me-2"></i>Car Bookings
+                                @if(isset($pendingBookings) && $pendingBookings > 0)
+                                    <span class="badge bg-danger ms-1">{{ $pendingBookings }}</span>
+                                @endif
+                            </a>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#NewProduct">
+                                <i class="fa fa-plus me-2"></i>Add New Car
+                            </button>
                         </div>
                         {{-- <a href="">Show All</a> --}}
                     </div>
@@ -50,7 +56,7 @@
 
                                     {{-- Cover Image --}}
                                     <td>
-                                        <a href="{{ route('editHotel', $rs->id) }}">
+                                        <a href="{{ route('editCar', $rs->id) }}">
                                             <img src="{{ asset('storage/images/cars/' . $rs->image) }}"
                                                 alt="Hotel Image"
                                                 width="80px"
@@ -222,8 +228,23 @@
 
                             <div class="row mb-3">
                                 <div class="col-lg-12">
-                                    <label class="form-label">Car Images</label>
-                                    <input type="file" name="image" class="form-control" multiple>
+                                    <label class="form-label">Cover Image <span class="text-danger">*</span></label>
+                                    <input type="file" name="cover_image" class="form-control" accept="image/*" required>
+                                    <small class="text-muted">This will be the main image displayed for the car</small>
+                                    @error('cover_image')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-lg-12">
+                                    <label class="form-label">Additional Car Images</label>
+                                    <input type="file" name="car_images[]" class="form-control" accept="image/*" multiple>
+                                    <small class="text-muted">You can upload multiple images to show different angles</small>
+                                    @error('car_images.*')
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 

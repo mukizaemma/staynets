@@ -5,22 +5,69 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Car;
+use App\Models\CarRental;
 use App\Models\Program;
 use Illuminate\Support\Str;
 use App\Models\Tripimage;
+use App\Models\Carimage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CarsController extends Controller
 {
         public function index()
     {
-    
         $cars = Car::latest()->get();
         $programs = Program::all();
+        
+        // Get pending bookings count
+        $pendingBookings = CarRental::where('rental_status', 'pending')->count();
+        
         return view('admin.cars.cars', [
             'cars' => $cars,
             'programs' => $programs,
+            'pendingBookings' => $pendingBookings,
+        ]);
+    }
+
+    /**
+     * Display car bookings/requests
+     */
+    public function carBookings(Request $request)
+    {
+        $query = CarRental::with(['car', 'user'])
+            ->latest();
+        
+        // Filter by status
+        if ($request->has('status') && $request->status && $request->status !== 'all') {
+            $query->where('rental_status', $request->status);
+        }
+        
+        // Filter by booking type
+        if ($request->has('booking_type') && $request->booking_type && $request->booking_type !== 'all') {
+            $query->where('booking_type', $request->booking_type);
+        }
+        
+        $bookings = $query->paginate(20)->appends($request->query());
+        $setting = Setting::first();
+        
+        // Get counts for filter tabs
+        $counts = [
+            'all' => CarRental::count(),
+            'pending' => CarRental::where('rental_status', 'pending')->count(),
+            'confirmed' => CarRental::where('rental_status', 'confirmed')->count(),
+            'cancelled' => CarRental::where('rental_status', 'cancelled')->count(),
+        ];
+        
+        return view('admin.cars.bookings', [
+            'bookings' => $bookings,
+            'setting' => $setting,
+            'counts' => $counts,
+            'filters' => [
+                'status' => $request->status ?? 'all',
+                'booking_type' => $request->booking_type ?? 'all',
+            ],
         ]);
     }
     
@@ -28,50 +75,94 @@ class CarsController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'model' => 'nullable|string|max:255',
+            'fuel_type' => 'nullable|string|max:50',
+            'transmission' => 'nullable|string|max:50',
+            'seats' => 'nullable|integer|min:1',
+            'program_id' => 'required|exists:programs,id',
+            'advert_type' => 'required|in:rent,sell',
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'car_images' => 'nullable|array',
+            'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            'description' => 'nullable|string',
+        ]);
 
-        $fileName = '';
-
-        if ($request->hasFile('image')) {
-            foreach ($request->file('image') as $file) {
-                $path = $file->store('public/images/cars');
-                $fileName = basename($path);
-                break; 
+        try {
+            // Handle cover image
+            $coverImageName = null;
+            if ($request->hasFile('cover_image')) {
+                $coverFile = $request->file('cover_image');
+                $coverPath = $coverFile->store('public/images/cars');
+                $coverImageName = basename($coverPath);
             }
-        }
-    
-        $slug = Str::of($request->input('name'))->slug();
-    
-        $blog = new Car();
-        $blog->name = $request->input('name');
-        $blog->model = $request->input('model');
-        $blog->fuel_type = $request->input('fuel_type');
-        $blog->seats = $request->input('seats');
-        $blog->transmission = $request->input('transmission');
-        $blog->price_per_day = $request->input('price_per_day');
-        $blog->program_id = $request->input('program_id');
-        $blog->images = $fileName;
-        $blog->slug = $slug;
-        $blog->added_by = $request->user()->id;
-        $saved = $blog->save();
-    
-       if($saved){
+
+            // Generate slug
+            $slug = Str::slug($request->input('name'));
+            $uniqueSlug = $slug;
+            $counter = 1;
+            while (Car::where('slug', $uniqueSlug)->exists()) {
+                $uniqueSlug = $slug . '-' . $counter++;
+            }
+
+            // Create car
+            $car = Car::create([
+                'name' => $request->input('name'),
+                'slug' => $uniqueSlug,
+                'model' => $request->input('model'),
+                'fuel_type' => $request->input('fuel_type'),
+                'seats' => $request->input('seats'),
+                'transmission' => $request->input('transmission'),
+                'price_per_day' => $request->input('advert_type') === 'rent' ? $request->input('price_per_day') : null,
+                'price_per_month' => $request->input('advert_type') === 'rent' ? $request->input('price_per_month') : null,
+                'price_to_buy' => $request->input('advert_type') === 'sell' ? $request->input('price_to_buy') : null,
+                'image' => $coverImageName, // Cover image
+                'description' => $request->input('description'),
+                'program_id' => $request->input('program_id'),
+                'added_by' => $request->user()->id,
+                'status' => 'available',
+            ]);
+
+            // Handle additional car images
+            if ($request->hasFile('car_images')) {
+                foreach ($request->file('car_images') as $imageFile) {
+                    $imagePath = $imageFile->store('public/images/cars');
+                    $imageName = basename($imagePath);
+                    
+                    \App\Models\Carimage::create([
+                        'car_id' => $car->id,
+                        'image' => $imageName,
+                        'added_by' => $request->user()->id,
+                    ]);
+                }
+            }
+
          return redirect()->route('getCars')->with('success', 'New Car has been saved successfully');
+        } catch (\Exception $e) {
+            \Log::error('Car creation error: ' . $e->getMessage());
+            return redirect()->route('getCars')->with('error', 'Something went wrong: ' . $e->getMessage());
        }
-       else 
-         return redirect()->route('getCars')->with('error', 'Something went wrong');
     }
 
     
     public function edit($id)
     {
-        $car = Car::find($id);
-        $images = collect($car->images ?? []);
-        $totalImages = $images->count();
+        $car = Car::findOrFail($id);
+        $carImages = Carimage::where('car_id', $car->id)->get();
+        $programs = Program::all();
+        
+        // Determine advert type based on pricing
+        $advertType = 'rent';
+        if ($car->price_to_buy && !$car->price_per_day && !$car->price_per_month) {
+            $advertType = 'sell';
+        }
 
         return view('admin.cars.carUpdate', [
-            'car'=>$car,
-            'images'=>$images,
-            'totalImages'=>$totalImages,
+            'car' => $car,
+            'carImages' => $carImages,
+            'programs' => $programs,
+            'advertType' => $advertType,
         ]);
     }
     public function view($id)
@@ -89,36 +180,85 @@ class CarsController extends Controller
         try {
             $car = Car::findOrFail($id);
     
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $path = $file->store('public/images/cars');
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'model' => 'nullable|string|max:255',
+                'fuel_type' => 'nullable|string|max:50',
+                'transmission' => 'nullable|string|max:50',
+                'seats' => 'nullable|integer|min:1',
+                'program_id' => 'required|exists:programs,id',
+                'advert_type' => 'required|in:rent,sell',
+                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+                'car_images' => 'nullable|array',
+                'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+                'description' => 'nullable|string',
+                'status' => 'required|in:available,rented,maintenance',
+            ]);
+    
+            // Handle cover image update
+            if ($request->hasFile('cover_image')) {
+                // Delete old cover image if exists
+                if ($car->image) {
                 Storage::delete('public/images/cars/' . $car->image);
-                $car->image = basename($path);
-            }
-    
-            $fields = [
-                'name', 'description', 'status','model','fuel_type','seats','transmission',
-                'price_per_day','price_per_month','price_to_buy','images','added_by','program_id',
-                ];
-            foreach ($fields as $field) {
-                if ($request->has($field) && $request->input($field) !== $car->$field) {
-                    $car->$field = $request->input($field);
                 }
+                
+                $coverFile = $request->file('cover_image');
+                $coverPath = $coverFile->store('public/images/cars');
+                $car->image = basename($coverPath);
             }
     
+            // Update car details
+            $car->name = $request->input('name');
+            $car->model = $request->input('model');
+            $car->fuel_type = $request->input('fuel_type');
+            $car->seats = $request->input('seats');
+            $car->transmission = $request->input('transmission');
+            $car->description = $request->input('description');
+            $car->program_id = $request->input('program_id');
+            $car->status = $request->input('status');
+            
+            // Update pricing based on advert type
+            if ($request->input('advert_type') === 'rent') {
+                $car->price_per_day = $request->input('price_per_day');
+                $car->price_per_month = $request->input('price_per_month');
+                $car->price_to_buy = null;
+            } else {
+                $car->price_per_day = null;
+                $car->price_per_month = null;
+                $car->price_to_buy = $request->input('price_to_buy');
+            }
+    
+            // Update slug if name changed
             if ($car->isDirty('name')) {
-                $slug = Str::of($car->name)->slug();
-                if (Trip::where('slug', $slug)->where('id', '!=', $car->id)->exists()) {
-                    $slug .= '-' . uniqid();
+                $slug = Str::slug($car->name);
+                $uniqueSlug = $slug;
+                $counter = 1;
+                while (Car::where('slug', $uniqueSlug)->where('id', '!=', $car->id)->exists()) {
+                    $uniqueSlug = $slug . '-' . $counter++;
                 }
-                $car->slug = $slug;
+                $car->slug = $uniqueSlug;
             }
     
             $car->save();
     
-            return redirect()->route('getCars')->with('success', 'Trip has been updated successfully');
+            // Handle additional car images
+            if ($request->hasFile('car_images')) {
+                foreach ($request->file('car_images') as $imageFile) {
+                    $imagePath = $imageFile->store('public/images/cars');
+                    $imageName = basename($imagePath);
+                    
+                    Carimage::create([
+                        'car_id' => $car->id,
+                        'image' => $imageName,
+                        'added_by' => $request->user()->id,
+                    ]);
+                }
+            }
+    
+            return redirect()->route('getCars')->with('success', 'Car has been updated successfully');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Something went wrong');
+            Log::error('Car update error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
     }
     
@@ -126,15 +266,104 @@ class CarsController extends Controller
 
     public function destroy($id)
     {
-        $car = Car::find($id); 
-        if (!$car) {
-            return back()->with('error', 'Content not found');
+        try {
+            $car = Car::findOrFail($id);
+            
+            // Delete cover image
+            if ($car->image) {
+                Storage::delete('public/images/cars/' . $car->image);
+            }
+            
+            // Delete all car images
+            foreach ($car->images as $carImage) {
+                if ($carImage->image) {
+                    Storage::delete('public/images/cars/' . $carImage->image);
+                }
+                $carImage->delete();
+            }
+            
+            $car->delete();
+            
+            return back()->with('success', 'Car deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('Car delete error: ' . $e->getMessage());
+            return back()->with('error', 'Something went wrong while deleting the car');
         }
-        if ($car->image) {
-            Storage::delete('public/images/cars/' . $car->image);
+    }
+
+    /**
+     * Add images to a car
+     */
+    public function addCarImage(Request $request, $id)
+    {
+        try {
+            $car = Car::findOrFail($id);
+            
+            $request->validate([
+                'images' => 'required|array',
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            ]);
+
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $imageFile) {
+                    $imagePath = $imageFile->store('public/images/cars');
+                    $imageName = basename($imagePath);
+                    
+                    Carimage::create([
+                        'car_id' => $car->id,
+                        'image' => $imageName,
+                        'added_by' => $request->user()->id,
+                    ]);
+                }
+            }
+
+            return back()->with('success', 'Images added successfully');
+        } catch (\Exception $e) {
+            Log::error('Add car image error: ' . $e->getMessage());
+            return back()->with('error', 'Something went wrong while adding images');
         }
-        $car->delete($id);
-        return back()
-            ->with('success', 'Story deleted successfully');
+    }
+
+    /**
+     * Delete a car image
+     */
+    public function deleteCarImage($id)
+    {
+        try {
+            $carImage = Carimage::findOrFail($id);
+            
+            if ($carImage->image) {
+                Storage::delete('public/images/cars/' . $carImage->image);
+            }
+            
+            $carImage->delete();
+            
+            return back()->with('success', 'Image deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('Delete car image error: ' . $e->getMessage());
+            return back()->with('error', 'Something went wrong while deleting the image');
+        }
+    }
+
+    /**
+     * Update car booking status
+     */
+    public function updateBookingStatus(Request $request, $id)
+    {
+        try {
+            $booking = CarRental::findOrFail($id);
+            
+            $request->validate([
+                'status' => 'required|in:pending,confirmed,cancelled',
+            ]);
+            
+            $booking->rental_status = $request->status;
+            $booking->save();
+            
+            return back()->with('success', 'Booking status updated successfully');
+        } catch (\Exception $e) {
+            Log::error('Update booking status error: ' . $e->getMessage());
+            return back()->with('error', 'Something went wrong while updating the booking');
+        }
     }
 }

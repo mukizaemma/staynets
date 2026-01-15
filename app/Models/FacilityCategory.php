@@ -14,6 +14,7 @@ class FacilityCategory extends Model
         'name',
         'slug',
         'icon',
+        'property_type', // 'hotel', 'apartment', or null for both
         'description',
         'sort_order',
         'is_active',
@@ -25,11 +26,19 @@ class FacilityCategory extends Model
     ];
 
     /**
-     * Get all facilities in this category
+     * Get all facilities/amenities in this category
      */
     public function facilities()
     {
         return $this->hasMany(Amenity::class, 'facility_category_id');
+    }
+    
+    /**
+     * Alias for facilities (for consistency)
+     */
+    public function amenities()
+    {
+        return $this->facilities();
     }
 }
 

@@ -11,13 +11,20 @@ class Car extends Model
 
     protected $fillable = [
         'partner_id',
+        'added_by',
+        'program_id',
         'name',
+        'slug',
         'model',
         'fuel_type',
         'seats',
         'transmission',
         'price_per_day',
-        'images',
+        'price_per_month',
+        'price_to_buy',
+        'image', // Cover image
+        'images', // JSON array (for backward compatibility)
+        'description',
         'status',
     ];
 

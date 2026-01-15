@@ -98,4 +98,13 @@ class Hotel extends Model
     {
         return $this->belongsTo(User::class, 'added_by');
     }
+
+    /**
+     * Get all amenities for this hotel
+     */
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'hotel_amenities', 'hotel_id', 'amenity_id')
+                    ->withTimestamps();
+    }
 }

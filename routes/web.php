@@ -184,6 +184,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/editCar/{id}', [App\Http\Controllers\CarsController::class, 'edit'])->name('editCar');
     Route::post('/updateCar/{id}', [App\Http\Controllers\CarsController::class, 'update'])->name('updateCar');
     Route::get('/deleteCar/{id}', [App\Http\Controllers\CarsController::class, 'destroy'])->name('deleteCar');
+    Route::post('/addCarImage/{id}', [App\Http\Controllers\CarsController::class, 'addCarImage'])->name('addCarImage');
+    Route::get('/deleteCarImage/{id}', [App\Http\Controllers\CarsController::class, 'deleteCarImage'])->name('deleteCarImage');
+    Route::get('/car-bookings', [App\Http\Controllers\CarsController::class, 'carBookings'])->name('admin.carBookings.index');
+    Route::put('/car-bookings/{id}/status', [App\Http\Controllers\CarsController::class, 'updateBookingStatus'])->name('admin.carBookings.updateStatus');
 
     // Left Bagsß
     Route::get('/getBags', [App\Http\Controllers\BagsController::class, 'index'])->name('getBags');
@@ -242,6 +246,7 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::get('/services/left-bags', [App\Http\Controllers\HomeController::class, 'leftBags'])->name('leftBags');
     Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
     Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
+    Route::post('car-booking', [App\Http\Controllers\HomeController::class, 'storeCarBooking'])->name('storeCarBooking');
     Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
     Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
 });

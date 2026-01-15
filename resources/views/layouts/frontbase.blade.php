@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{{ $setting->company ?? '' }}</title>
-    <meta name="author" content="Tourm">
+    <meta name="author" content="StayNets">
     <meta name="description" content="Best Accommodation Booking Engine in Rwanda">
     <meta name="keywords" content="{{ $setting->company ?? '' }} ">
     <meta name="robots" content="INDEX,FOLLOW">
@@ -444,7 +444,7 @@
             <div class="widget  ">
                 <div class="th-widget-about">
                     <div class="about-logo">
-                        <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="Tourm"></a>
+                        <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets"></a>
                     </div>
                     <p class="about-text">Discover Rwanda's charm with a peaceful stay through our booking engine.</p>
                     <div class="th-social">
@@ -501,7 +501,7 @@
                         </div>
                         <div class="details">
                             <p><a href="mailto:{{ $setting->email ?? '' }}" class="info-box_link">{{ $setting->email ?? '' }}</a></p>
-                            {{-- <p><a href="mailto:support24@tourm.com" class="info-box_link">support24@tourm.com</a></p> --}}
+                            {{-- <p><a href="mailto:support24@StayNets.com" class="info-box_link">support24@StayNets.com</a></p> --}}
                         </div>
                     </div>
                     <div class="info-box_text">
@@ -528,7 +528,7 @@
         <div class="th-menu-area text-center">
             <button class="th-menu-toggle"><i class="fal fa-times"></i></button>
             <div class="mobile-logo">
-                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="Tourm" width="120px"></a>
+                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets" width="120px"></a>
             </div>
             <div class="th-mobile-menu">
                 <ul>
@@ -687,7 +687,7 @@
                     <div class="row align-items-center justify-content-between">
                         <div class="col-auto">
                             <div class="header-logo">
-                                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="Tourm" width="150px"></a>
+                                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets" width="150px"></a>
                             </div>
                         </div>
                         <div class="col-auto me-xl-auto">

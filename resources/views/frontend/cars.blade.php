@@ -70,7 +70,7 @@
                                         <div class="tour-box th-ani">
                                         <div class="tour-box_img global-img"
                                             style="height:250px; overflow:hidden;">
-                                            @if($car->images && file_exists(storage_path('app/public/images/cars/' . $car->image)))
+                                            @if($car->image && file_exists(storage_path('app/public/images/cars/' . $car->image)))
                                                 <img src="{{ asset('storage/images/cars/' . $car->image) }}"
                                                     alt="{{ $car->name }}"
                                                     style="width:100%; height:100%; object-fit:cover;">
@@ -131,7 +131,7 @@
                                     <div class="col-12">
                                         <div class="tour-box style-flex th-ani">
                                             <div class="tour-box_img global-img">
-                                                @if($car->images && file_exists(storage_path('app/public/images/cars/' . $car->image)))
+                                                @if($car->image && file_exists(storage_path('app/public/images/cars/' . $car->image)))
                                                     <img src="{{ asset('storage/images/cars/' . $car->image) }}" alt="{{ $car->name }}">
                                                 @else
                                                     <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $car->name }}">
@@ -140,12 +140,7 @@
 
                                             <div class="tour-content">
                                                 <h3 class="box-title">
-                                                    <a href="{{ route('accommodations', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
-                                                </h3>
-
-                                            <div class="tour-content">
-                                                <h3 class="box-title">
-                                                    <a href="{{ route('hotelRooms', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
+                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
                                                 </h3>
 
                                                 <ul class="list-unstyled mb-3 small text-muted row">
@@ -172,7 +167,7 @@
                                                             </p>
                                                         @endif
                                                     </div>
-                                                    <a href="{{ route('hotel', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
+                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
                                                 </div>
                                             </div>
 
