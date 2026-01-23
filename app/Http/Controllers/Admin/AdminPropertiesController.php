@@ -167,7 +167,7 @@ class AdminPropertiesController extends Controller
         $amenities = Amenity::with('category')->orderBy('title')->get();
         $facilityCategories = FacilityCategory::with(['facilities' => function($query) {
             $query->active()->orderBy('title');
-        }])->orderBy('sort_order')->get();
+        }])->get();
         $setting = \App\Models\Setting::first();
 
         return view('admin.properties.create', [
