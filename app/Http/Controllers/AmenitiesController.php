@@ -7,6 +7,7 @@ use App\Models\FacilityCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class AmenitiesController extends Controller
 {
@@ -40,24 +41,39 @@ class AmenitiesController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $slug = Str::slug($request->title);
-        // Ensure slug is unique
-        $originalSlug = $slug;
-        $counter = 1;
-        while (Amenity::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $counter;
-            $counter++;
+        $data = [
+            'title' => $request->title,
+            'icon' => $request->icon,
+        ];
+
+        // Only add columns if they exist in the database
+        if (Schema::hasColumn('amenities', 'facility_category_id')) {
+            $data['facility_category_id'] = $request->facility_category_id;
+        }
+        if (Schema::hasColumn('amenities', 'description')) {
+            $data['description'] = $request->description;
+        }
+        if (Schema::hasColumn('amenities', 'sort_order')) {
+            $data['sort_order'] = $request->sort_order ?? 0;
+        }
+        if (Schema::hasColumn('amenities', 'is_active')) {
+            $data['is_active'] = $request->has('is_active') ? true : false;
         }
 
-        $amenity = Amenity::create([
-            'title' => $request->title,
-            'slug' => $slug,
-            'facility_category_id' => $request->facility_category_id,
-            'icon' => $request->icon,
-            'description' => $request->description,
-            'sort_order' => $request->sort_order ?? 0,
-            'is_active' => $request->has('is_active') ? true : false,
-        ]);
+        // Only handle slug if the column exists
+        if (Schema::hasColumn('amenities', 'slug')) {
+            $slug = Str::slug($request->title);
+            // Ensure slug is unique
+            $originalSlug = $slug;
+            $counter = 1;
+            while (Amenity::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        }
+
+        $amenity = Amenity::create($data);
 
         // If AJAX request, return JSON response
         if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
@@ -109,29 +125,44 @@ class AmenitiesController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $slug = Str::slug($request->title);
-        // Ensure slug is unique (excluding current amenity)
-        $currentSlug = $amenity->slug ?? null;
-        if ($slug !== $currentSlug) {
-            $originalSlug = $slug;
-            $counter = 1;
-            while (Amenity::where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                $slug = $originalSlug . '-' . $counter;
-                $counter++;
-            }
-        } else {
-            $slug = $currentSlug;
+        $data = [
+            'title' => $request->title,
+            'icon' => $request->icon,
+        ];
+
+        // Only add columns if they exist in the database
+        if (Schema::hasColumn('amenities', 'facility_category_id')) {
+            $data['facility_category_id'] = $request->facility_category_id;
+        }
+        if (Schema::hasColumn('amenities', 'description')) {
+            $data['description'] = $request->description;
+        }
+        if (Schema::hasColumn('amenities', 'sort_order')) {
+            $data['sort_order'] = $request->sort_order ?? 0;
+        }
+        if (Schema::hasColumn('amenities', 'is_active')) {
+            $data['is_active'] = $request->has('is_active') ? true : false;
         }
 
-        $amenity->update([
-            'title' => $request->title,
-            'slug' => $slug,
-            'facility_category_id' => $request->facility_category_id,
-            'icon' => $request->icon,
-            'description' => $request->description,
-            'sort_order' => $request->sort_order ?? 0,
-            'is_active' => $request->has('is_active') ? true : false,
-        ]);
+        // Only handle slug if the column exists
+        if (Schema::hasColumn('amenities', 'slug')) {
+            $slug = Str::slug($request->title);
+            // Ensure slug is unique (excluding current amenity)
+            $currentSlug = $amenity->slug ?? null;
+            if ($slug !== $currentSlug) {
+                $originalSlug = $slug;
+                $counter = 1;
+                while (Amenity::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                    $slug = $originalSlug . '-' . $counter;
+                    $counter++;
+                }
+            } else {
+                $slug = $currentSlug;
+            }
+            $data['slug'] = $slug;
+        }
+
+        $amenity->update($data);
 
         return redirect()->route('amenities.index')
             ->with('success', 'Amenity has been updated successfully');
