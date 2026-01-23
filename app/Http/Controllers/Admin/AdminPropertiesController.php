@@ -164,7 +164,7 @@ class AdminPropertiesController extends Controller
         $programs = Program::all();
         $partners = Partner::all();
         $users = User::all();
-        $amenities = Amenity::with('category')->active()->orderBy('title')->get();
+        $amenities = Amenity::with('category')->orderBy('title')->get();
         $facilityCategories = FacilityCategory::with(['facilities' => function($query) {
             $query->active()->orderBy('title');
         }])->where('is_active', true)->orderBy('sort_order')->get();
