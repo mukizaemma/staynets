@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('facility_categories', function (Blueprint $table) {
+        Schema::create('review_images', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->string('icon')->nullable();
-            $table->text('description')->nullable();
+            $table->unsignedBigInteger('review_id');
+            $table->string('image');
+            $table->string('caption')->nullable();
             $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->softDeletes();
+
+            $table->foreign('review_id')->references('id')->on('reviews')->onDelete('cascade');
+            $table->index('review_id');
         });
     }
 
@@ -29,16 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('facility_categories');
+        Schema::dropIfExists('review_images');
     }
 };
-
-
-
-
-
-
-
-
-
-

@@ -18,17 +18,25 @@ class Review extends Model
         'email',
         'website',
         'user_id',
+        'rating',
         'is_approved',
         'is_featured',
+        'admin_response',
     ];
 
     protected $casts = [
         'is_approved' => 'boolean',
         'is_featured' => 'boolean',
+        'rating' => 'integer',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ReviewImage::class)->orderBy('sort_order');
     }
 }

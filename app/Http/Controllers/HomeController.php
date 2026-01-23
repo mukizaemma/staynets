@@ -80,10 +80,11 @@ class HomeController extends Controller
             ->take(6)
             ->get();
 
-        // Get general business reviews (testimonials) - only approved ones
+        // Get general business reviews (testimonials) - only approved ones, limit to 4
         $businessReviews = Review::where('is_approved', true)
+            ->with(['user', 'images'])
             ->latest()
-            ->take(6)
+            ->take(4)
             ->get();
 
         return view('frontend.index',[

@@ -372,36 +372,57 @@ Business Reviews/Testimonials Area
 
             <div class="row gy-4">
                 @forelse($businessReviews as $review)
-                    <div class="col-lg-4 col-md-6">
-                        <div class="review-card" style="background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%;">
-                            <div class="review-content mb-3">
-                                <div class="quote-icon mb-3" style="font-size: 40px; color: #25D366; opacity: 0.3;">
-                                    <i class="fas fa-quote-left"></i>
-                                </div>
-                                <p style="color: #666; font-size: 15px; line-height: 1.8; font-style: italic;">
-                                    {{ $review->testimony }}
-                                </p>
-                            </div>
-                            <div class="review-author" style="border-top: 1px solid #f0f0f0; padding-top: 15px;">
-                                <div class="d-flex align-items-center">
-                                    <div class="author-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px; margin-right: 15px;">
-                                        {{ strtoupper(substr($review->names ?? 'A', 0, 1)) }}
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{{ route('reviews.show', $review->id) }}" style="text-decoration: none; color: inherit;">
+                            <div class="review-card" style="background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)'">
+                                <div class="review-content mb-3">
+                                    <div class="quote-icon mb-3" style="font-size: 40px; color: #25D366; opacity: 0.3;">
+                                        <i class="fas fa-quote-left"></i>
                                     </div>
-                                    <div>
-                                        <h5 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">
-                                            {{ $review->names ?? 'Anonymous' }}
-                                        </h5>
-                                        @if($review->website)
-                                            <p style="margin: 0; font-size: 13px; color: #999;">
-                                                <a href="{{ $review->website }}" target="_blank" style="color: #25D366; text-decoration: none;">
-                                                    {{ parse_url($review->website, PHP_URL_HOST) }}
-                                                </a>
-                                            </p>
+                                    <!-- Rating Stars -->
+                                    @if($review->rating)
+                                        <div class="mb-2">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }}" style="font-size: 14px;"></i>
+                                            @endfor
+                                        </div>
+                                    @endif
+                                    <p style="color: #666; font-size: 15px; line-height: 1.8; font-style: italic; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ $review->testimony }}
+                                    </p>
+                                    @if($review->images->count() > 0)
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-images"></i> {{ $review->images->count() }} image(s)
+                                            </small>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="review-author" style="border-top: 1px solid #f0f0f0; padding-top: 15px;">
+                                    <div class="d-flex align-items-center">
+                                        @if($review->user && $review->user->profile_photo_url)
+                                            <img src="{{ $review->user->profile_photo_url }}" alt="{{ $review->names }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">
+                                        @else
+                                            <div class="author-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px; margin-right: 15px;">
+                                                {{ strtoupper(substr($review->names ?? 'A', 0, 1)) }}
+                                            </div>
                                         @endif
+                                        <div>
+                                            <h5 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">
+                                                {{ $review->names ?? 'Anonymous' }}
+                                            </h5>
+                                            @if($review->website)
+                                                <p style="margin: 0; font-size: 13px; color: #999;">
+                                                    <span style="color: #25D366;">
+                                                        {{ parse_url($review->website, PHP_URL_HOST) }}
+                                                    </span>
+                                                </p>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 @empty
                     <div class="col-12">
@@ -411,6 +432,16 @@ Business Reviews/Testimonials Area
                     </div>
                 @endforelse
             </div>
+            
+            @if($businessReviews->count() > 0)
+                <div class="row mt-4">
+                    <div class="col-12 text-center">
+                        <a href="{{ route('reviews.index') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600;">
+                            <i class="fas fa-eye me-2"></i>View All Reviews
+                        </a>
+                    </div>
+                </div>
+            @endif
         </div>
     </section>
 

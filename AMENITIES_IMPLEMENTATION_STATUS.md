@@ -74,3 +74,6 @@
 - Apartment amenities can use the same structure when apartments are created through the Property model
 - The frontend form dynamically shows/hides amenities based on property type selection
 
+
+
+

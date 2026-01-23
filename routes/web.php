@@ -183,6 +183,19 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/storeCar', [App\Http\Controllers\CarsController::class, 'store'])->name('storeCar');
     Route::get('/editCar/{id}', [App\Http\Controllers\CarsController::class, 'edit'])->name('editCar');
     Route::post('/updateCar/{id}', [App\Http\Controllers\CarsController::class, 'update'])->name('updateCar');
+    
+    // Reviews Management Routes
+    Route::get('/reviews', [App\Http\Controllers\Admin\AdminReviewController::class, 'index'])->name('admin.reviews.index');
+    Route::get('/reviews/create', [App\Http\Controllers\Admin\AdminReviewController::class, 'create'])->name('admin.reviews.create');
+    Route::post('/reviews', [App\Http\Controllers\Admin\AdminReviewController::class, 'store'])->name('admin.reviews.store');
+    Route::get('/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'show'])->name('admin.reviews.show');
+    Route::get('/reviews/{id}/edit', [App\Http\Controllers\Admin\AdminReviewController::class, 'edit'])->name('admin.reviews.edit');
+    Route::put('/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'update'])->name('admin.reviews.update');
+    Route::post('/reviews/{id}/approve', [App\Http\Controllers\Admin\AdminReviewController::class, 'approve'])->name('admin.reviews.approve');
+    Route::post('/reviews/{id}/reject', [App\Http\Controllers\Admin\AdminReviewController::class, 'reject'])->name('admin.reviews.reject');
+    Route::post('/reviews/{id}/respond', [App\Http\Controllers\Admin\AdminReviewController::class, 'respond'])->name('admin.reviews.respond');
+    Route::delete('/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'destroy'])->name('admin.reviews.destroy');
+    Route::delete('/reviews/{reviewId}/images/{imageId}', [App\Http\Controllers\Admin\AdminReviewController::class, 'deleteImage'])->name('admin.reviews.deleteImage');
     Route::get('/deleteCar/{id}', [App\Http\Controllers\CarsController::class, 'destroy'])->name('deleteCar');
     Route::post('/addCarImage/{id}', [App\Http\Controllers\CarsController::class, 'addCarImage'])->name('addCarImage');
     Route::get('/deleteCarImage/{id}', [App\Http\Controllers\CarsController::class, 'deleteCarImage'])->name('deleteCarImage');
@@ -300,6 +313,11 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::post('/testimony', [App\Http\Controllers\HomeController::class, 'testimony'])->name('testimony');
     Route::post('/trip-inquiry', [App\Http\Controllers\HomeController::class, 'tripInquiry'])->name('tripInquiry');
 });
+
+// Public Review Routes
+Route::get('/reviews', [App\Http\Controllers\ReviewController::class, 'index'])->name('reviews.index');
+Route::get('/reviews/{id}', [App\Http\Controllers\ReviewController::class, 'show'])->name('reviews.show');
+Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store')->middleware('auth');
 
 // Logout route - accessible to all authenticated users
 Route::get('/logouts', [App\Http\Controllers\HomeController::class, 'logouts'])->name('logouts');
