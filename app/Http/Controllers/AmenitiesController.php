@@ -111,13 +111,16 @@ class AmenitiesController extends Controller
 
         $slug = Str::slug($request->title);
         // Ensure slug is unique (excluding current amenity)
-        if ($slug !== $amenity->slug) {
+        $currentSlug = $amenity->slug ?? null;
+        if ($slug !== $currentSlug) {
             $originalSlug = $slug;
             $counter = 1;
             while (Amenity::where('slug', $slug)->where('id', '!=', $id)->exists()) {
                 $slug = $originalSlug . '-' . $counter;
                 $counter++;
             }
+        } else {
+            $slug = $currentSlug;
         }
 
         $amenity->update([
