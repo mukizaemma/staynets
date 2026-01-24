@@ -22,12 +22,55 @@ Properties Area
 ==============================-->
     <section class="space">
         <div class="container">
-            <div class="row justify-content-center mb-5">
+            <div class="row justify-content-center mb-4">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
                         <h2 class="sec-title">Properties in {{ $category->name }}</h2>
                         <p class="sec-text">Find the perfect accommodation for your stay</p>
                     </div>
+                </div>
+            </div>
+
+            @if(!empty($category->description))
+                <div class="row justify-content-center mb-4">
+                    <div class="col-lg-8">
+                        <div class="destination-description text-center">
+                            {!! $category->description !!}
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Filters: property type + search --}}
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-10">
+                    <form method="GET" action="{{ route('destination', $category->slug) }}" class="property-filter-form">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label">Property Type</label>
+                                <select name="property_type" class="form-select">
+                                    <option value="" {{ request('property_type') == '' ? 'selected' : '' }}>All types</option>
+                                    <option value="hotel" {{ request('property_type') == 'hotel' ? 'selected' : '' }}>Hotels</option>
+                                    <option value="apartment" {{ request('property_type') == 'apartment' ? 'selected' : '' }}>Apartments</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">Search</label>
+                                <input
+                                    type="text"
+                                    name="q"
+                                    class="form-control"
+                                    placeholder="Search by name or location"
+                                    value="{{ request('q') }}"
+                                >
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="th-btn style3 w-100">
+                                    <i class="far fa-search me-2"></i>Filter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
 

@@ -775,45 +775,71 @@ public function storeBooking(Request $request)
 }
 
 
-public function destinations()
-{
-    $destinations = Category::oldest()->get();
-    $trips = Trip::Oldest()->get();                    
+    public function destinations()
+    {
+        $destinations = Category::oldest()->get();
+        $trips = Trip::oldest()->get();
 
-    return view('frontend.destinations', [
+        return view('frontend.destinations', [
+            'trips' => $trips,
+            'destinations' => $destinations,
+        ]);
+    }
 
-        'trips' => $trips,
-        'destinations' => $destinations,
-    ]);
-}
-public function destination($slug)
-{
-    $category = Category::where('slug', $slug)->firstOrFail();
-    
-    // Get all active properties for this destination
-    $hotels = $category
-        ->hotels()
-        ->where('status', 'Active')
-        ->with(['rooms' => function($q) {
-            $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
-        }, 'reviews'])
-        ->orderBy('created_at', 'desc')         
-        ->paginate(12);
+    /**
+     * Show a destination page with its properties and filters.
+     */
+    public function destination(Request $request, $slug)
+    {
+        $category = Category::where('slug', $slug)->firstOrFail();
 
-    // Get tour activities for this destination
-    // Trips table has category_id field that references categories
-    $trips = Trip::where('status', 'Active')
-        ->where('category_id', $category->id)
-        ->with(['images', 'reviews', 'destination'])
-        ->latest()
-        ->get();
+        // Base query: all active hotels/properties under this destination
+        $query = $category
+            ->hotels()
+            ->where('status', 'Active')
+            ->with([
+                'rooms' => function ($q) {
+                    $q->where('status', 'Active')
+                      ->orderBy('price_per_night', 'asc');
+                },
+                'reviews',
+            ]);
 
-    return view('frontend.destination', [
-        'trips' => $trips,
-        'category' => $category,
-        'hotels' => $hotels,
-    ]);
-}
+        // Filter by property type (stored on hotels.type), e.g. hotel, apartment, etc.
+        $propertyType = $request->input('property_type');
+        if (!empty($propertyType) && $propertyType !== 'all') {
+            $query->where('type', $propertyType);
+        }
+
+        // Search by name / location / city within this destination
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $query->where(function ($qbuilder) use ($search) {
+                $qbuilder->where('name', 'like', '%' . $search . '%')
+                         ->orWhere('location', 'like', '%' . $search . '%')
+                         ->orWhere('city', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Sort newest first
+        $hotels = $query
+            ->orderBy('created_at', 'desc')
+            ->paginate(12)
+            ->appends($request->query());
+
+        // Get tour activities for this destination
+        $trips = Trip::where('status', 'Active')
+            ->where('category_id', $category->id)
+            ->with(['images', 'reviews', 'destination'])
+            ->latest()
+            ->get();
+
+        return view('frontend.destination', [
+            'trips' => $trips,
+            'category' => $category,
+            'hotels' => $hotels,
+        ]);
+    }
 
 public function hotelRooms($hotelSlug)
 {
