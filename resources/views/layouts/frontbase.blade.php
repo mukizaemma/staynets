@@ -855,9 +855,18 @@
                         <p class="copyright-text">&copy; {{ date('Y') }} <a href="{{route('home')}}">Booking Site</a>. All Rights Reserved. Delivered by <a href="https://www.iremetech.com" target="_blank">Ireme Technologies</a></p>
                     </div>
                     <div class="col-md-6 text-end d-none d-md-block">
-                        <div class="footer-card">
-                            <span class="title">We Accept</span>
-                            <img src="{{ asset('storage/images') . $setting->donate }}" alt="">
+                        @php
+                            $reviewsCount = \App\Models\Review::where('is_approved', true)->count();
+                            $reviewsAvg = \App\Models\Review::where('is_approved', true)->avg('rating') ?? 0;
+                        @endphp
+                        <div class="footer-card" style="gap: 12px; justify-content: flex-end;">
+                            <span class="title">Reviews</span>
+                            <span class="title" style="font-weight: 600;">
+                                {{ $reviewsCount }} Reviews | {{ number_format($reviewsAvg, 1) }}/5
+                            </span>
+                            <a href="{{ route('reviews.index') }}" class="th-btn style3" style="padding: 8px 16px; font-size: 12px;">
+                                See Reviews
+                            </a>
                         </div>
                     </div>
                 </div>

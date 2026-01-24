@@ -203,7 +203,7 @@ class AdminPropertiesController extends Controller
             'map_embed_code' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'featured_image' => 'nullable|image|max:4096',
             'status' => 'nullable|in:Active,Inactive,Pending', // Status will default to Pending if not provided
             'is_featured' => 'nullable|boolean',
@@ -363,7 +363,7 @@ class AdminPropertiesController extends Controller
             'map_embed_code' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'featured_image' => 'nullable|image|max:4096',
             'status' => 'required|in:Active,Inactive,Pending',
             'is_featured' => 'nullable|boolean',

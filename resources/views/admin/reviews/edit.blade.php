@@ -49,7 +49,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="website" class="form-label">Website (Optional)</label>
-                                        <input type="url" class="form-control" id="website" name="website" value="{{ old('website', $review->website) }}" placeholder="https://example.com">
+                                        <input type="text" class="form-control" id="website" name="website" value="{{ old('website', $review->website) }}" placeholder="example.com">
                                     </div>
                                     <div class="mb-3">
                                         <label for="admin_response" class="form-label">Admin Response (Optional)</label>

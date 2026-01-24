@@ -48,16 +48,16 @@
 <body>
     <div class="container">
         <p class="message">
-            {{ $details['greeting'] }}
+            {{ $details['greeting'] ?? 'Hello,' }}
         </p>
 
         <p class="message">
-            {{ $details['body'] }}
+            {{ $details['body'] ?? '' }}
         </p>
 
         <hr>
         <p class="message">
-            {{ $details['lastline'] }}
+            {{ $details['lastline'] ?? '' }}
         </p>
 
         <br>

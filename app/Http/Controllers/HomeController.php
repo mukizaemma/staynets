@@ -51,33 +51,56 @@ class HomeController extends Controller
         $articles = Blog::latest()->paginate(3);
         $trips = Trip::with('images')->oldest()->take(3)->get();
         $locations = Hotel::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
+        if ($locations->isEmpty()) {
+            $locations = Property::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
+        }
 
-        // Get destinations (categories) with property count
+        // Get destinations (categories) with hotel/property counts
         $destinations = Category::where('status', 'Active')
-            ->withCount(['hotels' => function($query) {
-                $query->where('status', 'Active');
-            }])
-            ->whereHas('hotels', function($query) {
-                $query->where('status', 'Active');
+            ->withCount([
+                'hotels' => function($query) {
+                    $query->where('status', 'Active');
+                },
+                'properties' => function($query) {
+                    $query->where('status', 'Active')
+                          ->where('property_type', 'hotel');
+                }
+            ])
+            ->where(function($query) {
+                $query->whereHas('hotels', function($q) {
+                    $q->where('status', 'Active');
+                })->orWhereHas('properties', function($q) {
+                    $q->where('status', 'Active')
+                      ->where('property_type', 'hotel');
+                });
             })
             ->oldest()
             ->get();
 
-        // Get latest 6 properties
-        $latestProperties = Hotel::where('status', 'Active')
-            ->with(['rooms' => function($q) {
-                $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
+        // Get latest 3 properties (prefer Property model, fallback to Hotel)
+        $latestProperties = Property::where('status', 'Active')
+            ->with(['units' => function($q) {
+                $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
             }, 'reviews'])
             ->latest()
-            ->take(6)
+            ->take(3)
             ->get();
 
-        // Get popular trip activities
+        if ($latestProperties->isEmpty()) {
+            $latestProperties = Hotel::where('status', 'Active')
+                ->with(['rooms' => function($q) {
+                    $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
+                }, 'reviews'])
+                ->latest()
+                ->take(3)
+                ->get();
+        }
+
+        // Get latest 3 trip activities
         $popularTrips = Trip::where('status', 'Active')
             ->with(['images', 'reviews', 'destination'])
-            ->withCount('reviews')
-            ->orderBy('reviews_count', 'desc')
-            ->take(6)
+            ->latest()
+            ->take(3)
             ->get();
 
         // Get general business reviews (testimonials) - only approved ones, limit to 4
@@ -564,10 +587,28 @@ public function hotelsSearch(Request $request)
         ]);
     }
 
+    public function leftBagsRequest(){
+        $data = Leftbag::first();
+        $trips = Trip::oldest()->get();
+        return view('frontend.leftBagsRequest',[
+            'data'=>$data,
+            'trips'=>$trips,
+        ]);
+    }
+
     public function ticketing(){
         $data = Ticketing::first();
         $trips = Trip::oldest()->get();
         return view('frontend.ticketing',[
+            'data'=>$data,
+            'trips'=>$trips,
+        ]);
+    }
+
+    public function ticketingRequest(){
+        $data = Ticketing::first();
+        $trips = Trip::oldest()->get();
+        return view('frontend.ticketingRequest',[
             'data'=>$data,
             'trips'=>$trips,
         ]);
@@ -1090,7 +1131,7 @@ public function bookNow(Request $request)
     try {
         // Validate based on service type
         $rules = [
-            'service_type' => 'required|in:enquiry,hotel_booking,tour_booking,question',
+            'service_type' => 'required|in:enquiry,hotel_booking,tour_booking,question,ticketing,left_bags',
             'names' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:50',

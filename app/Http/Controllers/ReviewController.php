@@ -51,7 +51,7 @@ class ReviewController extends Controller
             'email' => 'required|email|max:255',
             'testimony' => 'required|string|min:10',
             'rating' => 'required|integer|min:1|max:5',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|string|max:255',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max per image
         ]);
 
@@ -78,25 +78,32 @@ class ReviewController extends Controller
             }
         }
 
-        // Send email notification to admins
-        $admins = User::where('role', 1)->get();
-        if ($admins->count() > 0) {
-            $adminDetails = [
-                'subject' => 'New Review Submitted',
-                'title' => 'New Review Submission',
-                'message' => "A new review has been submitted:\n\n"
-                    . "Reviewer: {$review->names} ({$review->email})\n"
-                    . "Rating: {$review->rating}/5 stars\n"
-                    . "Review: {$review->testimony}\n"
-                    . "\nYou can view and manage this review in the admin panel:\n"
-                    . route('admin.reviews.index'),
-                'lastline' => 'Please log in to review and manage this submission.',
-            ];
+        // Send email notification to admins (do not block review submission if mail fails)
+        try {
+            $admins = User::where('role', 1)->get();
+            if ($admins->count() > 0) {
+                $adminReviewUrl = \Illuminate\Support\Facades\Route::has('admin.reviews.index')
+                    ? route('admin.reviews.index')
+                    : url('/admin/reviews');
+                $adminDetails = [
+                    'subject' => 'New Review Submitted',
+                    'title' => 'New Review Submission',
+                    'message' => "A new review has been submitted:\n\n"
+                        . "Reviewer: {$review->names} ({$review->email})\n"
+                        . "Rating: {$review->rating}/5 stars\n"
+                        . "Review: {$review->testimony}\n"
+                        . "\nYou can view and manage this review in the admin panel:\n"
+                        . $adminReviewUrl,
+                    'lastline' => 'Please log in to review and manage this submission.',
+                ];
 
-            foreach ($admins as $admin) {
-                Mail::to($admin->email)
-                    ->send(new AdminNotification($adminDetails));
+                foreach ($admins as $admin) {
+                    Mail::to($admin->email)
+                        ->send(new AdminNotification($adminDetails));
+                }
             }
+        } catch (\Throwable $e) {
+            // Ignore mail failures so the review submission still succeeds
         }
 
         if ($request->ajax()) {

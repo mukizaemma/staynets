@@ -22,4 +22,9 @@ class Category extends Model
     public function trips(){
        return $this->hasMany(Trip::class);
     }
+
+    public function properties()
+    {
+       return $this->hasMany(Property::class);
+    }
 }

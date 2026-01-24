@@ -52,6 +52,9 @@
             <a href="{{ route('aboutPage') }}" class="nav-item nav-link"> <i class="fas fa-home me-2"></i>About Us</a>
             {{-- <a href="{{ route('getMessages') }}" class="nav-item nav-link"> <i class="fas fa-briefcase me-2"></i>Requests</a> --}}
             <a href="{{ route('setting') }}" class="nav-item nav-link"> <i class="fas fa-hashtag me-2"></i>Contacts</a>
+            <a href="{{ route('admin.reviews.index') }}" class="nav-item nav-link">
+                <i class="fas fa-star me-2"></i>Reviews
+            </a>
 
             @if(Auth::user()->email == 'admin@iremetech.com' )
             <a href="{{ route('users') }}" class="nav-item nav-link"><i class="fa fa-users me-2"></i> Users</a>

@@ -26,6 +26,19 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/getMessages', [App\Http\Controllers\AdminController::class, 'getMessages'])->name('getMessages');
     Route::get('/deleteMessages/{id}', [App\Http\Controllers\AdminController::class, 'deleteMessages'])->name('deleteMessages');
 
+    // Reviews Management (Admin)
+    Route::get('/admin/reviews', [App\Http\Controllers\Admin\AdminReviewController::class, 'index'])->name('admin.reviews.index');
+    Route::get('/admin/reviews/create', [App\Http\Controllers\Admin\AdminReviewController::class, 'create'])->name('admin.reviews.create');
+    Route::post('/admin/reviews', [App\Http\Controllers\Admin\AdminReviewController::class, 'store'])->name('admin.reviews.store');
+    Route::get('/admin/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'show'])->name('admin.reviews.show');
+    Route::get('/admin/reviews/{id}/edit', [App\Http\Controllers\Admin\AdminReviewController::class, 'edit'])->name('admin.reviews.edit');
+    Route::put('/admin/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'update'])->name('admin.reviews.update');
+    Route::post('/admin/reviews/{id}/approve', [App\Http\Controllers\Admin\AdminReviewController::class, 'approve'])->name('admin.reviews.approve');
+    Route::post('/admin/reviews/{id}/reject', [App\Http\Controllers\Admin\AdminReviewController::class, 'reject'])->name('admin.reviews.reject');
+    Route::post('/admin/reviews/{id}/respond', [App\Http\Controllers\Admin\AdminReviewController::class, 'respond'])->name('admin.reviews.respond');
+    Route::delete('/admin/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'destroy'])->name('admin.reviews.destroy');
+    Route::delete('/admin/reviews/{reviewId}/images/{imageId}', [App\Http\Controllers\Admin\AdminReviewController::class, 'deleteImage'])->name('admin.reviews.deleteImage');
+
     
     Route::get('/setting',[App\Http\Controllers\SettingsController::class,'setting'])->name('setting');
     Route::post('/saveSetting',[App\Http\Controllers\SettingsController::class,'saveSetting'])->name('saveSetting');
@@ -184,18 +197,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/editCar/{id}', [App\Http\Controllers\CarsController::class, 'edit'])->name('editCar');
     Route::post('/updateCar/{id}', [App\Http\Controllers\CarsController::class, 'update'])->name('updateCar');
     
-    // Reviews Management Routes
-    Route::get('/reviews', [App\Http\Controllers\Admin\AdminReviewController::class, 'index'])->name('admin.reviews.index');
-    Route::get('/reviews/create', [App\Http\Controllers\Admin\AdminReviewController::class, 'create'])->name('admin.reviews.create');
-    Route::post('/reviews', [App\Http\Controllers\Admin\AdminReviewController::class, 'store'])->name('admin.reviews.store');
-    Route::get('/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'show'])->name('admin.reviews.show');
-    Route::get('/reviews/{id}/edit', [App\Http\Controllers\Admin\AdminReviewController::class, 'edit'])->name('admin.reviews.edit');
-    Route::put('/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'update'])->name('admin.reviews.update');
-    Route::post('/reviews/{id}/approve', [App\Http\Controllers\Admin\AdminReviewController::class, 'approve'])->name('admin.reviews.approve');
-    Route::post('/reviews/{id}/reject', [App\Http\Controllers\Admin\AdminReviewController::class, 'reject'])->name('admin.reviews.reject');
-    Route::post('/reviews/{id}/respond', [App\Http\Controllers\Admin\AdminReviewController::class, 'respond'])->name('admin.reviews.respond');
-    Route::delete('/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'destroy'])->name('admin.reviews.destroy');
-    Route::delete('/reviews/{reviewId}/images/{imageId}', [App\Http\Controllers\Admin\AdminReviewController::class, 'deleteImage'])->name('admin.reviews.deleteImage');
     Route::get('/deleteCar/{id}', [App\Http\Controllers\CarsController::class, 'destroy'])->name('deleteCar');
     Route::post('/addCarImage/{id}', [App\Http\Controllers\CarsController::class, 'addCarImage'])->name('addCarImage');
     Route::get('/deleteCarImage/{id}', [App\Http\Controllers\CarsController::class, 'deleteCarImage'])->name('deleteCarImage');
@@ -256,7 +257,9 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::post('/bookings', [App\Http\Controllers\HomeController::class, 'storeBooking'])->name('bookings.store')->middleware('auth');
     Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
     Route::get('/services/ticketing', [App\Http\Controllers\HomeController::class, 'ticketing'])->name('ticketing');
+    Route::get('/services/ticketing/request', [App\Http\Controllers\HomeController::class, 'ticketingRequest'])->name('ticketing.request');
     Route::get('/services/left-bags', [App\Http\Controllers\HomeController::class, 'leftBags'])->name('leftBags');
+    Route::get('/services/left-bags/request', [App\Http\Controllers\HomeController::class, 'leftBagsRequest'])->name('leftBags.request');
     Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
     Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
     Route::post('car-booking', [App\Http\Controllers\HomeController::class, 'storeCarBooking'])->name('storeCarBooking');
@@ -317,7 +320,7 @@ Route::middleware(['redirect.admin'])->group(function () {
 // Public Review Routes
 Route::get('/reviews', [App\Http\Controllers\ReviewController::class, 'index'])->name('reviews.index');
 Route::get('/reviews/{id}', [App\Http\Controllers\ReviewController::class, 'show'])->name('reviews.show');
-Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store')->middleware('auth');
+Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store')->middleware(['auth', 'verified']);
 
 // Logout route - accessible to all authenticated users
 Route::get('/logouts', [App\Http\Controllers\HomeController::class, 'logouts'])->name('logouts');

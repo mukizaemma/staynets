@@ -41,6 +41,16 @@
                                 <p style="color: #666; font-size: 15px; line-height: 1.8; font-style: italic; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                                     {{ $review->testimony }}
                                 </p>
+                                @if($review->admin_response)
+                                    <div style="margin-top: 12px; padding: 12px 14px; background: #f8f9fa; border-left: 3px solid #25D366; border-radius: 6px;">
+                                        <div style="font-size: 12px; font-weight: 600; color: #25D366; margin-bottom: 4px;">
+                                            <i class="fas fa-reply me-1"></i>Admin Reply
+                                        </div>
+                                        <div style="color: #666; font-size: 13px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            {{ $review->admin_response }}
+                                        </div>
+                                    </div>
+                                @endif
                                 @if($review->images->count() > 0)
                                     <div class="mt-2">
                                         <small class="text-muted">
@@ -136,7 +146,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="website" class="form-label">Website (Optional)</label>
-                        <input type="url" class="form-control" id="website" name="website" placeholder="https://example.com">
+                        <input type="text" class="form-control" id="website" name="website" placeholder="example.com">
                     </div>
                     <div class="mb-3">
                         <label for="images" class="form-label">Images (Optional)</label>
@@ -154,6 +164,17 @@
 </div>
 
 <style>
+.modal-dialog {
+    margin: 1.5rem auto;
+}
+.modal-content {
+    max-height: 90vh;
+    overflow: hidden;
+}
+.modal-body {
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
 .rating-input {
     display: flex;
     flex-direction: row-reverse;

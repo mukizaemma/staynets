@@ -157,8 +157,11 @@ Destinations Area
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <i class="fas fa-building text-primary" style="font-size: 18px;"></i>
+                                        @php
+                                            $hotelCount = ($destination->hotels_count ?? 0) + ($destination->properties_count ?? 0);
+                                        @endphp
                                         <span style="font-size: 16px; font-weight: 600; color: #333;">
-                                            {{ $destination->hotels_count ?? 0 }} {{ ($destination->hotels_count ?? 0) == 1 ? 'Property' : 'Properties' }}
+                                            {{ $hotelCount }} {{ $hotelCount == 1 ? 'Property' : 'Properties' }}
                                         </span>
                                     </div>
                                 </div>
@@ -199,13 +202,26 @@ Latest Properties Area
                     <div class="col-lg-4 col-md-6">
                         <div class="tour-box th-ani" style="height: 100%;">
                             <div class="tour-box_img global-img" style="position: relative;">
-                                @if($hotel->image && file_exists(storage_path('app/public/images/hotels/' . $hotel->image)))
-                                    <img src="{{ asset('storage/images/hotels/' . $hotel->image) }}" alt="{{ $hotel->name }}">
+                                @php
+                                    $primaryImage = $hotel->featured_image ?? $hotel->image ?? null;
+                                    $isPropertyModel = isset($hotel->property_type);
+                                @endphp
+                                @if($primaryImage)
+                                    @php
+                                        $imagePath = $isPropertyModel
+                                            ? 'storage/images/properties/' . $primaryImage
+                                            : 'storage/images/hotels/' . $primaryImage;
+                                    @endphp
+                                    <img src="{{ asset($imagePath) }}" alt="{{ $hotel->name }}">
                                 @else
                                     <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
                                 @endif
                                 @php
-                                    $minPrice = $hotel->min_price ?? ($hotel->rooms->min('price_per_night') ?? null);
+                                    if (isset($hotel->property_type)) {
+                                        $minPrice = $hotel->min_price ?? null;
+                                    } else {
+                                        $minPrice = $hotel->min_price ?? ($hotel->rooms->min('price_per_night') ?? null);
+                                    }
                                 @endphp
                                 @if($minPrice)
                                     <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
@@ -216,7 +232,11 @@ Latest Properties Area
 
                             <div class="tour-content">
                                 <h3 class="box-title">
-                                    <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
+                                    @if(isset($hotel->property_type))
+                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
+                                    @else
+                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
+                                    @endif
                                 </h3>
 
                                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -253,8 +273,13 @@ Latest Properties Area
                                 </p>
 
                                 <div class="tour-action">
-                                    <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
-                                    <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
+                                    @if(isset($hotel->property_type))
+                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
+                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
+                                    @else
+                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
+                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -278,8 +303,8 @@ Popular Trip Activities Area
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Popular Trip Activities</h2>
-                        <p class="sec-text">Explore exciting adventures and experiences</p>
+                        <h2 class="sec-title">Latest Trip Activities</h2>
+                        <p class="sec-text">Explore the newest adventures and experiences</p>
                     </div>
                 </div>
             </div>
@@ -433,15 +458,28 @@ Business Reviews/Testimonials Area
                 @endforelse
             </div>
             
-            @if($businessReviews->count() > 0)
-                <div class="row mt-4">
-                    <div class="col-12 text-center">
-                        <a href="{{ route('reviews.index') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600;">
-                            <i class="fas fa-eye me-2"></i>View All Reviews
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <a href="{{ route('reviews.index') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-eye me-2"></i>View All Reviews
+                    </a>
+                    @auth
+                        @if(auth()->user()->hasVerifiedEmail())
+                            <a href="{{ route('reviews.index') }}" class="btn btn-outline-success ms-2" style="padding: 12px 30px; border-radius: 8px; font-weight: 600;">
+                                <i class="fas fa-pen me-2"></i>Submit Review
+                            </a>
+                        @else
+                            <a href="{{ route('verification.notice') }}" class="btn btn-outline-warning ms-2" style="padding: 12px 30px; border-radius: 8px; font-weight: 600;">
+                                <i class="fas fa-envelope-open-text me-2"></i>Verify Email to Submit
+                            </a>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-outline-success ms-2" style="padding: 12px 30px; border-radius: 8px; font-weight: 600;">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login to Submit Review
                         </a>
-                    </div>
+                    @endauth
                 </div>
-            @endif
+            </div>
         </div>
     </section>
 
