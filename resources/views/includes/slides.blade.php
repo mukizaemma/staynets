@@ -8,7 +8,7 @@
                         <div class="container">
                             <div class="row justify-content-start">
                                 <div class="col-lg-7">
-                                    <h1 class="display-2 mb-5 animated slideInDown" style="color:#fff">Welcome to Accoomodation Booking Engine</h1>
+                                    <h1 class="display-2 mb-5 animated slideInDown" style="color:#fff">Welcome to StayNets</h1>
                                     <h4 class="animated fadeInUp" style="color:#fff">{{ $slide->heading }}</h4>
                                     @if ($slide->button_text && $slide->button_url)
                                         <a href="{{ $slide->button_url ?? '' }}" class="btn btn-primary rounded-pill py-sm-3 px-sm-5">

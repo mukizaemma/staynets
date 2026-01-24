@@ -5,7 +5,7 @@
                
             </div>
             <div class="col-lg-6 col-sm-6 text-center text-sm-end">
-                &copy; <a href="{{ route('home') }}">Accoomodation Booking Engine</a>, All Right Reserved.  <br>Developed By <a href="https://iremetech.com">Ireme Technologies</a>
+                &copy; <a href="{{ route('home') }}">StayNets</a>, All Right Reserved.  <br>Developed By <a href="https://iremetech.com">Ireme Technologies</a>
             </br>
 
             </div>

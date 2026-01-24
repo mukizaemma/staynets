@@ -782,7 +782,7 @@
                             <div class="th-widget-about">
                                 <div class="about-logo">
                                     <a href="{{route('home')}}"><img src="{{ asset('storage/images') . ($setting->logo ?? '') }}" 
-                                       width="120px" alt="Accoomodation Booking Engine" ></a>
+                                       width="120px" alt="StayNets" ></a>
                                 </div>
                                 <p class="about-text">The Best Hospitality Services Management in Rwanda</p>
                                 <div class="th-social">

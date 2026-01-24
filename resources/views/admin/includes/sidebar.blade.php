@@ -44,10 +44,7 @@
             <hr>
 
             <a href="{{ route('getDestinations') }}" class="nav-item nav-link"> 
-                <i class="fas fa-handshake me-2"></i>Hotel Destinations
-            </a>
-            <a href="{{ route('getTripDestinations') }}" class="nav-item nav-link"> 
-                <i class="fas fa-map-marked-alt me-2"></i>Trip Destinations
+                <i class="fas fa-handshake me-2"></i>Destinations
             </a>
             <a href="{{ route('amenities.index') }}" class="nav-item nav-link"> 
                 <i class="fas fa-list me-2"></i>Amenities

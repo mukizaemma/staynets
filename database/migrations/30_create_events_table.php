@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('url')->nullable();
             $table->string('image')->nullable();
             $table->enum('status', ['Published', 'Unpublished'])->default('Unpublished');
-            $table->string('published_by')->default('Accoomodation Booking Engine');
+            $table->string('published_by')->default('StayNets');
             $table->dateTime('published_at')->nullable();
             
             $table->unsignedBigInteger('user_id');

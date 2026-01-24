@@ -16,8 +16,8 @@ class SettingSeeder extends Seeder
         $userId = 1; 
 
         DB::table('settings')->insert([
-            'title' => 'Accoomodation Booking Engine',
-            'company' => 'Accoomodation Booking Engine',
+            'title' => 'StayNets',
+            'company' => 'StayNets',
             'address' => 'Rubavu District',
             'phone' => '+250 788 316 330',
             'email' => 'kivupeaceviewhotel@gmail.com',

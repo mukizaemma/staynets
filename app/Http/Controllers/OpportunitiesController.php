@@ -149,7 +149,7 @@ class OpportunitiesController extends Controller
             foreach($users as $user){
                 $details = [
                     'greeting' => 'Hello ' . $user->name . '!',
-                    'body' => 'Accoomodation Booking Engine has shared a new update: ' . $post->title,
+                    'body' => 'StayNets has shared a new update: ' . $post->title,
                     'text' => '' . $post->body,
                     'actiontext' => 'View Story',
                     'actionurl' => url('/Updates/' . $post->slug),

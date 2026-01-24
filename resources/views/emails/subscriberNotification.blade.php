@@ -20,7 +20,7 @@
     <p>For More Details,</p>
 
     <p>
-        <a href="https://Accoomodation Booking Engine.org/login" target="_blank">Login to the Admin to View Subscribers</a>
+        <a href="https://StayNets.org/login" target="_blank">Login to the Admin to View Subscribers</a>
     </p>
 
 </body>

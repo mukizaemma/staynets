@@ -19,7 +19,7 @@
     </ul>
 
     <p style="margin-top: 20px;">
-        <a href="https://www.Accoomodation Booking Engine.org/login" target="_blank" style="background-color: #d9a409; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirm or Reject</a>
+        <a href="https://www.StayNets.org/login" target="_blank" style="background-color: #d9a409; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirm or Reject</a>
     </p>
 </body>
 

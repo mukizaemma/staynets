@@ -10,7 +10,7 @@
     <h1>New Message Notification</h1>
 
     <p>Hello,</p>
-    <p>A new message was sent from the Accoomodation Booking Engine website:</p>
+    <p>A new message was sent from the StayNets website:</p>
 
     <ul>
         <li><strong>Names:</strong> {{ $message->names }}</li>

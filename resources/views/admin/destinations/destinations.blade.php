@@ -20,13 +20,14 @@
                 
                 <div class="bg-light text-center rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h6 class="mb-0">Destinations</h6>
+                        <h6 class="mb-0">Hotels Destinations</h6>
                         <div class="col-dm3">
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#NewProduct">
                                 Add New Destination
                               </button>
-                              <a href="" class="btn btn-light">Hotels</a>
-                              <a href="{{ route('getTrips') }}" class="btn btn-light">Trips</a>
+                              <a href="{{ route('getDestinations') }}" class="btn btn-light">Hotels Destinations</a>
+                              <a href="{{ route('getTripDestinations') }}" class="btn btn-light">Tour Destinations</a>
+                              {{-- <a href="{{ route('getTrips') }}" class="btn btn-light">Trips</a> --}}
                         </div>
                         {{-- <a href="">Show All</a> --}}
                     </div>
