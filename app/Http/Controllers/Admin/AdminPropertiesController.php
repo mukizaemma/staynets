@@ -188,7 +188,7 @@ class AdminPropertiesController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'property_type' => 'required|in:hotel,apartment',
+            'property_type' => 'required|in:hotel,apartment,guesthouse,lodge',
             'owner_id' => 'required|exists:users,id',
             'category_id' => 'nullable|exists:categories,id',
             'program_id' => 'nullable|exists:programs,id',
