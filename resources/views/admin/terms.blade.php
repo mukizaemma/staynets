@@ -47,6 +47,48 @@
 
                                             <div class="row">
                                                 <div class="col-lg-12">
+                                                    <label for="summernote" class="form-label">Privacy Details</label>
+                                                    <textarea id="privacy_details" rows="5" class="form-control" name="privacy_details" >{!! $data->privacy_details ?? '' !!}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <label for="summernote" class="form-label">Cookies Policy</label>
+                                                    <textarea id="cookies" rows="5" class="form-control" name="cookies" >{!! $data->cookies ?? '' !!}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <label for="summernote" class="form-label">Refunds Policy</label>
+                                                    <textarea id="refunds" rows="5" class="form-control" name="refunds" >{!! $data->refunds ?? '' !!}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <label for="summernote" class="form-label">Booking Cancellation</label>
+                                                    <textarea id="booking_cancellation" rows="5" class="form-control" name="booking_cancellation" >{!! $data->booking_cancellation ?? '' !!}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <label for="summernote" class="form-label">Listing Commission</label>
+                                                    <textarea id="listing_commission" rows="5" class="form-control" name="listing_commission" >{!! $data->listing_commission ?? '' !!}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <label for="summernote" class="form-label">Payment Methods</label>
+                                                    <textarea id="payment_methods" rows="5" class="form-control" name="payment_methods" >{!! $data->payment_methods ?? '' !!}</textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-lg-12">
                                                     <label for="summernote" class="form-label">Our Return Polocy</label>
                                                     <textarea id="return" rows="5" class="form-control" name="return" >{!! $data->return !!}</textarea>
                                                 </div>

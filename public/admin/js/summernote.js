@@ -191,6 +191,22 @@ $(document).ready(function() {
   });
 });
 $(document).ready(function() {
+  $('.summernote').summernote({
+      placeholder: 'Enter content...',
+      tabsize: 2,
+      height: 200,
+      toolbar: [
+        ['style', ['style']],
+        ['font', ['bold', 'underline', 'clear']],
+        ['color', ['color']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['table', ['table']],
+        ['insert', ['link', 'picture', 'video']],
+        ['view', ['fullscreen', 'codeview', 'help']]
+      ]
+  });
+});
+$(document).ready(function() {
   $('#eventDescription').summernote({
       placeholder: 'Description',
       tabsize: 2,

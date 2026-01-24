@@ -8,4 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 class Term extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'terms',
+        'privacy',
+        'privacy_details',
+        'cookies',
+        'refunds',
+        'booking_cancellation',
+        'listing_commission',
+        'payment_methods',
+        'support',
+        'return',
+        'added_by',
+    ];
 }

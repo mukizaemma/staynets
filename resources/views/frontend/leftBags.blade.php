@@ -9,16 +9,19 @@
                 <div class="col-xl-7">
                     <div class="img-box3">
                         <div class="img2">
-                            <img src="{{ asset('storage/images/leftbags/' . ($data->image ?? '')) }}" alt="About">
+                            <img src="{{ asset('assets/img/leftbags.webp') }}" alt="Left Bags Management">
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-5">
                     <div class="ps-xl-4">
                         <div class="title-area mb-20">
-                            <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">{{ $data->heading ?? '' }}</h2>
+                            <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">Left Bags Management</h2>
                         </div>
-                        <p class="pe-xl-5">{!! $data->description ?? '' !!}</p>
+                        <p class="pe-xl-5">
+                            For travelers in transit or exploring the city, StayNets provides secure luggage storage services.
+                            Clients can safely leave their bags for a few hours or days, allowing them to move freely and enjoy their time without worry.
+                        </p>
 
                         <a href="{{ route('leftBags.request') }}" class="btn th-btn style3 th-icon">
                             Request to Leave Your Bag with us

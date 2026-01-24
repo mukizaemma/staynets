@@ -89,6 +89,7 @@ class SettingsController extends Controller
     public function aboutPage(){
         $data = About::first();
         $setting = Setting::first();
+        $terms = Term::first();
         if($data===null)
         {
             $data = new About();
@@ -98,8 +99,25 @@ class SettingsController extends Controller
             $data->save();
             $data = About::first();
         }
+        if($terms===null)
+        {
+            $terms = new Term();
+            $terms->terms = 'Our Terms and conditions';
+            $terms->privacy = 'Our Privacy policies';
+            $terms->privacy_details = 'We do not share or use your data for third-party marketing.';
+            $terms->cookies = 'We use cookies to improve site experience.';
+            $terms->refunds = 'Refund policy details.';
+            $terms->booking_cancellation = 'Booking cancellation policy.';
+            $terms->listing_commission = 'Listing commission policy.';
+            $terms->payment_methods = 'Accepted payment methods.';
+            $terms->return = 'Our Return policies';
+            $terms->support = 'Our Support policies';
+            $terms->added_by = Auth()->user()->id;
+            $terms->save();
+            $terms = Term::first();
+        }
 
-        return view('admin.pages.about', ['data'=>$data,'setting'=>$setting]);
+        return view('admin.pages.about', ['data'=>$data,'setting'=>$setting,'terms'=>$terms]);
     }
 
     public function saveAbout(Request $request){
@@ -308,6 +326,12 @@ class SettingsController extends Controller
             $data = new Term();
             $data->terms = 'Our Terms and conditions';
             $data->privacy = 'Our Privacy policies';
+            $data->privacy_details = 'We do not share or use your data for third-party marketing.';
+            $data->cookies = 'We use cookies to improve site experience.';
+            $data->refunds = 'Refund policy details.';
+            $data->booking_cancellation = 'Booking cancellation policy.';
+            $data->listing_commission = 'Listing commission policy.';
+            $data->payment_methods = 'Accepted payment methods.';
             $data->return = 'Our Return policies';
             $data->support = 'Our Support policies';
             $data->added_by = Auth()->user()->id;
@@ -322,6 +346,12 @@ class SettingsController extends Controller
     public function saveTerms(Request $request){
         $data = Term::first();
         $data->privacy = $request->input('privacy');
+        $data->privacy_details = $request->input('privacy_details');
+        $data->cookies = $request->input('cookies');
+        $data->refunds = $request->input('refunds');
+        $data->booking_cancellation = $request->input('booking_cancellation');
+        $data->listing_commission = $request->input('listing_commission');
+        $data->payment_methods = $request->input('payment_methods');
         $data->return = $request->input('return');
         $data->terms = $request->input('terms');
         $data->support = $request->input('support');

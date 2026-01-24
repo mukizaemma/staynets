@@ -9,16 +9,19 @@
                 <div class="col-xl-7">
                     <div class="img-box3">
                         <div class="img2">
-                            <img src="{{ asset('storage/images/ticketing/' . ($data->image ?? '')) }}" alt="About">
+                            <img src="{{ asset('assets/img/ticketing.png') }}" alt="Air Ticketing Support">
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-5">
                     <div class="ps-xl-4">
                         <div class="title-area mb-20">
-                            <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">{{ $data->heading ?? '' }}</h2>
+                            <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">Air Ticketing Support</h2>
                         </div>
-                        <p class="pe-xl-5">{!! $data->description ?? '' !!}</p>
+                        <p class="pe-xl-5">
+                            We assist clients in finding and booking the best flight options, offering guidance on routes, schedules, and fares.
+                            StayNets simplifies the air travel process by handling reservations and providing support before and after booking.
+                        </p>
 
                         <a href="{{ route('ticketing.request') }}" class="btn th-btn style3 th-icon">
                             Request for Air Ticketing Support

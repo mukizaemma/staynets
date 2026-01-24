@@ -1114,15 +1114,20 @@ public function gallery()
 
 
 public function terms(){
-    $rooms = Room::all();
-    $trips = Trip::all();
+    $properties = \App\Models\Property::where('status', 'Active')
+        ->latest()
+        ->take(10)
+        ->get();
+    $trips = Trip::oldest()->get();
     $setting = Setting::first();
     $about = About::first();
+    $terms = \App\Models\Term::first();
     return view('frontend.terms',[
         'setting'=>$setting,
         'about'=>$about,
-        'rooms'=>$rooms,
+        'properties'=>$properties,
         'trips'=>$trips,
+        'terms'=>$terms,
     ]);
 }
 
@@ -1283,6 +1288,8 @@ public function bookNow(Request $request)
             'message' => 'nullable|string',
         ]);
 
+        $trip = \App\Models\Trip::find($validatedData['trip_id']);
+
         // Build the message with all details
         $messageContent = "Trip Reservation Inquiry\n\n";
         $messageContent .= "Trip: " . ($request->input('trip_title') ?? 'N/A') . "\n";
@@ -1297,13 +1304,15 @@ public function bookNow(Request $request)
         }
 
         // Create reservation using the Reservation model
-        // Using facility_id to store trip_id for trip inquiries
         $reservation = \App\Models\Reservation::create([
             'names' => $validatedData['name'],
             'email' => $validatedData['email'],
             'phone' => $validatedData['phone'],
             'message' => $messageContent,
-            'facility_id' => $validatedData['trip_id'],
+            'service_type' => 'tour_booking',
+            'tour_id' => $validatedData['trip_id'],
+            'selected_trip_ids' => json_encode([$validatedData['trip_id']]),
+            'trip_destination_id' => $trip?->trip_destination_id,
             'guests' => $request->input('number_of_people') ?? 1,
             'status' => 'pending',
         ]);
@@ -1313,6 +1322,54 @@ public function bookNow(Request $request)
         } else {
             return redirect()->back()->with('error', '❌ Sorry, your inquiry could not be submitted. Please try again.');
         }
+    }
+
+    public function tripRequestMultiple(Request $request)
+    {
+        $validatedData = $request->validate([
+            'trip_destination_id' => 'required|exists:trip_destinations,id',
+            'trip_ids' => 'required|array|min:1',
+            'trip_ids.*' => 'exists:trips,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:255',
+            'preferred_date' => 'nullable|date|after_or_equal:today',
+            'number_of_people' => 'nullable|integer|min:1',
+            'message' => 'nullable|string',
+        ]);
+
+        $trips = \App\Models\Trip::whereIn('id', $validatedData['trip_ids'])->get();
+        $tripTitles = $trips->pluck('title')->filter()->implode(', ');
+
+        $messageContent = "Multi-Activity Trip Request\n\n";
+        $messageContent .= "Selected Activities: " . ($tripTitles ?: 'N/A') . "\n";
+        if ($request->filled('preferred_date')) {
+            $messageContent .= "Preferred Date: " . $request->input('preferred_date') . "\n";
+        }
+        if ($request->filled('number_of_people')) {
+            $messageContent .= "Number of People: " . $request->input('number_of_people') . "\n";
+        }
+        if ($request->filled('message')) {
+            $messageContent .= "\nAdditional Message:\n" . $request->input('message');
+        }
+
+        $reservation = \App\Models\Reservation::create([
+            'service_type' => 'tour_booking',
+            'names' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'message' => $messageContent,
+            'selected_trip_ids' => json_encode($validatedData['trip_ids']),
+            'trip_destination_id' => $validatedData['trip_destination_id'],
+            'guests' => $request->input('number_of_people') ?? 1,
+            'status' => 'pending',
+        ]);
+
+        if ($reservation) {
+            return redirect()->back()->with('success', '✅ Your trip request has been received! We will send you a plan and quote.');
+        }
+
+        return redirect()->back()->with('error', '❌ Sorry, your request could not be submitted. Please try again.');
     }
 
 

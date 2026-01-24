@@ -36,9 +36,9 @@ if ($images->isEmpty()) {
                         {{-- Description --}}
                         @if(!empty($destination->description))
                             <div class="mb-4">
-                                <h4 class="box-title mb-2">About this Destination</h4>
+                                {{-- <h4 class="box-title mb-2">About this Destination</h4> --}}
                                 <div class="rich-text">
-                                    {!! nl2br(e($destination->description)) !!}
+                                    {!!$destination->description !!}
                                 </div>
                             </div>
                         @endif
@@ -63,6 +63,63 @@ if ($images->isEmpty()) {
                         @if($destination->trips->isNotEmpty())
                             <div class="mb-4">
                                 <h4 class="box-title mb-3">Available Activities</h4>
+
+                                <div class="card mb-4" style="border-radius:10px;">
+                                    <div class="card-body p-4">
+                                        <h5 class="mb-2">Plan Your Trip</h5>
+                                        <p class="text-muted mb-3">Select one or more activities below and submit a request. We'll respond with a trip plan and total cost.</p>
+                                        <form action="{{ route('tripRequestMultiple') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="trip_destination_id" value="{{ $destination->id }}">
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Your Name *</label>
+                                                <input type="text" name="name" class="form-control" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Email *</label>
+                                                <input type="email" name="email" class="form-control" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Phone *</label>
+                                                <input type="tel" name="phone" class="form-control" required>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Preferred Date</label>
+                                                    <input type="date" name="preferred_date" class="form-control" min="{{ date('Y-m-d') }}">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Number of People</label>
+                                                    <input type="number" name="number_of_people" class="form-control" min="1">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Additional Message</label>
+                                                <textarea name="message" class="form-control" rows="3" placeholder="Tell us your interests, budget, or timing..."></textarea>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Select Activities *</label>
+                                                <div class="row">
+                                                    @foreach($destination->trips as $trip)
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="d-flex align-items-center gap-2">
+                                                                <input type="checkbox" name="trip_ids[]" value="{{ $trip->id }}">
+                                                                <span>{{ $trip->title }}</span>
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end">
+                                                <button type="submit" class="th-btn style3">Send Trip Request</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
                                 <div class="row gy-4">
                                     @foreach($destination->trips as $trip)
                                         @php

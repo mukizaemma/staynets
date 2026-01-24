@@ -32,6 +32,9 @@
             <a href="{{ route('getTrips') }}" class="nav-item nav-link"> 
                 <i class="fas fa-route me-2"></i>Trip Activities
             </a>
+            <a href="{{ route('admin.tripRequests.index') }}" class="nav-item nav-link">
+                <i class="fas fa-clipboard-list me-2"></i>Trip Requests
+            </a>
 
             <a href="{{ route('admin.bookings.index') }}" class="nav-item nav-link"> 
                 <i class="fas fa-calendar-check me-2"></i>Bookings

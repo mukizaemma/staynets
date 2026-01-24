@@ -28,6 +28,11 @@ class Reservation extends Model
         'tour_id',
         'tour_date',
         'tour_people',
+        'selected_trip_ids',
+        'trip_destination_id',
+        'admin_response',
+        'quoted_cost',
+        'responded_at',
     ];
 
     public function room(){
@@ -40,5 +45,10 @@ class Reservation extends Model
     
     public function tour(){
         return $this->belongsTo(\App\Models\Trip::class, 'tour_id');
+    }
+
+    public function tripDestination()
+    {
+        return $this->belongsTo(\App\Models\TripDestination::class, 'trip_destination_id');
     }
 }

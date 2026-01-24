@@ -39,9 +39,17 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/admin/reviews/{id}', [App\Http\Controllers\Admin\AdminReviewController::class, 'destroy'])->name('admin.reviews.destroy');
     Route::delete('/admin/reviews/{reviewId}/images/{imageId}', [App\Http\Controllers\Admin\AdminReviewController::class, 'deleteImage'])->name('admin.reviews.deleteImage');
 
+    // Trip Requests (Admin)
+    Route::get('/admin/trip-requests', [App\Http\Controllers\Admin\AdminTripRequestsController::class, 'index'])->name('admin.tripRequests.index');
+    Route::get('/admin/trip-requests/{id}', [App\Http\Controllers\Admin\AdminTripRequestsController::class, 'show'])->name('admin.tripRequests.show');
+    Route::put('/admin/trip-requests/{id}', [App\Http\Controllers\Admin\AdminTripRequestsController::class, 'update'])->name('admin.tripRequests.update');
+
     
     Route::get('/setting',[App\Http\Controllers\SettingsController::class,'setting'])->name('setting');
     Route::post('/saveSetting',[App\Http\Controllers\SettingsController::class,'saveSetting'])->name('saveSetting');
+
+    Route::get('/terms', [App\Http\Controllers\SettingsController::class, 'getTerms'])->name('getTerms');
+    Route::post('/terms/{id}', [App\Http\Controllers\SettingsController::class, 'saveTerms'])->name('saveTerms');
     
     Route::get('/getLeftBags',[App\Http\Controllers\SettingsController::class,'getLeftBags'])->name('getLeftBags');
     Route::post('/updateBags',[App\Http\Controllers\SettingsController::class,'updateBags'])->name('updateBags');
@@ -265,6 +273,7 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::post('car-booking', [App\Http\Controllers\HomeController::class, 'storeCarBooking'])->name('storeCarBooking');
     Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
     Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
+    Route::post('/trips/request-multiple', [App\Http\Controllers\HomeController::class, 'tripRequestMultiple'])->name('tripRequestMultiple');
 });
 
 

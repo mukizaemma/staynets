@@ -18,7 +18,9 @@
                         <div class="title-area mb-20">
                             <h2 class="sec-title mb-20 pe-xl-5 me-xl-5 heading">About Us</h2>
                         </div>
-                        <p class="pe-xl-5">{!! $about->mission !!}</p>
+                        <div class="pe-xl-5">
+                            {!! $about->welcomeMessage ?? $about->mission ?? '' !!}
+                        </div>
 
                         <div class="mt-35"><a href="{{ route('connect') }}" class="th-btn style3 th-icon">Book Your Stay</a></div>
                     </div>
