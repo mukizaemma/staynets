@@ -541,9 +541,9 @@
                     <li>
                         <a href="{{ route('apartments') }}">Apartments</a>
                     </li>
-                    <li>
+                    {{-- <li>
                         <a href="{{ route('accommodations') }}">Car Rental</a>
-                    </li>
+                    </li> --}}
 
                     <li class="menu-item-has-children">
                         <a href="{{ route('tours') }}">Trips</a>
@@ -558,13 +558,13 @@
                         </ul>
                     </li>
                     
-                    <li>
+                    {{-- <li>
                         <a href="{{ route('ticketing') }}">Air Ticketing</a>
                     </li>
                     
                     <li>
                         <a href="{{ route('leftBags') }}">Left Bags</a>
-                    </li>
+                    </li> --}}
                     <li>
                         <a href="{{ route('about') }}">About Us</a>
                     </li>
@@ -712,9 +712,9 @@
                                         <a href="{{ route('apartments') }}">Apartments</a>
                                     </li>
 
-                                    <li>
+                                    {{-- <li>
                                         <a href="{{ route('showCars') }}">Car Rental</a>
-                                    </li>
+                                    </li> --}}
 
                                     <li class="menu-item-has-children">
                                         <a href="{{ route('tours') }}">Trips</a>
@@ -729,13 +729,13 @@
                                         </ul>
                                     </li>
 
-                                    <li>
+                                    {{-- <li>
                                         <a href="{{ route('leftBags') }}">Left Bags</a>
                                     </li>
 
                                     <li>
                                         <a href="{{ route('ticketing') }}">Air Ticketing</a>
-                                    </li>
+                                    </li> --}}
                                  
                                     {{-- <li>
                                         <a href="{{ route('about') }}">About Us</a>
@@ -806,9 +806,9 @@
                                     <li><a href="{{ route('destinations') }}">Destinations</a></li>
                                     <li><a href="{{ route('hotels') }}">Hotels</a></li>
                                     <li><a href="{{ route('apartments') }}">Apartments</a></li>
-                                    <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
+                                    {{-- <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
                                     <li><a href="{{ route('showCars') }}">Car Rental</a></li>
-                                    <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
+                                    <li><a href="{{ route('leftBags') }}">Left Bags</a></li> --}}
                                     <li><a href="{{ route('connect') }}">About Us</a></li>
                                     <li><a href="{{ route('terms') }}">Our Terms & Conditions</a></li>
                                 </ul>

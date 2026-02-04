@@ -614,6 +614,31 @@
                                 @endfor
                             </select>
                         </div>
+
+                        <div class="reserve-form-group">
+                            <label for="guest_name">Guest full name</label>
+                            <input type="text" name="guest_name" id="guest_name" class="form-control" required>
+                        </div>
+
+                        <div class="reserve-form-group">
+                            <label for="guest_email">Guest email</label>
+                            <input type="email" name="guest_email" id="guest_email" class="form-control" required>
+                        </div>
+
+                        <div class="reserve-form-group">
+                            <label for="guest_country">Country</label>
+                            <input type="text" name="guest_country" id="guest_country" class="form-control">
+                        </div>
+
+                        <div class="reserve-form-group">
+                            <label for="guest_phone">Phone</label>
+                            <input type="text" name="guest_phone" id="guest_phone" class="form-control">
+                        </div>
+
+                        <div class="reserve-form-group">
+                            <label for="special_requests">Special requests (optional)</label>
+                            <textarea name="special_requests" id="special_requests" rows="3" class="form-control" placeholder="E.g. late arrival, dietary needs, extra bed"></textarea>
+                        </div>
                         
                         <div class="reserve-form-group">
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
@@ -633,29 +658,14 @@
                             </div>
                         </div>
                         
-                        @guest
-                            <button type="button" class="btn-reserve" id="btnReserve" onclick="showBookingLoginModal()" disabled>
-                                <i class="fas fa-calendar-check me-2"></i>Reserve
-                            </button>
-                            <p class="text-center mt-2" style="font-size: 12px; color: #666;">
-                                <i class="fas fa-lock me-1"></i>Login required to complete booking
-                            </p>
-                        @else
-                            @if(!Auth::user()->hasVerifiedEmail())
-                                <div class="alert alert-warning mb-3" style="font-size: 13px; padding: 12px;">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Email Verification Required:</strong> Please verify your email address before completing your booking. 
-                                    <a href="{{ route('verification.notice') }}" class="alert-link">Click here to verify</a>
-                                </div>
-                                <button type="button" class="btn-reserve" id="btnReserve" disabled style="opacity: 0.6; cursor: not-allowed;">
-                                    <i class="fas fa-calendar-check me-2"></i>Reserve
-                                </button>
-                            @else
-                                <button type="submit" class="btn-reserve" id="btnReserve" disabled>
-                                    <i class="fas fa-calendar-check me-2"></i>Reserve
-                                </button>
-                            @endif
-                        @endguest
+                        <button type="submit" class="btn-reserve" id="btnReserve" disabled>
+                            <i class="fas fa-calendar-check me-2"></i>Request Availability
+                        </button>
+
+                        <p class="text-center mt-2" style="font-size: 12px; color: #666;">
+                            We will check availability and get back to you by email. <br>
+                            <a href="{{ route('login') }}">Login</a> or <a href="{{ route('register') }}">create an account</a> to manage your bookings.
+                        </p>
                     </form>
                 </div>
 
@@ -875,238 +885,14 @@
         });
     @endif
     
-    // Form validation
+    // Form validation: ensure a room/unit is selected before submit
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
-        @guest
-            e.preventDefault();
-            if (!selectedUnitId) {
-                alert('Please select a room first');
-                return false;
-            }
-            showBookingLoginModal();
-            return false;
-        @else
-            if (!selectedUnitId) {
-                e.preventDefault();
-                alert('Please select a room first');
-                return false;
-            }
-        @endguest
-    });
-
-    // Show login modal for booking
-    function showBookingLoginModal() {
         if (!selectedUnitId) {
+            e.preventDefault();
             alert('Please select a room first');
-            return;
-        }
-        const modal = new bootstrap.Modal(document.getElementById('bookingLoginModal'));
-        modal.show();
-    }
-
-    // Toggle password visibility
-    function toggleBookingPassword(inputId) {
-        const input = document.getElementById(inputId);
-        const eye = document.getElementById(inputId + '-eye');
-        if (input.type === 'password') {
-            input.type = 'text';
-            eye.classList.remove('fa-eye');
-            eye.classList.add('fa-eye-slash');
-        } else {
-            input.type = 'password';
-            eye.classList.remove('fa-eye-slash');
-            eye.classList.add('fa-eye');
-        }
-    }
-
-    // Store current page URL for redirect after login
-    const currentPageUrl = window.location.href;
-
-    // Handle login form submission
-    @guest
-    document.addEventListener('DOMContentLoaded', function() {
-        const loginForm = document.getElementById('booking-login-form');
-        if (loginForm) {
-            // Set current page URL in hidden field
-            const redirectInput = loginForm.querySelector('input[name="redirect_after_login"]');
-            if (redirectInput) {
-                redirectInput.value = currentPageUrl;
-            }
-
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                // Ensure redirect URL is set
-                formData.set('redirect_after_login', currentPageUrl);
-                
-                const messageDiv = document.getElementById('booking-login-message');
-                const submitBtn = loginForm.querySelector('button[type="submit"]');
-                messageDiv.innerHTML = '';
-                messageDiv.className = 'mb-3';
-                
-                // Disable submit button
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing in...';
-                
-                fetch('{{ route("login") }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => Promise.reject({status: response.status, json: err}));
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Check if email verification is required
-                    if (data.verified === false) {
-                        messageDiv.className = 'mb-3 alert alert-warning';
-                        messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Email Verification Required:</strong> ' + 
-                            (data.message || 'Please verify your email address before continuing with your booking. Check your inbox for the verification link.');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-                        return;
-                    }
-                    
-                    // Email verified - redirect to current page
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        window.location.reload();
-                    }
-                })
-                .catch(error => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                    
-                    if (error.status === 422) {
-                        let errorMsg = 'Login failed. Please check your credentials.';
-                        if (error.json && error.json.errors) {
-                            const errors = error.json.errors;
-                            // Show all validation errors
-                            const errorList = [];
-                            if (errors.email) {
-                                errorList.push(Array.isArray(errors.email) ? errors.email[0] : errors.email);
-                            }
-                            if (errors.password) {
-                                errorList.push(Array.isArray(errors.password) ? errors.password[0] : errors.password);
-                            }
-                            if (errors._error) {
-                                errorList.push(Array.isArray(errors._error) ? errors._error[0] : errors._error);
-                            }
-                            errorMsg = errorList.length > 0 ? errorList.join('<br>') : errorMsg;
-                        } else if (error.json && error.json.message) {
-                            errorMsg = error.json.message;
-                        }
-                        messageDiv.className = 'mb-3 alert alert-danger';
-                        messageDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>' + errorMsg;
-                    } else if (error.status === 429) {
-                        messageDiv.className = 'mb-3 alert alert-danger';
-                        messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Too many login attempts. Please try again later.';
-                    } else {
-                        messageDiv.className = 'mb-3 alert alert-danger';
-                        messageDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>Login failed. Please check your credentials and try again.';
-                    }
-                });
-            });
-        }
-
-        // Handle register form submission
-        const registerForm = document.getElementById('booking-register-form');
-        if (registerForm) {
-            registerForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                const messageDiv = document.getElementById('booking-register-message');
-                const submitBtn = registerForm.querySelector('button[type="submit"]');
-                messageDiv.innerHTML = '';
-                messageDiv.className = 'mb-3';
-                
-                // Disable submit button
-                const originalBtnText = submitBtn.innerHTML;
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating account...';
-                
-                fetch('{{ route("register") }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => Promise.reject({status: response.status, json: err}));
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Show success message with email verification notice
-                    messageDiv.className = 'mb-3 alert alert-info';
-                    messageDiv.innerHTML = '<div><i class="fas fa-envelope-circle-check me-2"></i><strong>Account Created Successfully!</strong></div>' +
-                        '<div class="mt-2" style="font-size: 14px;">' +
-                        'We have sent a verification link to your email address. <strong>Please verify your email before continuing with your booking.</strong><br>' +
-                        'Check your inbox and click the verification link to activate your account.' +
-                        '</div>';
-                    registerForm.reset();
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                    
-                    // Switch to login tab after 5 seconds
-                    setTimeout(() => {
-                        document.getElementById('booking-login-tab').click();
-                        messageDiv.innerHTML = '';
-                    }, 5000);
-                })
-                .catch(error => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnText;
-                    
-                    if (error.status === 422) {
-                        let errorMsg = 'Registration failed. Please check your information.';
-                        if (error.json && error.json.errors) {
-                            const errors = error.json.errors;
-                            const errorList = [];
-                            if (errors.name) {
-                                errorList.push('Name: ' + (Array.isArray(errors.name) ? errors.name[0] : errors.name));
-                            }
-                            if (errors.email) {
-                                errorList.push('Email: ' + (Array.isArray(errors.email) ? errors.email[0] : errors.email));
-                            }
-                            if (errors.password) {
-                                errorList.push('Password: ' + (Array.isArray(errors.password) ? errors.password[0] : errors.password));
-                            }
-                            if (errors.terms) {
-                                errorList.push(Array.isArray(errors.terms) ? errors.terms[0] : errors.terms);
-                            }
-                            if (errorList.length > 0) {
-                                errorMsg = errorList.join('<br>');
-                            } else if (error.json.message) {
-                                errorMsg = error.json.message;
-                            }
-                        } else if (error.json && error.json.message) {
-                            errorMsg = error.json.message;
-                        }
-                        messageDiv.className = 'mb-3 alert alert-danger';
-                        messageDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>' + errorMsg;
-                    } else {
-                        messageDiv.className = 'mb-3 alert alert-danger';
-                        messageDiv.innerHTML = '<i class="fas fa-times-circle me-2"></i>Registration failed. Please try again.';
-                    }
-                });
-            });
+            return false;
         }
     });
-    @endguest
 </script>
 
 <!-- Booking Login/Register Modal -->

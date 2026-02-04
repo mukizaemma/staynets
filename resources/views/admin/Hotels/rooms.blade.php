@@ -132,7 +132,7 @@
 
         <!-- The Modal -->
         <div class="modal fade" id="NewProduct">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
         
                 <!-- Modal Header -->
@@ -142,7 +142,7 @@
                 </div>
         
                 <!-- Modal body -->
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
                     <form class="form" action="{{ route('storeRoom') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
@@ -215,27 +215,41 @@
                                 </div>
                             </div>
 
-                            <!-- Amenities -->
+                            <!-- Amenities (grouped by category) -->
                             <div class="row mt-3">
                                 <div class="col-lg-12">
                                     <label class="form-label">Select Room Amenities</label>
-                                    <div class="row">
-                                        @foreach($amenities as $amenity)
-                                            <div class="col-md-4 mb-2">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        name="amenities[]" 
-                                                        value="{{ $amenity->id }}" 
-                                                        id="amenity{{ $amenity->id }}">
-
-                                                    <label class="form-check-label" for="amenity{{ $amenity->id }}">
-                                                        {{ $amenity->title }}
-                                                    </label>
+                                    <p class="text-muted mb-2">Amenities are grouped by category for easier selection.</p>
+                                </div>
+                                @foreach($facilityCategories ?? [] as $category)
+                                    @if($category->facilities->count())
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-header bg-primary text-white">
+                                                    <h6 class="mb-0">
+                                                        @if($category->icon)
+                                                            <i class="{{ $category->icon }} me-2"></i>
+                                                        @endif
+                                                        {{ $category->name }}
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body" style="max-height: 260px; overflow-y: auto;">
+                                                    @foreach($category->facilities as $amenity)
+                                                        <div class="form-check mb-1">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                   name="amenities[]" 
+                                                                   value="{{ $amenity->id }}" 
+                                                                   id="amenity{{ $amenity->id }}">
+                                                            <label class="form-check-label" for="amenity{{ $amenity->id }}">
+                                                                {{ $amenity->title }}
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
                                                 </div>
                                             </div>
-                                        @endforeach
-                                    </div>
-                                </div>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
 
                         </div>
@@ -270,6 +284,23 @@
                 rows.forEach(row => {
                     let text = row.innerText.toLowerCase();
                     row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+
+            $(document).ready(function() {
+                $('#description').summernote({
+                    placeholder: 'Room Description',
+                    tabsize: 2,
+                    height: 200,
+                    toolbar: [
+                        ['style', ['style']],
+                        ['font', ['bold', 'underline', 'clear']],
+                        ['color', ['color']],
+                        ['para', ['ul', 'ol', 'paragraph']],
+                        ['table', ['table']],
+                        ['insert', ['link', 'picture', 'video']],
+                        ['view', ['fullscreen', 'codeview', 'help']]
+                    ]
                 });
             });
         </script>

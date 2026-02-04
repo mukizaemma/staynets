@@ -20,7 +20,7 @@
                     <li><a href="{{ route('home') }}">Home</a></li>
                     <li><a href="{{ route('hotels') }}">Hotels</a></li>
                     <li><a href="{{ route('apartments') }}">Apartments</a></li>
-                    <li><a href="{{ route('showCars') }}">Car Rental</a></li>
+                    {{-- <li><a href="{{ route('showCars') }}">Car Rental</a></li> --}}
                     <li class="menu-item-has-children">
                         <a href="{{ route('tours') }}">Trips</a>
                         <ul class="sub-menu">
@@ -33,8 +33,8 @@
                             @endif
                         </ul>
                     </li>
-                    <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
-                    <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
+                    {{-- <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li> --}}
+                    {{-- <li><a href="{{ route('leftBags') }}">Left Bags</a></li> --}}
                     <li><a href="{{ route('connect') }}">Contact</a></li>
                     <li><a href="{{ route('myPropertyCreate') }}">Add Property</a></li>
                     @if(auth()->check())
@@ -74,7 +74,7 @@
                                     <li><a href="{{ route('home') }}">Home</a></li>
                                     <li><a href="{{ route('hotels') }}">Hotels</a></li>
                                     <li><a href="{{ route('apartments') }}">Apartments</a></li>
-                                    <li><a href="{{ route('showCars') }}">Car Rental</a></li>
+                                    {{-- <li><a href="{{ route('showCars') }}">Car Rental</a></li> --}}
                                     <li class="menu-item-has-children">
                                         <a href="{{ route('tours') }}">Trips</a>
                                         <ul class="sub-menu">
@@ -87,8 +87,8 @@
                                             @endif
                                         </ul>
                                     </li>
-                                    <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
-                                    <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
+                                    {{-- <li><a href="{{ route('leftBags') }}">Left Bags</a></li> --}}
+                                    {{-- <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li> --}}
                                     <li><a href="{{ route('connect') }}">Contact</a></li>
                                     <li class="d-none d-xl-inline-block">
                                         <a href="{{ route('myPropertyCreate') }}">Add Property</a>

@@ -744,17 +744,12 @@ public function storeBooking(Request $request)
         'check_in' => 'required|date|after_or_equal:today',
         'check_out' => 'required|date|after:check_in',
         'guests_count' => 'required|integer|min:1',
+        'guest_name' => 'required|string|max:255',
+        'guest_email' => 'required|email|max:255',
+        'guest_country' => 'nullable|string|max:255',
+        'guest_phone' => 'nullable|string|max:100',
+        'special_requests' => 'nullable|string',
     ]);
-
-    // Check if user is authenticated
-    if (!Auth::check()) {
-        return redirect()->route('login')->with('error', 'Please login to make a booking.');
-    }
-
-    // Check if email is verified
-    if (!Auth::user()->hasVerifiedEmail()) {
-        return redirect()->back()->with('error', 'Please verify your email address before making a booking. Check your inbox for the verification link.');
-    }
 
     // Get unit to calculate price
     $unit = \App\Models\Unit::findOrFail($request->unit_id);
@@ -777,9 +772,9 @@ public function storeBooking(Request $request)
     // Generate reference number
     $referenceNumber = 'BK' . strtoupper(uniqid());
 
-    // Create booking
+    // Create booking as an availability request (no login required)
     $booking = HotelBooking::create([
-        'user_id' => Auth::id(),
+        'user_id' => Auth::id(), // nullable if guest is not logged in
         'hotel_id' => null, // Using property_id instead for new system
         'property_id' => $request->property_id,
         'room_id' => null, // Using unit_id instead for new system
@@ -787,16 +782,21 @@ public function storeBooking(Request $request)
         'check_in' => $request->check_in,
         'check_out' => $request->check_out,
         'guests_count' => $request->guests_count,
+        'guest_name' => $request->guest_name,
+        'guest_email' => $request->guest_email,
+        'guest_country' => $request->guest_country,
+        'guest_phone' => $request->guest_phone,
+        'special_requests' => $request->special_requests,
         'total_amount' => $totalAmount,
         'reference_number' => $referenceNumber,
         'payment_status' => 'pending',
-        'booking_status' => 'pending',
+        'booking_status' => 'availability_requested',
     ]);
 
     // Load relationships for email
-    $booking->load(['user', 'property', 'unit']);
+    $booking->load(['property', 'unit']);
 
-    // Send email notification to admin
+    // Send email notification to StayNets team
     try {
         Mail::to('info@iremetech.com')->send(new BookingNotification($booking));
     } catch (\Exception $e) {
@@ -804,7 +804,7 @@ public function storeBooking(Request $request)
         \Log::error('Failed to send admin booking notification: ' . $e->getMessage());
     }
 
-    // Send confirmation email to client
+    // Send confirmation email to client (availability request received)
     try {
         Mail::to($booking->user->email)->send(new BookingConfirmation($booking));
     } catch (\Exception $e) {
@@ -812,7 +812,10 @@ public function storeBooking(Request $request)
         \Log::error('Failed to send client booking confirmation: ' . $e->getMessage());
     }
 
-    return redirect()->route('hotel', $property->slug)->with('success', 'Booking submitted successfully! Reference: ' . $referenceNumber . '. We will contact you soon to confirm your booking.');
+    return redirect()->route('hotel', $property->slug)->with(
+        'success',
+        'Your availability request has been received. Reference: ' . $referenceNumber . '. We will check availability and contact you to confirm your booking.'
+    );
 }
 
 

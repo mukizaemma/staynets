@@ -252,26 +252,26 @@
                             $selectedFacilities = old('facilities', $unit->facilities->pluck('id')->toArray());
                         @endphp
                         @foreach($facilityCategories as $category)
-                            <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            @if($category->icon)
-                                                <i class="{{ $category->icon }} me-2"></i>
-                                            @endif
-                                            {{ $category->name }}
-                                        </h6>
-                                        <button type="button" class="btn btn-sm btn-light" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#addAmenityModal"
-                                                data-category-id="{{ $category->id }}"
-                                                data-category-name="{{ $category->name }}"
-                                                title="Add New Amenity">
-                                            <i class="fa fa-plus"></i>
-                                        </button>
-                                    </div>
-                                    <div class="card-body" style="max-height: 300px; overflow-y: auto; padding: 1rem;" id="amenities-list-{{ $category->id }}">
-                                        @if($category->facilities->count() > 0)
+                            @if($category->facilities->count() > 0)
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">
+                                                @if($category->icon)
+                                                    <i class="{{ $category->icon }} me-2"></i>
+                                                @endif
+                                                {{ $category->name }}
+                                            </h6>
+                                            <button type="button" class="btn btn-sm btn-light" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#addAmenityModal"
+                                                    data-category-id="{{ $category->id }}"
+                                                    data-category-name="{{ $category->name }}"
+                                                    title="Add New Amenity">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <div class="card-body" style="max-height: 300px; overflow-y: auto; padding: 1rem;" id="amenities-list-{{ $category->id }}">
                                             @foreach($category->facilities as $amenity)
                                                 <div class="d-flex align-items-center mb-2 amenity-item" data-amenity-id="{{ $amenity->id }}">
                                                     <div class="form-check me-3 flex-grow-1">
@@ -290,12 +290,10 @@
                                                     </button>
                                                 </div>
                                             @endforeach
-                                        @else
-                                            <p class="text-muted text-center mb-0">No amenities in this category</p>
-                                        @endif
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endif
                         @endforeach
                     </div>
 

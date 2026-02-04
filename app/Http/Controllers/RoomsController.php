@@ -43,13 +43,19 @@ class RoomsController extends Controller
             ->latest()
             ->get();
 
+        $amenities = Amenity::with('category')->active()->orderBy('title')->get();
+        $facilityCategories = \App\Models\FacilityCategory::with(['facilities' => function($query) {
+            $query->active()->orderBy('title');
+        }])->where('is_active', true)->orderBy('sort_order')->get();
+
         return view('admin.hotels.rooms', [
-            'rooms'     => $rooms,
-            'hotels'     => $hotels,
-            'amenities' => Amenity::all(),
-            'setting'   => Setting::first(),
-            'search'    => $search,
-            'isAdmin'   => $isAdmin,
+            'rooms'              => $rooms,
+            'hotels'             => $hotels,
+            'amenities'          => $amenities,
+            'facilityCategories' => $facilityCategories,
+            'setting'            => Setting::first(),
+            'search'             => $search,
+            'isAdmin'            => $isAdmin,
         ]);
     }
 
@@ -91,7 +97,7 @@ class RoomsController extends Controller
     
 public function edit($id)
 {
-    $room = HotelRoom::with(['images', 'hotel', 'hotel.owner'])->findOrFail($id);
+    $room = HotelRoom::with(['images', 'hotel', 'hotel.owner', 'amenities'])->findOrFail($id);
     $user = auth()->user();
     $isAdmin = $user && $user->role == 1;
     
@@ -101,21 +107,27 @@ public function edit($id)
     }
     
     $hotels = Hotel::latest()->get();
-    $selectedAmenities = $room->amenities ? json_decode($room->amenities, true) : [];
+
+    // Selected amenities from pivot relation
+    $selectedAmenities = $room->amenities()->pluck('amenities.id')->toArray();
 
     $images = $room->images ?? collect();
     $totalImages = $images->count();
 
-    $allAmenities = Amenity::all();
+    $amenities = Amenity::with('category')->active()->orderBy('title')->get();
+    $facilityCategories = \App\Models\FacilityCategory::with(['facilities' => function($query) {
+        $query->active()->orderBy('title');
+    }])->where('is_active', true)->orderBy('sort_order')->get();
     
     return view('admin.hotels.roomUpdate', [
-        'room' => $room,
-        'allAmenities' => $allAmenities,
-        'selectedAmenities' => $selectedAmenities,
-        'images' => $images,
-        'hotels' => $hotels,
-        'totalImages' => $totalImages,
-        'isAdmin' => $isAdmin,
+        'room'               => $room,
+        'amenities'          => $amenities,
+        'facilityCategories' => $facilityCategories,
+        'selectedAmenities'  => $selectedAmenities,
+        'images'             => $images,
+        'hotels'             => $hotels,
+        'totalImages'        => $totalImages,
+        'isAdmin'            => $isAdmin,
     ]);
 }
 
@@ -159,7 +171,7 @@ public function update(Request $request, $id)
         $room->available_rooms = $request->available_rooms;
         $room->description = $request->description;
 
- 
+        // Store selected amenities as JSON (for legacy search) 
         $room->amenities = json_encode($request->amenities ?? []);
 
         // Slug only updates if room_type changed
@@ -174,6 +186,13 @@ public function update(Request $request, $id)
         }
 
         $room->save();
+
+        // Sync pivot table for amenities relationship
+        if ($request->has('amenities')) {
+            $room->amenities()->sync($request->amenities);
+        } else {
+            $room->amenities()->detach();
+        }
 
         return redirect()->route('getRooms')->with('success', 'Room updated successfully');
 
