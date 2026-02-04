@@ -745,19 +745,19 @@
                                         <a href="{{ route('connect') }}">Contact</a>
                                     </li>
                                     
-                                    {{-- Main-menu Add Property (visible on large screens, auth-protected route) --}}
+                                    {{-- Main-menu Add Property (visible on large screens, compact button) --}}
                                     <li class="d-none d-xl-inline-block">
-                                        <a href="{{ route('myPropertyCreate') }}">Add Property</a>
+                                        <a href="{{ route('myPropertyCreate') }}"
+                                           class="btn btn-primary btn-sm"
+                                           style="border-radius: 999px; padding: 8px 18px; font-weight: 600;">
+                                            Add Property
+                                        </a>
                                     </li>
                                 </ul>
                             </nav>
                             <button type="button" class="th-menu-toggle d-block d-xl-none"><i class="far fa-bars"></i></button>
                         </div>
-                        <div class="col-auto d-none d-xl-block">
-                            <div class="header-button">
-                                <a href="{{ route('myPropertyCreate') }}" class="th-btn style3 th-icon">Add Property</a>
-                            </div>
-                        </div>
+                        {{-- Right-side header button removed; Add Property is now in main menu as a button --}}
                     </div>
                 </div>
             </div>
