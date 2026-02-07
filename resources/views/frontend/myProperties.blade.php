@@ -161,14 +161,36 @@
                                             @if($hotel->images && $hotel->images->count() > 0)
                                                 @foreach($hotel->images->take(5) as $img)
                                                     <div class="col-6">
-                                                        <img src="{{ asset('storage/images/hotels/'.$img->image) }}" alt="Image" class="img-fluid rounded" style="height:150px;object-fit:cover;width:100%;">
+                                                        <div class="position-relative">
+                                                            <img src="{{ asset('storage/images/hotels/'.$img->image) }}" alt="Image" class="img-fluid rounded" style="height:150px;object-fit:cover;width:100%;">
+                                                            <form action="{{ route('my.properties.hotels.images.destroy', $img->id) }}" 
+                                                                  method="POST" 
+                                                                  onsubmit="return confirm('Are you sure you want to delete this image?');"
+                                                                  style="position: absolute; top: 5px; right: 5px;">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-sm btn-danger" style="padding: 2px 6px;">
+                                                                    <i class="fa fa-times"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                 @endforeach
+                                                @if($hotel->images->count() > 5)
+                                                    <div class="col-12">
+                                                        <p class="text-muted small">+ {{ $hotel->images->count() - 5 }} more images</p>
+                                                    </div>
+                                                @endif
                                             @else
                                                 <div class="col-12">
                                                     <p class="text-muted small">No additional images</p>
                                                 </div>
                                             @endif
+                                        </div>
+                                        <div class="mt-3">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPropertyGalleryModal{{ $hotel->id }}">
+                                                <i class="fa fa-plus"></i> Add Images
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -243,11 +265,33 @@
                                                                             <label>Room Type</label>
                                                                             <input type="text" class="form-control" name="room_type" value="{{ $room->room_type }}" required>
                                                                         </div>
-                                                                        <div class="col-md-6">
+                                                                    </div>
+
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-4">
+                                                                            <label>Currency</label>
+                                                                            <select name="currency" class="form-control">
+                                                                                <option value="USD" {{ ($room->currency ?? 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                                                                                <option value="EUR" {{ ($room->currency ?? '') == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                                                                                <option value="GBP" {{ ($room->currency ?? '') == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                                                                                <option value="RWF" {{ ($room->currency ?? '') == 'RWF' ? 'selected' : '' }}>RWF (Fr)</option>
+                                                                                <option value="KES" {{ ($room->currency ?? '') == 'KES' ? 'selected' : '' }}>KES (KSh)</option>
+                                                                                <option value="UGX" {{ ($room->currency ?? '') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
+                                                                                <option value="TZS" {{ ($room->currency ?? '') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <label>Price Display Type</label>
+                                                                            <select name="price_display_type" class="form-control">
+                                                                                <option value="per_night" {{ ($room->price_display_type ?? 'per_night') == 'per_night' ? 'selected' : '' }}>Per Night</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-4">
                                                                             <label>Price per Night</label>
                                                                             <input type="number" step="0.01" class="form-control" name="price_per_night" value="{{ $room->price_per_night }}" required>
                                                                         </div>
                                                                     </div>
+
 
                                                                     <div class="row mb-3">
                                                                         <div class="col-md-4">
@@ -311,11 +355,88 @@
                                                                             </div>
                                                                         </div>
                                                                     </div>
+
+                                                                    {{-- Room Gallery Section --}}
+                                                                    <div class="row mt-4">
+                                                                        <div class="col-12">
+                                                                            <hr>
+                                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                                <h6 class="mb-0">
+                                                                                    <i class="fas fa-images me-2"></i>Room Gallery 
+                                                                                    <span class="badge bg-primary">{{ $room->images->count() ?? 0 }} Images</span>
+                                                                                </h6>
+                                                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomGalleryModal{{ $room->id }}">
+                                                                                    <i class="fa fa-plus"></i> Add Images
+                                                                                </button>
+                                                                            </div>
+                                                                            
+                                                                            @if($room->images && $room->images->count() > 0)
+                                                                                <div class="row g-2">
+                                                                                    @foreach($room->images as $galleryImage)
+                                                                                        <div class="col-md-3 col-sm-4">
+                                                                                            <div class="position-relative">
+                                                                                                <img src="{{ asset('storage/images/rooms/' . $galleryImage->image) }}" 
+                                                                                                     alt="Gallery Image" 
+                                                                                                     class="img-fluid rounded" 
+                                                                                                     style="width: 100%; height: 120px; object-fit: cover;">
+                                                                                                <form action="{{ route('my.properties.rooms.images.destroy', $galleryImage->id) }}" 
+                                                                                                      method="POST" 
+                                                                                                      onsubmit="return confirm('Are you sure you want to delete this image?');"
+                                                                                                      style="position: absolute; top: 5px; right: 5px;">
+                                                                                                    @csrf
+                                                                                                    @method('DELETE')
+                                                                                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 2px 6px;">
+                                                                                                        <i class="fa fa-times"></i>
+                                                                                                    </button>
+                                                                                                </form>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    @endforeach
+                                                                                </div>
+                                                                            @else
+                                                                                <p class="text-muted small mb-0">No gallery images yet. Click "Add Images" to upload.</p>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
 
                                                                 <div class="modal-footer">
                                                                     <button class="btn btn-primary" type="submit">
                                                                         <i class="fa fa-save"></i> Update Room
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- ADD ROOM GALLERY MODAL --}}
+                                                <div class="modal fade" id="addRoomGalleryModal{{ $room->id }}">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <form action="{{ route('my.properties.rooms.images.store', $room->id) }}" method="POST" enctype="multipart/form-data">
+                                                                @csrf
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">Add Images to {{ $room->room_type }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <div class="mb-3">
+                                                                        <label for="images{{ $room->id }}" class="form-label">Select Images</label>
+                                                                        <input type="file" 
+                                                                               class="form-control" 
+                                                                               id="images{{ $room->id }}" 
+                                                                               name="image[]" 
+                                                                               multiple 
+                                                                               accept="image/*" 
+                                                                               required>
+                                                                        <small class="text-muted">You can select multiple images at once. Max size: 2MB per image.</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="submit" class="btn btn-primary">
+                                                                        <i class="fa fa-upload"></i> Upload Images
                                                                     </button>
                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                                                 </div>
@@ -475,6 +596,49 @@
                                     </div>
                                 </div>
 
+                                {{-- Property Gallery Section --}}
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <hr>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-images me-2"></i>Property Gallery 
+                                                <span class="badge bg-primary">{{ $hotel->images->count() ?? 0 }} Images</span>
+                                            </h6>
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPropertyGalleryModal{{ $hotel->id }}">
+                                                <i class="fa fa-plus"></i> Add Images
+                                            </button>
+                                        </div>
+                                        
+                                        @if($hotel->images && $hotel->images->count() > 0)
+                                            <div class="row g-2">
+                                                @foreach($hotel->images as $galleryImage)
+                                                    <div class="col-md-3 col-sm-4">
+                                                        <div class="position-relative">
+                                                            <img src="{{ asset('storage/images/hotels/' . $galleryImage->image) }}" 
+                                                                 alt="Gallery Image" 
+                                                                 class="img-fluid rounded" 
+                                                                 style="width: 100%; height: 120px; object-fit: cover;">
+                                                            <form action="{{ route('my.properties.hotels.images.destroy', $galleryImage->id) }}" 
+                                                                  method="POST" 
+                                                                  onsubmit="return confirm('Are you sure you want to delete this image?');"
+                                                                  style="position: absolute; top: 5px; right: 5px;">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-sm btn-danger" style="padding: 2px 6px;">
+                                                                    <i class="fa fa-times"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-muted small mb-0">No gallery images yet. Click "Add Images" to upload.</p>
+                                        @endif
+                                    </div>
+                                </div>
+
                             </div>
 
                             {{-- Actions --}}
@@ -489,6 +653,40 @@
                         </form>
 
 
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ADD PROPERTY GALLERY MODAL --}}
+                <div class="modal fade" id="addPropertyGalleryModal{{ $hotel->id }}">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ route('my.properties.hotels.images.store', $hotel->id) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Images to {{ $hotel->name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="propertyImages{{ $hotel->id }}" class="form-label">Select Images</label>
+                                        <input type="file" 
+                                               class="form-control" 
+                                               id="propertyImages{{ $hotel->id }}" 
+                                               name="image[]" 
+                                               multiple 
+                                               accept="image/*" 
+                                               required>
+                                        <small class="text-muted">You can select multiple images at once. Max size: 4MB per image.</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-upload"></i> Upload Images
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -518,11 +716,33 @@
                             <label>Room Type</label>
                             <input type="text" class="form-control" name="room_type" required>
                         </div>
-                        <div class="col-md-6">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label>Currency</label>
+                            <select name="currency" class="form-control">
+                                <option value="USD" selected>USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="RWF">RWF (Fr)</option>
+                                <option value="KES">KES (KSh)</option>
+                                <option value="UGX">UGX (USh)</option>
+                                <option value="TZS">TZS (TSh)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Price Display Type</label>
+                            <select name="price_display_type" class="form-control">
+                                <option value="per_night" selected>Per Night</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label>Price per Night</label>
-                            <input type="number" class="form-control" name="price_per_night" required>
+                            <input type="number" step="0.01" class="form-control" name="price_per_night" required>
                         </div>
                     </div>
+
 
                     <div class="row mb-3">
                         <div class="col-md-4">

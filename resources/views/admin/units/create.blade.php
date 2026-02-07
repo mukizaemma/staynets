@@ -79,11 +79,11 @@
                     </div>
 
                     <!-- Capacity & Features -->
-                    <div class="row mb-4">
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Capacity & Features</h5>
+                            <h5 class="mb-2 border-bottom pb-2">Capacity & Features</h5>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-2 mb-2">
                             <label for="max_occupancy" class="form-label">Max Occupancy <span class="text-danger">*</span></label>
                             <input type="number" name="max_occupancy" class="form-control @error('max_occupancy') is-invalid @enderror" 
                                    id="max_occupancy" value="{{ old('max_occupancy', 2) }}" min="1" required>
@@ -91,7 +91,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-2 mb-2">
                             <label for="bedrooms" class="form-label">Bedrooms</label>
                             <input type="number" name="bedrooms" class="form-control @error('bedrooms') is-invalid @enderror" 
                                    id="bedrooms" value="{{ old('bedrooms', 0) }}" min="0">
@@ -99,7 +99,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-2 mb-2">
                             <label for="bathrooms" class="form-label">Bathrooms <span class="text-danger">*</span></label>
                             <input type="number" name="bathrooms" class="form-control @error('bathrooms') is-invalid @enderror" 
                                    id="bathrooms" value="{{ old('bathrooms', 1) }}" min="1" required>
@@ -107,7 +107,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-2 mb-2">
                             <label for="beds" class="form-label">Beds</label>
                             <input type="number" name="beds" class="form-control @error('beds') is-invalid @enderror" 
                                    id="beds" value="{{ old('beds', 1) }}" min="1">
@@ -115,7 +115,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-2 mb-2">
                             <label for="size_sqm" class="form-label">Size (sqm)</label>
                             <input type="number" name="size_sqm" class="form-control @error('size_sqm') is-invalid @enderror" 
                                    id="size_sqm" value="{{ old('size_sqm') }}" min="0" step="0.01">
@@ -126,11 +126,11 @@
                     </div>
 
                     <!-- Inventory -->
-                    <div class="row mb-4">
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Inventory</h5>
+                            <h5 class="mb-2 border-bottom pb-2">Inventory</h5>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-3 mb-2">
                             <label for="total_units" class="form-label">Total Units <span class="text-danger">*</span></label>
                             <input type="number" name="total_units" class="form-control @error('total_units') is-invalid @enderror" 
                                    id="total_units" value="{{ old('total_units', 1) }}" min="1" required>
@@ -138,7 +138,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-2">
                             <label for="available_units" class="form-label">Available Units <span class="text-danger">*</span></label>
                             <input type="number" name="available_units" class="form-control @error('available_units') is-invalid @enderror" 
                                    id="available_units" value="{{ old('available_units', 1) }}" min="0" required>
@@ -146,14 +146,13 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-2">
                             <label for="status" class="form-label">Status</label>
                             <select name="status" class="form-select @error('status') is-invalid @enderror" id="status">
                                 <option value="Available" {{ old('status', 'Available') == 'Available' ? 'selected' : '' }}>Available</option>
                                 <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
                                 <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
                             </select>
-                            <small class="text-muted">Default: Available</small>
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -161,11 +160,26 @@
                     </div>
 
                     <!-- Pricing -->
-                    <div class="row mb-4">
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Pricing</h5>
+                            <h5 class="mb-2 border-bottom pb-2">Pricing</h5>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-2">
+                            <label for="currency" class="form-label">Currency</label>
+                            <select name="currency" class="form-select @error('currency') is-invalid @enderror" id="currency">
+                                <option value="USD" {{ old('currency', 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                                <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                                <option value="GBP" {{ old('currency') == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                                <option value="RWF" {{ old('currency') == 'RWF' ? 'selected' : '' }}>RWF (Fr)</option>
+                                <option value="KES" {{ old('currency') == 'KES' ? 'selected' : '' }}>KES (KSh)</option>
+                                <option value="UGX" {{ old('currency') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
+                                <option value="TZS" {{ old('currency') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
+                            </select>
+                            @error('currency')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-8 mb-2">
                             <label for="base_price_per_night" class="form-label">Price per Night</label>
                             <input type="number" name="base_price_per_night" class="form-control @error('base_price_per_night') is-invalid @enderror" 
                                    id="base_price_per_night" value="{{ old('base_price_per_night') }}" min="0" step="0.01">
@@ -173,14 +187,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="base_price_per_month" class="form-label">Price per Month</label>
-                            <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" 
-                                   id="base_price_per_month" value="{{ old('base_price_per_month') }}" min="0" step="0.01">
-                            @error('base_price_per_month')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <input type="hidden" name="price_display_type" value="per_night">
                     </div>
 
                     <!-- Description & Image -->

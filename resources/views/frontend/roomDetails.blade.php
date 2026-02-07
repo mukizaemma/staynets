@@ -1,30 +1,97 @@
 @extends('layouts.frontbase')
 
 @section('content')
+<style>
+    /* Gallery Styles - Same as property view */
+    .image-gallery-main {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 10px;
+        background: #f0f0f0;
+        cursor: pointer;
+    }
+    .image-gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .image-gallery-thumbs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .gallery-thumb {
+        position: relative;
+        height: 120px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+    .gallery-thumb:hover {
+        opacity: 1;
+    }
+    .gallery-thumb.active {
+        opacity: 1;
+        border: 3px solid #0071c2;
+    }
+    .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .gallery-overlay {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .gallery-thumbnail.active {
+        border: 2px solid #0071c2 !important;
+    }
+    .gallery-thumbnail:hover {
+        opacity: 0.8;
+    }
+    @media (max-width: 991px) {
+        .image-gallery-main {
+            height: 300px;
+        }
+        .image-gallery-thumbs {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @media (max-width: 767px) {
+        .image-gallery-thumbs {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
 
 @php
-$images = $images ?? collect();
-if(! ($images instanceof \Illuminate\Support\Collection)) $images = collect($images);
-if($images->isEmpty()){
-    $fallback = asset('assets/img/tour/tour_inner_2_1.jpg');
-    if(!empty($room->image)){
-        $img = trim($room->image);
-        if(preg_match('#^(https?:)?//#', $img) || \Illuminate\Support\Str::startsWith($img, ['assets/','storage/','public/'])) {
-            $fallback = $img;
-        } else {
-            $roomPath = storage_path('app/public/images/rooms/' . $img);
-            $hotelPath = storage_path('app/public/images/hotels/' . $img);
-            if(file_exists($roomPath)) $fallback = asset('storage/images/rooms/' . $img);
-            elseif(file_exists($hotelPath)) $fallback = asset('storage/images/hotels/' . $img);
-        }
-    } elseif(!empty($hotel->image)){
-        $himg = trim($hotel->image);
-        $hotelPath = storage_path('app/public/images/hotels/' . $himg);
-        if(file_exists($hotelPath)) $fallback = asset('storage/images/hotels/' . $himg);
-        elseif(preg_match('#^(https?:)?//#', $himg) || \Illuminate\Support\Str::startsWith($himg, ['assets/','storage/','public/'])) $fallback = $himg;
-    }
-    $images = collect([$fallback]);
+$allImages = $images ?? collect();
+if(! ($allImages instanceof \Illuminate\Support\Collection)) {
+    $allImages = collect($allImages);
 }
+// Ensure images have url key
+if($allImages->isNotEmpty() && !isset($allImages->first()['url'])) {
+    $allImages = $allImages->map(function($img) {
+        if(is_string($img)) {
+            return ['url' => $img, 'type' => 'room', 'caption' => ''];
+        }
+        return $img;
+    });
+}
+$mainImage = $allImages->isNotEmpty() ? $allImages->first()['url'] : asset('assets/img/tour/tour_inner_2_1.jpg');
 $amenities = $amenities ?? collect();
 $relatedRooms = $relatedRooms ?? ($rooms ?? collect());
 $trips = $trips ?? collect();
@@ -35,33 +102,25 @@ $trips = $trips ?? collect();
         <div style="width:90%; margin:0 auto;">
             <div class="tour-page-single">
 
-                <div class="slider-area tour-slider1">
-                    <div class="swiper th-slider mb-4" id="tourSlider4" data-slider-options='{"effect":"fade","loop":true,"thumbs":{"swiper":".tour-thumb-slider"},"autoplayDisableOnInteraction":"true"}'>
-                        <div class="swiper-wrapper">
-                            @foreach($images as $img)
-                                <div class="swiper-slide">
-                                    <div class="tour-slider-img">
-                                        <img src="{{ $img }}" alt="{{ $room->room_type }}" style="width:100%; height:560px; object-fit:cover;">
-                                    </div>
+                <!-- Image Gallery - Same layout as property view -->
+                <div class="mb-4">
+                    <div class="image-gallery-main">
+                        <img src="{{ $mainImage }}" alt="{{ $room->room_type }}" id="mainGalleryImage" onclick="openGalleryModal(0)">
+                        @if($allImages->count() > 1)
+                            <div class="gallery-overlay" onclick="openGalleryModal(0)">
+                                <i class="fas fa-images"></i> View all {{ $allImages->count() }} photos
+                            </div>
+                        @endif
+                    </div>
+                    @if($allImages->count() > 1)
+                        <div class="image-gallery-thumbs">
+                            @foreach($allImages->take(4) as $index => $img)
+                                <div class="gallery-thumb {{ $index == 0 ? 'active' : '' }}" onclick="changeMainImage('{{ $img['url'] }}', this, {{ $index }})">
+                                    <img src="{{ $img['url'] }}" alt="Gallery thumbnail">
                                 </div>
                             @endforeach
                         </div>
-                    </div>
-
-                    <div class="swiper th-slider tour-thumb-slider mt-3" data-slider-options='{"effect":"slide","loop":true,"breakpoints":{"0":{"slidesPerView":2},"576":{"slidesPerView":"2"},"768":{"slidesPerView":"3"},"992":{"slidesPerView":"4"},"1200":{"slidesPerView":"5"}},"autoplayDisableOnInteraction":"true"}'>
-                        <div class="swiper-wrapper">
-                            @foreach($images as $img)
-                                <div class="swiper-slide">
-                                    <div class="tour-slider-img">
-                                        <img src="{{ $img }}" alt="Image" style="width:100%; height:80px; object-fit:cover; border-radius:6px;">
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <button data-slider-prev="#tourSlider4" class="slider-arrow style3 slider-prev"><img src="{{ asset('assets/img/icon/hero-arrow-left.svg') }}" alt=""></button>
-                    <button data-slider-next="#tourSlider4" class="slider-arrow style3 slider-next"><img src="{{ asset('assets/img/icon/hero-arrow-right.svg') }}" alt=""></button>
+                    @endif
                 </div>
 
                 <div class="page-content mt-4">
@@ -71,7 +130,11 @@ $trips = $trips ?? collect();
                             <span class="ratting ms-3"><i class="fa-sharp fa-solid fa-star"></i><span>{{ number_format((float)($room->rating ?? 4.8), 1) }}</span></span>
                         </div>
                         <div class="text-end">
-                            <div style="font-size:18px; font-weight:700;">{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small></div>
+                            @php
+                                $roomCurrency = $room->currency ?? 'USD';
+                                $roomCurrencySymbol = getCurrencySymbol($roomCurrency);
+                            @endphp
+                            <div style="font-size:18px; font-weight:700;">{{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small></div>
                             <div class="mt-1"><a href="{{ route('connect') }}" class="th-btn style4 th-icon">Book Now</a></div>
                         </div>
                     </div>
@@ -95,7 +158,7 @@ $trips = $trips ?? collect();
                                 <div class="icon"><img src="{{ asset('assets/img/icon/guide2.svg') }}" alt=""></div>
                                 <div class="content">
                                     <span class="title">Price Per Night:</span>
-                                    <span>{{ number_format($room->price_per_night ?? 0, 2) }}</span>
+                                    <span>{{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }}</span>
                                 </div>
                             </div>
 
@@ -185,7 +248,7 @@ $trips = $trips ?? collect();
                                     <div class="card-body">
                                         <h5 style="font-weight:700;margin-bottom:8px;">{{ $room->room_type }}</h5>
                                         <p class="mb-1 text-muted">{{ $hotel->name ?? '' }}</p>
-                                        <p style="font-size:18px;font-weight:700;">{{ number_format($room->price_per_night ?? 0,2) }} <small class="text-muted" style="font-weight:400;">/ night</small></p>
+                                        <p style="font-size:18px;font-weight:700;">{{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0,2) }} <small class="text-muted" style="font-weight:400;">/ night</small></p>
                                         <ul class="list-unstyled small mb-3">
                                             <li>Max occupancy: <strong>{{ $room->max_occupancy ?? 0 }}</strong></li>
                                             <li>Available: <strong>{{ $room->available_rooms ?? 0 }}</strong></li>
@@ -236,7 +299,11 @@ $trips = $trips ?? collect();
                                                 </h3>
 
                                                 <p class="mb-2" style="margin:6px 0;">
-                                                    <strong>Price / night:</strong> {{ number_format($r->price_per_night ?? 0, 2) }}
+                                                    @php
+                                                        $relatedRoomCurrency = $r->currency ?? 'USD';
+                                                        $relatedRoomCurrencySymbol = getCurrencySymbol($relatedRoomCurrency);
+                                                    @endphp
+                                                    <strong>Price / night:</strong> {{ $relatedRoomCurrencySymbol }}{{ number_format($r->price_per_night ?? 0, 2) }}
                                                 </p>
 
                                                 <p class="mb-2" style="margin:6px 0;">
@@ -303,5 +370,103 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
+
+<!-- Gallery Modal - Same as property view -->
+<div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Photo Gallery - {{ $room->room_type }}</h5>
+                <span class="text-white me-3" id="galleryCounter">1 / {{ $allImages->count() }}</span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 position-relative" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+                <button class="btn btn-light position-absolute" style="left: 20px; top: 50%; transform: translateY(-50%); z-index: 10;" onclick="previousImage()" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <img id="galleryMainImage" src="" alt="Gallery Image" style="max-width: 90%; max-height: 80vh; object-fit: contain;">
+                <button class="btn btn-light position-absolute" style="right: 20px; top: 50%; transform: translateY(-50%); z-index: 10;" onclick="nextImage()" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="modal-footer border-0 bg-dark">
+                <div class="w-100">
+                    <div class="d-flex gap-2 overflow-auto pb-2" style="max-height: 120px;">
+                        @foreach($allImages as $index => $img)
+                            <img src="{{ $img['url'] }}" 
+                                 alt="Thumbnail" 
+                                 class="gallery-thumbnail {{ $index == 0 ? 'active' : '' }}" 
+                                 style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"
+                                 onclick="showImage({{ $index }})"
+                                 data-index="{{ $index }}">
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gallery images array
+    const galleryImages = @json($allImages->map(function($img) { return $img['url']; })->values());
+    let currentImageIndex = 0;
+    
+    function changeMainImage(src, thumbElement, index = 0) {
+        document.getElementById('mainGalleryImage').src = src;
+        currentImageIndex = index;
+        if (thumbElement) {
+            document.querySelectorAll('.gallery-thumb').forEach(el => el.classList.remove('active'));
+            thumbElement.classList.add('active');
+        }
+    }
+    
+    function openGalleryModal(startIndex = 0) {
+        currentImageIndex = startIndex;
+        showImage(startIndex);
+        const modal = new bootstrap.Modal(document.getElementById('galleryModal'));
+        modal.show();
+    }
+    
+    function showImage(index) {
+        if (index < 0 || index >= galleryImages.length) return;
+        currentImageIndex = index;
+        document.getElementById('galleryMainImage').src = galleryImages[index];
+        document.getElementById('galleryCounter').textContent = (index + 1) + ' / ' + galleryImages.length;
+        
+        // Update thumbnails
+        document.querySelectorAll('.gallery-thumbnail').forEach((thumb, i) => {
+            if (i === index) {
+                thumb.classList.add('active');
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+    
+    function nextImage() {
+        const next = (currentImageIndex + 1) % galleryImages.length;
+        showImage(next);
+    }
+    
+    function previousImage() {
+        const prev = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        showImage(prev);
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('galleryModal');
+        if (modal && modal.classList.contains('show')) {
+            if (e.key === 'ArrowRight') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft') {
+                previousImage();
+            } else if (e.key === 'Escape') {
+                bootstrap.Modal.getInstance(modal).hide();
+            }
+        }
+    });
+</script>
 
 @endsection

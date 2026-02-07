@@ -7,6 +7,8 @@ use App\Models\Program;
 use App\Models\Category;
 use App\Models\Hotel;
 use App\Models\HotelRoom;
+use App\Models\HotelRoomImage;
+use App\Models\HotelImage;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +25,7 @@ public function index()
 
     if (auth()->check()) {
         $hotels = \App\Models\Hotel::where('added_by', auth()->id())
-            ->with(['rooms', 'images'])
+            ->with(['rooms.images', 'images'])
             ->latest()
             ->get();
 
@@ -224,6 +226,9 @@ try {
             'image' => 'nullable|image|max:4096',
             'max_occupancy' => 'nullable|integer',
             'price_per_night' => 'required|numeric',
+            'price_per_month' => 'nullable|numeric',
+            'currency' => 'nullable|string|max:3',
+            'price_display_type' => 'nullable|in:per_night,per_month,both',
             'total_rooms' => 'nullable|integer',
             'available_rooms' => 'nullable|integer',
             'description' => 'nullable|string',
@@ -252,7 +257,9 @@ try {
     {
         $hotel = $room->hotel;
         $this->authorizeOwner($hotel);
-        return view('frontend.myProperties', compact('room','hotel'));
+        $room->load('images');
+        $amenities = \App\Models\Amenity::orderBy('title')->get();
+        return view('frontend.myProperties', compact('room','hotel', 'amenities'));
     }
 
     public function updateRoom(Request $request, HotelRoom $room)
@@ -266,6 +273,9 @@ try {
             'image' => 'nullable|image|max:4096',
             'max_occupancy' => 'nullable|integer',
             'price_per_night' => 'required|numeric',
+            'price_per_month' => 'nullable|numeric',
+            'currency' => 'nullable|string|max:3',
+            'price_display_type' => 'nullable|in:per_night,per_month,both',
             'total_rooms' => 'nullable|integer',
             'available_rooms' => 'nullable|integer',
             'description' => 'nullable|string',
@@ -329,6 +339,108 @@ try {
         $room->delete();
 
         return redirect()->route('myProperties')->with('success', 'Room has been removed successfully.');
+    }
+
+    /**
+     * Add images to a room gallery (user-facing)
+     */
+    public function addRoomImage(Request $request, HotelRoom $room)
+    {
+        $hotel = $room->hotel;
+        $this->authorizeOwner($hotel);
+
+        $request->validate([
+            'image.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($request->hasFile('image')) {
+            foreach ($request->file('image') as $image) {
+                $path = $image->store('public/images/rooms');
+                $fileName = basename($path);
+
+                HotelRoomImage::create([
+                    'image' => $fileName,
+                    'hotel_room_id' => $room->id,
+                    'added_by' => auth()->id()
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Images uploaded successfully!');
+        }
+
+        return redirect()->back()->with('error', 'No images were uploaded.');
+    }
+
+    /**
+     * Delete an image from room gallery (user-facing)
+     */
+    public function deleteRoomImage($id)
+    {
+        $image = HotelRoomImage::findOrFail($id);
+        $room = $image->room;
+        $hotel = $room->hotel;
+        
+        $this->authorizeOwner($hotel);
+
+        $imagePath = 'public/images/rooms/' . $image->image;
+
+        if (Storage::exists($imagePath)) {
+            Storage::delete($imagePath);
+        }
+
+        $image->delete();
+
+        return redirect()->back()->with('success', 'Image has been deleted successfully.');
+    }
+
+    /**
+     * Add images to a property gallery (user-facing)
+     */
+    public function addPropertyImage(Request $request, Hotel $hotel)
+    {
+        $this->authorizeOwner($hotel);
+
+        $request->validate([
+            'image.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+        ]);
+
+        if ($request->hasFile('image')) {
+            foreach ($request->file('image') as $image) {
+                $path = $image->store('public/images/hotels');
+                $fileName = basename($path);
+
+                HotelImage::create([
+                    'hotel_id' => $hotel->id,
+                    'added_by' => auth()->id(),
+                    'image' => $fileName,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Images uploaded successfully!');
+        }
+
+        return redirect()->back()->with('error', 'No images were uploaded.');
+    }
+
+    /**
+     * Delete an image from property gallery (user-facing)
+     */
+    public function deletePropertyImage($id)
+    {
+        $image = HotelImage::findOrFail($id);
+        $hotel = $image->hotel;
+        
+        $this->authorizeOwner($hotel);
+
+        $imagePath = 'public/images/hotels/' . $image->image;
+
+        if (Storage::exists($imagePath)) {
+            Storage::delete($imagePath);
+        }
+
+        $image->delete();
+
+        return redirect()->back()->with('success', 'Image has been deleted successfully.');
     }
 
     protected function authorizeOwner(Hotel $hotel)

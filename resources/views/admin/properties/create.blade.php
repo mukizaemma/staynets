@@ -139,22 +139,6 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="latitude" class="form-label">Latitude</label>
-                            <input type="number" name="latitude" class="form-control @error('latitude') is-invalid @enderror" 
-                                   id="latitude" value="{{ old('latitude') }}" step="0.000001">
-                            @error('latitude')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="longitude" class="form-label">Longitude</label>
-                            <input type="number" name="longitude" class="form-control @error('longitude') is-invalid @enderror" 
-                                   id="longitude" value="{{ old('longitude') }}" step="0.000001">
-                            @error('longitude')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
                     </div>
 
                     <!-- Map Embed Code -->
@@ -162,8 +146,7 @@
                         <div class="col-12">
                             <h5 class="mb-3 border-bottom pb-2">Map Location</h5>
                             <p class="text-muted mb-3">
-                                <small>You can either use latitude/longitude coordinates OR paste an embedded Google Maps iframe code. 
-                                If you provide an embed code, it will be used instead of coordinates.</small>
+                                <small>Paste an embedded Google Maps iframe code to display the location on the property page.</small>
                             </p>
                         </div>
                         <div class="col-12 mb-3">
@@ -171,7 +154,7 @@
                             <textarea name="map_embed_code" class="form-control @error('map_embed_code') is-invalid @enderror" 
                                       id="map_embed_code" rows="4" 
                                       placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'>{{ old('map_embed_code') }}</textarea>
-                            <small class="text-muted">Paste the full iframe code from Google Maps embed. This will override latitude/longitude if provided.</small>
+                            <small class="text-muted">Paste the full iframe code from Google Maps embed.</small>
                             @error('map_embed_code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

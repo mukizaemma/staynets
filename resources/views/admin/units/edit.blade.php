@@ -159,7 +159,22 @@
                         <div class="col-12">
                             <h5 class="mb-3 border-bottom pb-2">Pricing</h5>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="currency" class="form-label">Currency</label>
+                            <select name="currency" class="form-select @error('currency') is-invalid @enderror" id="currency">
+                                <option value="USD" {{ old('currency', $unit->currency ?? 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                                <option value="EUR" {{ old('currency', $unit->currency ?? '') == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                                <option value="GBP" {{ old('currency', $unit->currency ?? '') == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                                <option value="RWF" {{ old('currency', $unit->currency ?? '') == 'RWF' ? 'selected' : '' }}>RWF (Fr)</option>
+                                <option value="KES" {{ old('currency', $unit->currency ?? '') == 'KES' ? 'selected' : '' }}>KES (KSh)</option>
+                                <option value="UGX" {{ old('currency', $unit->currency ?? '') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
+                                <option value="TZS" {{ old('currency', $unit->currency ?? '') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
+                            </select>
+                            @error('currency')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-8 mb-2">
                             <label for="base_price_per_night" class="form-label">Price per Night</label>
                             <input type="number" name="base_price_per_night" class="form-control @error('base_price_per_night') is-invalid @enderror" 
                                    id="base_price_per_night" value="{{ old('base_price_per_night', $unit->base_price_per_night) }}" min="0" step="0.01">
@@ -167,14 +182,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="base_price_per_month" class="form-label">Price per Month</label>
-                            <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" 
-                                   id="base_price_per_month" value="{{ old('base_price_per_month', $unit->base_price_per_month) }}" min="0" step="0.01">
-                            @error('base_price_per_month')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <input type="hidden" name="price_display_type" value="per_night">
                     </div>
 
                     <!-- Description -->

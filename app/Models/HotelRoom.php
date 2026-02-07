@@ -17,6 +17,9 @@ class HotelRoom extends Model
         'image',
         'max_occupancy',
         'price_per_night',
+        'price_per_month',
+        'currency',
+        'price_display_type',
         'total_rooms',
         'available_rooms',
         'description',
@@ -27,7 +30,7 @@ class HotelRoom extends Model
     protected $casts = [
         'amenities' => 'array',
         'price_per_night' => 'decimal:2',
-         'amenities' => 'array',
+        'price_per_month' => 'decimal:2',
     ];
 
     public function hotel()

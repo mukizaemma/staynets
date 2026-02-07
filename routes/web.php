@@ -247,6 +247,16 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/updateGallery/{id}', [App\Http\Controllers\SlidesController::class, 'updateGallery'])->name('updateGallery');
     Route::get('/destroyImage/{id}', [App\Http\Controllers\SlidesController::class, 'destroyImage'])->name('destroyImage');
     
+    // Rooms Management (Admin) - Legacy routes still in use
+    Route::get('/getRooms', [App\Http\Controllers\RoomsController::class, 'index'])->name('getRooms');
+    Route::post('/storeRoom', [App\Http\Controllers\RoomsController::class, 'store'])->name('storeRoom');
+    Route::get('/editRoom/{id}', [App\Http\Controllers\RoomsController::class, 'edit'])->name('editRoom');
+    Route::post('/updateRoom/{id}', [App\Http\Controllers\RoomsController::class, 'update'])->name('updateRoom');
+    Route::get('/deleteRoom/{id}', [App\Http\Controllers\RoomsController::class, 'destroy'])->name('deleteRoom');
+    
+    // Room Gallery Management (Admin)
+    Route::post('/addRoomImage', [App\Http\Controllers\RoomsController::class, 'addRoomImage'])->name('addRoomImage');
+    Route::get('/deleteRoomImage/{id}', [App\Http\Controllers\RoomsController::class, 'deleteRoomImage'])->name('deleteRoomImage');
 
 });
 
@@ -262,7 +272,7 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::get('/accommodations/hotelsSearch', [App\Http\Controllers\HomeController::class, 'hotelsSearch'])->name('hotelsSearch');
     Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
     Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
-    Route::post('/bookings', [App\Http\Controllers\HomeController::class, 'storeBooking'])->name('bookings.store');
+    Route::post('/storeBookings', [App\Http\Controllers\HomeController::class, 'storeBooking'])->name('bookings.store');
     Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
     Route::get('/services/ticketing', [App\Http\Controllers\HomeController::class, 'ticketing'])->name('ticketing');
     Route::get('/services/ticketing/request', [App\Http\Controllers\HomeController::class, 'ticketingRequest'])->name('ticketing.request');
@@ -296,6 +306,14 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::get('/my-properties/rooms/{room}/edit', [App\Http\Controllers\UserPropertyController::class, 'editRoom'])->name('my.properties.rooms.edit');
     Route::put('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'updateRoom'])->name('my.properties.rooms.update');
     Route::delete('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'destroyRoom'])->name('my.properties.rooms.destroy');
+    
+    // Room Gallery Management (User)
+    Route::post('/my-properties/rooms/{room}/images', [App\Http\Controllers\UserPropertyController::class, 'addRoomImage'])->name('my.properties.rooms.images.store');
+    Route::get('/my-properties/rooms/images/{id}/delete', [App\Http\Controllers\UserPropertyController::class, 'deleteRoomImage'])->name('my.properties.rooms.images.destroy');
+    
+    // Property Gallery Management (User)
+    Route::post('/my-properties/hotels/{hotel}/images', [App\Http\Controllers\UserPropertyController::class, 'addPropertyImage'])->name('my.properties.hotels.images.store');
+    Route::get('/my-properties/hotels/images/{id}/delete', [App\Http\Controllers\UserPropertyController::class, 'deletePropertyImage'])->name('my.properties.hotels.images.destroy');
 });
 
 

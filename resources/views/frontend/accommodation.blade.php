@@ -434,32 +434,104 @@
             <!-- Image Gallery -->
             @php
                 $allImages = collect();
-                if($hotel->images->isNotEmpty()) {
-                    $allImages = $hotel->images->map(function($img) {
-                        return asset('storage/' . $img->image_path);
-                    });
-                } elseif($hotel->featured_image) {
-                    $allImages = collect([asset('storage/images/properties/' . $hotel->featured_image)]);
-                } else {
-                    $allImages = collect([asset('assets/img/tour/tour_3_1.jpg')]);
+                
+                // Add property images
+                if($hotel->images && $hotel->images->isNotEmpty()) {
+                    foreach($hotel->images as $img) {
+                        // Handle both PropertyImage (image_path) and HotelImage (image) models
+                        if(isset($img->image_path)) {
+                            // PropertyImage model
+                            $allImages->push([
+                                'url' => asset('storage/images/properties/' . $img->image_path),
+                                'type' => 'property',
+                                'caption' => ($img->caption ?? $hotel->name)
+                            ]);
+                        } elseif(isset($img->image)) {
+                            // HotelImage model
+                            $allImages->push([
+                                'url' => asset('storage/images/hotels/' . $img->image),
+                                'type' => 'property',
+                                'caption' => ($img->caption ?? $hotel->name)
+                            ]);
+                        }
+                    }
                 }
-                $mainImage = $allImages->first();
+                
+                // Add featured image if exists and not already in gallery
+                $featuredImage = $hotel->featured_image ?? null;
+                if(!empty($featuredImage)) {
+                    $featuredUrl = asset('storage/images/properties/' . $featuredImage);
+                    if(!$allImages->contains('url', $featuredUrl)) {
+                        $allImages->prepend([
+                            'url' => $featuredUrl,
+                            'type' => 'property',
+                            'caption' => $hotel->name . ' - Featured'
+                        ]);
+                    }
+                }
+                
+                // Add room/unit images
+                foreach($hotel->units as $unit) {
+                    if($unit->images && $unit->images->isNotEmpty()) {
+                        foreach($unit->images as $roomImg) {
+                            // Handle both UnitImage (image_path) and HotelRoomImage (image) models
+                            if(isset($roomImg->image_path)) {
+                                // UnitImage model
+                                $allImages->push([
+                                    'url' => asset('storage/images/units/' . $roomImg->image_path),
+                                    'type' => 'room',
+                                    'caption' => ($roomImg->caption ?? $unit->name) . ' - ' . $hotel->name
+                                ]);
+                            } elseif(isset($roomImg->image)) {
+                                // HotelRoomImage model
+                                $allImages->push([
+                                    'url' => asset('storage/images/rooms/' . $roomImg->image),
+                                    'type' => 'room',
+                                    'caption' => ($roomImg->caption ?? $unit->name) . ' - ' . $hotel->name
+                                ]);
+                            }
+                        }
+                    }
+                    // Add unit featured image if exists
+                    $unitFeaturedImage = $unit->featured_image ?? null;
+                    if(!empty($unitFeaturedImage)) {
+                        $unitUrl = asset('storage/images/units/' . $unitFeaturedImage);
+                        if(!$allImages->contains('url', $unitUrl)) {
+                            $allImages->push([
+                                'url' => $unitUrl,
+                                'type' => 'room',
+                                'caption' => $unit->name . ' - ' . $hotel->name
+                            ]);
+                        }
+                    }
+                }
+                
+                // Fallback if no images
+                if($allImages->isEmpty()) {
+                    $allImages->push([
+                        'url' => asset('assets/img/tour/tour_3_1.jpg'),
+                        'type' => 'property',
+                        'caption' => $hotel->name
+                    ]);
+                }
+                
+                $mainImage = $allImages->first()['url'];
             @endphp
             
             <div class="content-section">
                 <div class="image-gallery-main">
-                    <img src="{{ $mainImage }}" alt="{{ $hotel->name }}" id="mainGalleryImage">
+                    <img src="{{ $mainImage }}" alt="{{ $hotel->name }}" id="mainGalleryImage" onclick="openGalleryModal(0)">
                     @if($allImages->count() > 1)
-                        <div class="gallery-overlay" onclick="openGalleryModal()">
+                        <div class="gallery-overlay" onclick="openGalleryModal(0)">
                             <i class="fas fa-images"></i> View all {{ $allImages->count() }} photos
                         </div>
                     @endif
                 </div>
                 @if($allImages->count() > 1)
                     <div class="image-gallery-thumbs">
-                        @foreach($allImages->take(4) as $index => $thumb)
-                            <div class="gallery-thumb {{ $index == 0 ? 'active' : '' }}" onclick="changeMainImage('{{ $thumb }}', this)">
-                                <img src="{{ $thumb }}" alt="Gallery thumbnail">
+                        @foreach($allImages->take(4) as $index => $img)
+                            <div class="gallery-thumb {{ $index == 0 ? 'active' : '' }}" onclick="changeMainImage('{{ $img['url'] }}', this, {{ $index }})">
+                                <img src="{{ $img['url'] }}" alt="Gallery thumbnail">
                             </div>
                         @endforeach
                     </div>
@@ -512,8 +584,9 @@
                                 @foreach($rooms as $unit)
                                     @php
                                         $unitImage = $unit->images->where('is_primary', true)->first() ?? $unit->images->first();
+                                        $unitFeaturedImg = $unit->featured_image ?? null;
                                         $unitImagePath = $unitImage ? asset('storage/' . $unitImage->image_path) : 
-                                                        ($unit->featured_image ? asset('storage/images/units/' . $unit->featured_image) : 
+                                                        (!empty($unitFeaturedImg) ? asset('storage/images/units/' . $unitFeaturedImg) : 
                                                         asset('assets/img/tour/tour_3_1.jpg'));
                                     @endphp
                                     <tr>
@@ -535,7 +608,11 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="room-price">${{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
+                                            @php
+                                                $currency = $unit->currency ?? 'USD';
+                                                $currencySymbol = getCurrencySymbol($currency);
+                                            @endphp
+                                            <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
                                             <div class="room-price-label">per night</div>
                                         </td>
                                         <td>
@@ -551,7 +628,11 @@
                                         </td>
                                         <td>
                                             @if($unit->available_units > 0)
-                                                <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $unit->base_price_per_night ?? 0 }}, '{{ $unit->name ?? 'Unit ' . $unit->id }}')">
+                                                @php
+                                                    $unitCurrency = $unit->currency ?? 'USD';
+                                                    $unitCurrencySymbol = getCurrencySymbol($unitCurrency);
+                                                @endphp
+                                                <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $unit->base_price_per_night ?? 0 }}, '{{ $unit->name ?? 'Unit ' . $unit->id }}', '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}')">
                                                     Select room
                                                 </button>
                                             @else
@@ -579,14 +660,13 @@
                 <!-- Reserve Box -->
                 <div class="reserve-box" id="reserveBox">
                     <div class="reserve-box-header">
-                        <div class="reserve-box-price" id="reservePrice">
-                            @if($hotel->min_price)
-                                ${{ number_format($hotel->min_price, 0) }}
-                            @elseif($rooms->isNotEmpty())
-                                ${{ number_format($rooms->first()->base_price_per_night ?? 0, 0) }}
-                            @else
-                                $0
-                            @endif
+                        @php
+                            $defaultCurrency = $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD';
+                            $defaultCurrencySymbol = getCurrencySymbol($defaultCurrency);
+                            $defaultPrice = $hotel->min_price ?? ($rooms->isNotEmpty() ? ($rooms->first()->base_price_per_night ?? 0) : 0);
+                        @endphp
+                        <div class="reserve-box-price" id="reservePrice" data-currency="{{ $defaultCurrency }}" data-currency-symbol="{{ $defaultCurrencySymbol }}">
+                            {{ $defaultCurrencySymbol }}{{ number_format($defaultPrice, 0) }}
                         </div>
                         <div class="reserve-box-price-label">per night</div>
                     </div>
@@ -641,10 +721,15 @@
                         </div>
                         
                         <div class="reserve-form-group">
+                            @php
+                                $formCurrency = $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD';
+                                $formCurrencySymbol = getCurrencySymbol($formCurrency);
+                                $formDefaultPrice = $hotel->min_price ?? ($rooms->isNotEmpty() ? ($rooms->first()->base_price_per_night ?? 0) : 0);
+                            @endphp
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Price per night:</span>
-                                    <span id="pricePerNight">${{ number_format($hotel->min_price ?? ($rooms->first()->base_price_per_night ?? 0), 0) }}</span>
+                                    <span id="pricePerNight" data-currency="{{ $formCurrency }}" data-currency-symbol="{{ $formCurrencySymbol }}">{{ $formCurrencySymbol }}{{ number_format($formDefaultPrice, 0) }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Number of nights:</span>
@@ -653,7 +738,7 @@
                                 <hr style="margin: 10px 0;">
                                 <div class="d-flex justify-content-between" style="font-weight: 700; font-size: 18px;">
                                     <span>Total:</span>
-                                    <span id="totalAmount">$0</span>
+                                    <span id="totalAmount" data-currency="{{ $formCurrency }}" data-currency-symbol="{{ $formCurrencySymbol }}">{{ $formCurrencySymbol }}0</span>
                                 </div>
                             </div>
                         </div>
@@ -780,52 +865,133 @@
 </div>
 
 <!-- Gallery Modal -->
-<div class="modal fade" id="galleryModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Photo Gallery</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Photo Gallery - {{ $hotel->name }}</h5>
+                <span class="text-white me-3" id="galleryCounter">1 / {{ $allImages->count() }}</span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="row g-3">
-                    @foreach($allImages as $img)
-                        <div class="col-md-3">
-                            <img src="{{ $img }}" alt="Gallery" class="img-fluid rounded" style="cursor: pointer;" onclick="changeMainImage('{{ $img }}', null)">
-                        </div>
-                    @endforeach
+            <div class="modal-body p-0 position-relative" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+                <button class="btn btn-light position-absolute" style="left: 20px; top: 50%; transform: translateY(-50%); z-index: 10;" onclick="previousImage()" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <img id="galleryMainImage" src="" alt="Gallery Image" style="max-width: 90%; max-height: 80vh; object-fit: contain;">
+                <button class="btn btn-light position-absolute" style="right: 20px; top: 50%; transform: translateY(-50%); z-index: 10;" onclick="nextImage()" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="modal-footer border-0 bg-dark">
+                <div class="w-100">
+                    <div class="d-flex gap-2 overflow-auto pb-2" style="max-height: 120px;">
+                        @foreach($allImages as $index => $img)
+                            <img src="{{ $img['url'] }}" 
+                                 alt="Thumbnail" 
+                                 class="gallery-thumbnail {{ $index == 0 ? 'active' : '' }}" 
+                                 style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent;"
+                                 onclick="showImage({{ $index }})"
+                                 data-index="{{ $index }}">
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .gallery-thumbnail.active {
+        border: 2px solid #0071c2 !important;
+    }
+    .gallery-thumbnail:hover {
+        opacity: 0.8;
+    }
+</style>
+
 <script>
     let selectedUnitId = null;
     let selectedUnitPrice = {{ $hotel->min_price ?? ($rooms->first()->base_price_per_night ?? 0) }};
     let selectedUnitName = '{{ $rooms->first()->name ?? "Unit" }}';
+    let selectedUnitCurrency = '{{ $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD' }}';
+    let selectedUnitCurrencySymbol = '{{ $rooms->isNotEmpty() ? getCurrencySymbol($rooms->first()->currency ?? 'USD') : '$' }}';
     
-    function changeMainImage(src, thumbElement) {
+    // Gallery images array
+    const galleryImages = @json($allImages->map(function($img) { return $img['url']; })->values());
+    let currentImageIndex = 0;
+    
+    function changeMainImage(src, thumbElement, index = 0) {
         document.getElementById('mainGalleryImage').src = src;
+        currentImageIndex = index;
         if (thumbElement) {
             document.querySelectorAll('.gallery-thumb').forEach(el => el.classList.remove('active'));
             thumbElement.classList.add('active');
         }
     }
     
-    function openGalleryModal() {
+    function openGalleryModal(startIndex = 0) {
+        currentImageIndex = startIndex;
+        showImage(startIndex);
         const modal = new bootstrap.Modal(document.getElementById('galleryModal'));
         modal.show();
     }
     
-    function selectRoom(unitId, price, name) {
+    function showImage(index) {
+        if (index < 0 || index >= galleryImages.length) return;
+        currentImageIndex = index;
+        document.getElementById('galleryMainImage').src = galleryImages[index];
+        document.getElementById('galleryCounter').textContent = (index + 1) + ' / ' + galleryImages.length;
+        
+        // Update thumbnails
+        document.querySelectorAll('.gallery-thumbnail').forEach((thumb, i) => {
+            if (i === index) {
+                thumb.classList.add('active');
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+    
+    function nextImage() {
+        const next = (currentImageIndex + 1) % galleryImages.length;
+        showImage(next);
+    }
+    
+    function previousImage() {
+        const prev = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        showImage(prev);
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('galleryModal');
+        if (modal && modal.classList.contains('show')) {
+            if (e.key === 'ArrowRight') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft') {
+                previousImage();
+            } else if (e.key === 'Escape') {
+                bootstrap.Modal.getInstance(modal).hide();
+            }
+        }
+    });
+    
+    function selectRoom(unitId, price, name, currency, currencySymbol) {
         selectedUnitId = unitId;
         selectedUnitPrice = price;
         selectedUnitName = name;
+        selectedUnitCurrency = currency || 'USD';
+        selectedUnitCurrencySymbol = currencySymbol || '$';
         
         document.getElementById('bookingUnitId').value = unitId;
-        document.getElementById('reservePrice').textContent = '$' + price.toLocaleString();
-        document.getElementById('pricePerNight').textContent = '$' + price.toLocaleString();
+        document.getElementById('reservePrice').textContent = selectedUnitCurrencySymbol + price.toLocaleString();
+        document.getElementById('reservePrice').setAttribute('data-currency', selectedUnitCurrency);
+        document.getElementById('reservePrice').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
+        document.getElementById('pricePerNight').textContent = selectedUnitCurrencySymbol + price.toLocaleString();
+        document.getElementById('pricePerNight').setAttribute('data-currency', selectedUnitCurrency);
+        document.getElementById('pricePerNight').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
+        document.getElementById('totalAmount').setAttribute('data-currency', selectedUnitCurrency);
+        document.getElementById('totalAmount').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
         document.getElementById('btnReserve').disabled = false;
         
         // Scroll to reserve box
@@ -835,7 +1001,9 @@
         document.querySelectorAll('.rooms-table tr').forEach(tr => {
             tr.style.background = '';
         });
-        event.target.closest('tr').style.background = '#e3f2fd';
+        if (event && event.target) {
+            event.target.closest('tr').style.background = '#e3f2fd';
+        }
         
         calculateTotal();
     }
@@ -854,25 +1022,28 @@
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
                 document.getElementById('numberOfNights').textContent = diffDays + ' ' + (diffDays == 1 ? 'night' : 'nights');
-                document.getElementById('totalAmount').textContent = '$' + (pricePerNight * diffDays).toLocaleString();
+                const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
+                document.getElementById('totalAmount').textContent = currencySymbol + (pricePerNight * diffDays).toLocaleString();
                 
                 if (selectedUnitId) {
                     document.getElementById('btnReserve').disabled = false;
                 }
             } else {
                 document.getElementById('numberOfNights').textContent = '-';
-                document.getElementById('totalAmount').textContent = '$0';
+                const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
+                document.getElementById('totalAmount').textContent = currencySymbol + '0';
                 document.getElementById('btnReserve').disabled = true;
             }
         } else {
             document.getElementById('numberOfNights').textContent = '-';
-            document.getElementById('totalAmount').textContent = '$0';
+            const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
+            document.getElementById('totalAmount').textContent = currencySymbol + '0';
             document.getElementById('btnReserve').disabled = true;
         }
     }
     
     // Auto-select first available room if none selected
-    @if($rooms->isNotEmpty() && $rooms->first()->available_units > 0)
+        @if($rooms->isNotEmpty() && $rooms->first()->available_units > 0)
         document.addEventListener('DOMContentLoaded', function() {
             const firstAvailableRoom = document.querySelector('.btn-book-room:not(:disabled)');
             if (firstAvailableRoom) {
@@ -880,7 +1051,9 @@
                 const unitId = {{ $rooms->first()->id }};
                 const price = {{ $rooms->first()->base_price_per_night ?? 0 }};
                 const name = '{{ addslashes($rooms->first()->name ?? "Unit") }}';
-                selectRoom(unitId, price, name);
+                const currency = '{{ $rooms->first()->currency ?? 'USD' }}';
+                const currencySymbol = '{{ getCurrencySymbol($rooms->first()->currency ?? 'USD') }}';
+                selectRoom(unitId, price, name, currency, currencySymbol);
             }
         });
     @endif

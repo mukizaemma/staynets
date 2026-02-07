@@ -905,61 +905,78 @@ public function hotelRooms($hotelSlug)
 
 public function roomDetails($hotelSlug, $roomSlug)
 {
-    $hotel = Hotel::where('slug', $hotelSlug)->firstOrFail();
+    $hotel = Hotel::with(['images', 'rooms.images'])->where('slug', $hotelSlug)->firstOrFail();
 
-    $room = HotelRoom::where('hotel_id', $hotel->id)
+    $room = HotelRoom::with('images')->where('hotel_id', $hotel->id)
         ->where('slug', $roomSlug)
         ->firstOrFail();
 
-    $images = [];
-
-    if (!empty($room->image)) {
-        $decoded = json_decode($room->image, true);
-        if (is_array($decoded)) {
-            $images = $decoded;
-        } else {
-            if (strpos($room->image, ',') !== false) {
-                $images = array_map('trim', explode(',', $room->image));
-            } elseif (strpos($room->image, '|') !== false) {
-                $images = array_map('trim', explode('|', $room->image));
-            } else {
-                $images = [$room->image];
+    // Build combined image collection (property + room images)
+    $allImages = collect();
+    
+    // Add property images
+    if($hotel->images && $hotel->images->isNotEmpty()) {
+        foreach($hotel->images as $img) {
+            if(isset($img->image)) {
+                $allImages->push([
+                    'url' => asset('storage/images/hotels/' . $img->image),
+                    'type' => 'property',
+                    'caption' => ($img->caption ?? $hotel->name)
+                ]);
             }
         }
     }
-
-    if (empty($images) && !empty($hotel->image)) {
-        $images[] = $hotel->image;
+    
+    // Add property featured image if exists
+    if($hotel->image) {
+        $featuredUrl = asset('storage/images/hotels/' . $hotel->image);
+        if(!$allImages->contains('url', $featuredUrl)) {
+            $allImages->prepend([
+                'url' => $featuredUrl,
+                'type' => 'property',
+                'caption' => $hotel->name . ' - Featured'
+            ]);
+        }
     }
-
-    if (empty($images)) {
-        $images = [
-            'assets/img/tour/tour_inner_2_1.jpg',
-            'assets/img/tour/tour_inner_2_2.jpg',
-            'assets/img/tour/tour_inner_2_3.jpg'
-        ];
+    
+    // Add room cover image
+    if($room->image) {
+        $roomCoverUrl = asset('storage/images/rooms/' . $room->image);
+        if(!$allImages->contains('url', $roomCoverUrl)) {
+            $allImages->push([
+                'url' => $roomCoverUrl,
+                'type' => 'room',
+                'caption' => $room->room_type . ' - Cover'
+            ]);
+        }
     }
-
-    $images = array_map(function($img) {
-        $img = trim($img);
-        if (preg_match('#^(https?:)?//#', $img)) {
-            return $img;
+    
+    // Add room gallery images
+    if($room->images && $room->images->isNotEmpty()) {
+        foreach($room->images as $roomImg) {
+            if(isset($roomImg->image)) {
+                $roomImgUrl = asset('storage/images/rooms/' . $roomImg->image);
+                if(!$allImages->contains('url', $roomImgUrl)) {
+                    $allImages->push([
+                        'url' => $roomImgUrl,
+                        'type' => 'room',
+                        'caption' => ($roomImg->caption ?? $room->room_type)
+                    ]);
+                }
+            }
         }
-        if (\Illuminate\Support\Str::startsWith($img, 'assets/')) {
-            return asset($img);
-        }
-        if (\Illuminate\Support\Str::startsWith($img, 'storage/') || \Illuminate\Support\Str::startsWith($img, 'public/')) {
-            return asset($img);
-        }
-        $roomPath = storage_path('app/public/images/rooms/' . $img);
-        $hotelPath = storage_path('app/public/images/hotels/' . $img);
-        if (file_exists($roomPath)) {
-            return asset('storage/images/rooms/' . $img);
-        } elseif (file_exists($hotelPath)) {
-            return asset('storage/images/hotels/' . $img);
-        }
-        return asset('assets/img/tour/tour_inner_2_1.jpg');
-    }, $images);
+    }
+    
+    // Fallback if no images
+    if($allImages->isEmpty()) {
+        $allImages->push([
+            'url' => asset('assets/img/tour/tour_inner_2_1.jpg'),
+            'type' => 'room',
+            'caption' => $room->room_type
+        ]);
+    }
+    
+    $images = $allImages;
 
     $amenities = collect();
 

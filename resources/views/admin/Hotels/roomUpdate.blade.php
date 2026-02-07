@@ -58,16 +58,41 @@
                                     </div>
                                 </div>
 
-                                <!-- Room Type, Price -->
+                                <!-- Room Type -->
                                 <div class="row mb-3">
-                                    <div class="col-lg-6 col-sm-12">
+                                    <div class="col-lg-12 col-sm-12">
                                         <label class="form-label">Room Type</label>
                                         <input type="text" name="room_type" class="form-control"
                                             value="{{ $room->room_type }}" required>
                                     </div>
+                                </div>
 
-                                    <div class="col-lg-6 col-sm-12">
-                                        <label class="form-label">Price per Night (USD)</label>
+                                <!-- Pricing Section -->
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <h6 class="mb-2">Pricing Information</h6>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-12 mb-3">
+                                        <label class="form-label">Currency</label>
+                                        <select name="currency" class="form-control">
+                                            <option value="USD" {{ old('currency', $room->currency ?? 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                                            <option value="EUR" {{ old('currency', $room->currency ?? '') == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                                            <option value="GBP" {{ old('currency', $room->currency ?? '') == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                                            <option value="RWF" {{ old('currency', $room->currency ?? '') == 'RWF' ? 'selected' : '' }}>RWF (Fr)</option>
+                                            <option value="KES" {{ old('currency', $room->currency ?? '') == 'KES' ? 'selected' : '' }}>KES (KSh)</option>
+                                            <option value="UGX" {{ old('currency', $room->currency ?? '') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
+                                            <option value="TZS" {{ old('currency', $room->currency ?? '') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-12 mb-3">
+                                        <label class="form-label">Price Display Type</label>
+                                        <select name="price_display_type" class="form-control">
+                                            <option value="per_night" {{ old('price_display_type', $room->price_display_type ?? 'per_night') == 'per_night' ? 'selected' : '' }}>Per Night</option>
+                                        </select>
+                                        <small class="text-muted">Prices are displayed per night</small>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-12 mb-3">
+                                        <label class="form-label">Price per Night</label>
                                         <input type="number" step="0.01" name="price_per_night" 
                                             class="form-control"
                                             value="{{ $room->price_per_night }}" required>
@@ -256,7 +281,7 @@
 
         <!-- Modal body -->
         <div class="modal-body">
-            <form class="form" action="{{ route('addRoomImage',['id'=>$room->id]) }}" method="POST" enctype="multipart/form-data">
+            <form class="form" action="{{ route('addRoomImage') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="row mb-3">
@@ -266,7 +291,7 @@
                                 <input type="hidden" name="hotel_room_id" value="{{ $room->id }}">
                                 <input type="file" name="image[]" class="form-control" id="image" multiple>
                             </div>
-                            <small class="text-muted">You can upload one or multiple images.</small>
+                            <small class="text-muted">You can upload one or multiple images. Max size: 2MB per image.</small>
                         </div>
                     </div>
                 </div>

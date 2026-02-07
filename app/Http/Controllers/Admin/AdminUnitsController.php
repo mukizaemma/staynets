@@ -87,6 +87,8 @@ class AdminUnitsController extends Controller
             'available_units' => 'required|integer|min:0',
             'base_price_per_night' => 'nullable|numeric|min:0',
             'base_price_per_month' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:3',
+            'price_display_type' => 'nullable|in:per_night,per_month,both',
             'featured_image' => 'nullable|image|max:4096',
             'status' => 'nullable|in:Available,Unavailable,Maintenance', // Status will default to Available if not provided
             'is_active' => 'nullable|boolean',
@@ -126,6 +128,8 @@ class AdminUnitsController extends Controller
             'available_units' => $request->available_units,
             'base_price_per_night' => $request->base_price_per_night,
             'base_price_per_month' => $request->base_price_per_month,
+            'currency' => $request->currency ?? 'USD',
+            'price_display_type' => $request->price_display_type ?? 'per_night',
             'featured_image' => $fileName,
             'status' => $request->status ?? 'Available', // Use provided status or default to Available
             'is_active' => $request->has('is_active'),
@@ -187,6 +191,8 @@ class AdminUnitsController extends Controller
             'available_units' => 'required|integer|min:0',
             'base_price_per_night' => 'nullable|numeric|min:0',
             'base_price_per_month' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:3',
+            'price_display_type' => 'nullable|in:per_night,per_month,both',
             'featured_image' => 'nullable|image|max:4096',
             'status' => 'required|in:Available,Unavailable,Maintenance',
             'is_active' => 'nullable|boolean',
@@ -217,6 +223,8 @@ class AdminUnitsController extends Controller
             'available_units' => $request->available_units,
             'base_price_per_night' => $request->base_price_per_night,
             'base_price_per_month' => $request->base_price_per_month,
+            'currency' => $request->currency ?? 'USD',
+            'price_display_type' => $request->price_display_type ?? 'per_night',
             'status' => $request->status,
             'is_active' => $request->has('is_active'),
         ]);

@@ -165,7 +165,6 @@
 
                             <!-- Room Type, Price, Image -->
                             <div class="row mb-3">
-
                                 <div class="col-lg-4 col-sm-12">
                                     <label class="form-label">Room Type / Room Name</label>
                                     <input type="text" name="room_type" class="form-control"
@@ -173,16 +172,40 @@
                                 </div>
 
                                 <div class="col-lg-4 col-sm-12">
-                                    <label class="form-label">Price per Night (USD)</label>
-                                    <input type="number" step="0.01" name="price_per_night" class="form-control"
-                                        placeholder="Eg: 50" required>
-                                </div>
-
-                                <div class="col-lg-4 col-sm-12">
                                     <label class="form-label">Cover Image</label>
                                     <input type="file" name="image" class="form-control" required>
                                 </div>
+                            </div>
 
+                            <!-- Pricing Section -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h6 class="mb-2">Pricing Information</h6>
+                                </div>
+                                <div class="col-lg-3 col-sm-12 mb-3">
+                                    <label class="form-label">Currency</label>
+                                    <select name="currency" class="form-control">
+                                        <option value="USD" selected>USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="RWF">RWF (Fr)</option>
+                                        <option value="KES">KES (KSh)</option>
+                                        <option value="UGX">UGX (USh)</option>
+                                        <option value="TZS">TZS (TSh)</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-3 col-sm-12 mb-3">
+                                    <label class="form-label">Price Display Type</label>
+                                    <select name="price_display_type" class="form-control">
+                                        <option value="per_night" selected>Per Night</option>
+                                    </select>
+                                    <small class="text-muted">Prices are displayed per night</small>
+                                </div>
+                                <div class="col-lg-3 col-sm-12 mb-3">
+                                    <label class="form-label">Price per Night</label>
+                                    <input type="number" step="0.01" name="price_per_night" class="form-control"
+                                        placeholder="Eg: 50" required>
+                                </div>
                             </div>
 
                             <!-- Occupancy + Rooms Count -->

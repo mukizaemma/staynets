@@ -26,6 +26,8 @@ class Unit extends Model
         'available_units',
         'base_price_per_night',
         'base_price_per_month',
+        'currency',
+        'price_display_type',
         'featured_image',
         'status',
         'is_active',

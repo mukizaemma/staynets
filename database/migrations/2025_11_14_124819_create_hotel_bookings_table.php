@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->longtext('description')->nullable();
             $table->enum('payment_status', ['pending', 'paid', 'refunded'])->default('pending');
-            $table->enum('booking_status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->enum('booking_status', ['pending', 'confirmed', 'cancelled', 'availability_requested'])->default('pending');
             $table->string('reference_number')->unique();
             $table->softDeletes();
             $table->timestamps();

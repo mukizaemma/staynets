@@ -78,6 +78,9 @@ class RoomsController extends Controller
         $room->room_type = $request->input('room_type');
         $room->max_occupancy = $request->input('max_occupancy');
         $room->price_per_night = $request->input('price_per_night');
+        $room->price_per_month = $request->input('price_per_month');
+        $room->currency = $request->input('currency', 'USD');
+        $room->price_display_type = $request->input('price_display_type', 'per_night');
         $room->total_rooms = $request->input('total_rooms');
         $room->available_rooms = $request->input('available_rooms');
         $room->description = $request->input('description');
@@ -166,6 +169,9 @@ public function update(Request $request, $id)
         $room->hotel_id = $request->hotel_id;
         $room->room_type = $request->room_type;
         $room->price_per_night = $request->price_per_night;
+        $room->price_per_month = $request->price_per_month;
+        $room->currency = $request->currency ?? 'USD';
+        $room->price_display_type = $request->price_display_type ?? 'per_night';
         $room->max_occupancy = $request->max_occupancy;
         $room->total_rooms = $request->total_rooms;
         $room->available_rooms = $request->available_rooms;
@@ -220,35 +226,54 @@ public function update(Request $request, $id)
 
     
     public function addRoomImage(Request $request)
-        {
-            $request->validate([
-                'image.*'           => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate each image
-                'hotel_room_id' => 'required|exists:hotel_rooms,id', // Ensure the wedding gallery exists
-            ]);
+    {
+        $request->validate([
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'hotel_room_id' => 'required|exists:hotel_rooms,id',
+        ]);
 
-            if ($request->hasFile('image')) {
-                foreach ($request->file('image') as $image) {
-                    $dir = 'public/images/rooms';
-                    $path = $image->store($dir);
-                    $fileName = str_replace($dir . '/', '', $path);
+        $room = HotelRoom::with('hotel')->findOrFail($request->hotel_room_id);
+        $user = auth()->user();
+        $isAdmin = $user && $user->role == 1;
+        
+        // Check if user has permission (admin or owner of the room's hotel)
+        if (!$isAdmin && $room->hotel && $room->hotel->added_by !== $user->id) {
+            abort(403, 'You do not have permission to add images to this room.');
+        }
 
-                    HotelRoomImage::create([
-                        'image'             => $fileName,
-                        'hotel_room_id' => $request->hotel_room_id, 
-                        'added_by' => $request->user()->id
-                    ]);
-                }
+        if ($request->hasFile('image')) {
+            foreach ($request->file('image') as $image) {
+                $dir = 'public/images/rooms';
+                $path = $image->store($dir);
+                $fileName = str_replace($dir . '/', '', $path);
 
-                return redirect()->back()->with('success', 'Images uploaded successfully!');
+                HotelRoomImage::create([
+                    'image' => $fileName,
+                    'hotel_room_id' => $request->hotel_room_id, 
+                    'added_by' => $request->user()->id
+                ]);
             }
 
-            return redirect()->back()->with('error', 'No images were uploaded.');
+            return redirect()->back()->with('success', 'Images uploaded successfully!');
         }
+
+        return redirect()->back()->with('error', 'No images were uploaded.');
+    }
 
     public function deleteRoomImage($id){
         $image = HotelRoomImage::findOrFail($id);
+        $user = auth()->user();
+        $isAdmin = $user && $user->role == 1;
+        
+        // Check if user has permission (admin or owner of the room's hotel)
+        if (!$isAdmin) {
+            $room = $image->room;
+            if ($room && $room->hotel && $room->hotel->added_by !== $user->id) {
+                abort(403, 'You do not have permission to delete this image.');
+            }
+        }
 
-        $imagePath = 'public/images/rooms/' . $image->filename;
+        $imagePath = 'public/images/rooms/' . $image->image;
 
         if (Storage::exists($imagePath)) {
             Storage::delete($imagePath);
