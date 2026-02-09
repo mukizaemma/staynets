@@ -85,11 +85,36 @@ Properties Area
                                     <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
                                 @endif
                                 @php
-                                    $minPrice = $hotel->min_price ?? ($hotel->rooms->min('price_per_night') ?? null);
+                                    $minPrice = null;
+                                    $currency = 'USD'; // Default currency
+                                    
+                                    if (isset($hotel->property_type)) {
+                                        // Property model - get from units
+                                        $minPrice = $hotel->min_price ?? null;
+                                        if ($hotel->units && $hotel->units->isNotEmpty()) {
+                                            $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
+                                            if ($cheapestUnit) {
+                                                if (!$minPrice) {
+                                                    $minPrice = $cheapestUnit->base_price_per_night;
+                                                }
+                                                $currency = $cheapestUnit->currency ?? 'USD';
+                                            }
+                                        }
+                                    } else {
+                                        // Hotel model - get from rooms
+                                        $minPrice = $hotel->min_price ?? ($hotel->rooms ? $hotel->rooms->where('price_per_night', '>', 0)->min('price_per_night') : null);
+                                        if ($hotel->rooms && $hotel->rooms->isNotEmpty()) {
+                                            $cheapestRoom = $hotel->rooms->where('price_per_night', '>', 0)->sortBy('price_per_night')->first();
+                                            if ($cheapestRoom) {
+                                                $currency = $cheapestRoom->currency ?? 'USD';
+                                            }
+                                        }
+                                    }
+                                    $currencySymbol = getCurrencySymbol($currency);
                                 @endphp
                                 @if($minPrice)
                                     <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                                        ${{ number_format($minPrice, 0) }}/night
+                                        {{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night
                                     </div>
                                 @endif
                             </div>
@@ -102,8 +127,16 @@ Properties Area
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div class="tour-rating">
                                         @php
-                                            $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
-                                            $stars = max(0, min(5, $stars));
+                                            // Parse stars - handle different formats like "5", "5 Star", "5-Star", etc.
+                                            $starsValue = $hotel->stars ?? 0;
+                                            if (is_string($starsValue)) {
+                                                // Extract number from string (e.g., "5 Star" -> 5)
+                                                preg_match('/\d+/', $starsValue, $matches);
+                                                $stars = !empty($matches) ? (int)$matches[0] : 0;
+                                            } else {
+                                                $stars = (int)$starsValue;
+                                            }
+                                            $stars = max(0, min(5, $stars)); // Ensure between 0 and 5
                                             $avgRating = $hotel->average_rating ?? 0;
                                             $totalReviews = $hotel->total_reviews ?? 0;
                                         @endphp

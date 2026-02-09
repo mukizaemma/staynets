@@ -6,24 +6,35 @@
         $tripDestinations = App\Models\TripDestination::limit(10)->get();
     @endphp
 
-    <div class="min-h-screen grid grid-cols-1 md:grid-cols-2"
-         style="width: 60%; max-width: 1200px; margin: 40px auto; padding-top: 40px;">
+    <div style="max-width: 1100px; margin: 60px auto; display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch;">
 
-        <!-- LEFT COLUMN -->
-        <div class="hidden md:flex items-center justify-center bg-indigo-600 rounded-l-2xl overflow-hidden">
+        <!-- LEFT COLUMN: IMAGE -->
+        <div style="flex: 1 1 50%; border-radius: 18px; overflow: hidden; position: relative; background: #000;">
             <img src="{{ asset('storage/images/about') . ($data->image1 ?? '') }}"
-                 alt="Banner"
-                 class="h-full w-full object-cover">
+                 alt="Stay Nets property"
+                 style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            <div style="position:absolute; inset:0; background:linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.25));"></div>
+            <div style="position:absolute; left:24px; bottom:24px; right:24px; color:#fff;">
+                <h2 style="margin:0 0 6px; font-size:22px; font-weight:700;">
+                    Manage your property with confidence
+                </h2>
+                <p style="margin:0; font-size:14px; opacity:0.9;">
+                    Secure owner dashboard for updating availability, rates, and bookings.
+                </p>
+            </div>
         </div>
 
-        <!-- RIGHT COLUMN -->
-        <div class="flex items-center justify-center bg-gray-100 p-6 rounded-r-2xl">
+        <!-- RIGHT COLUMN: LOGIN CARD -->
+        <div style="flex: 1 1 40%; display:flex; align-items:center; justify-content:center;">
             <x-authentication-card class="w-full max-w-md shadow-xl rounded-2xl bg-white p-6">
 
                 <x-slot name="logo">
-                    <h4 class="text-2xl font-bold text-center text-gray-800">
+                    <h4 class="text-2xl font-bold text-center text-gray-800" style="margin-bottom: 4px;">
                         Secure login for property owners
                     </h4>
+                    <p class="text-sm text-gray-500 text-center">
+                        Log in to access your listings, calendars, and bookings.
+                    </p>
                 </x-slot>
 
                 <x-validation-errors class="mb-4" />

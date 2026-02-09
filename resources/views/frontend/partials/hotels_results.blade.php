@@ -12,15 +12,44 @@
                             @endphp
                             <img src="{{ $imagePath }}" alt="{{ $hotel->name }}">
                             @php
-                                // Get min price from units relationship (Property model uses units, not rooms)
+                                // Get min price and currency from units relationship (Property model uses units, not rooms)
                                 $minPrice = $hotel->min_price ?? null;
-                                if (!$minPrice && $hotel->units && $hotel->units->isNotEmpty()) {
-                                    $minPrice = $hotel->units->where('base_price_per_night', '>', 0)->min('base_price_per_night');
+                                $currency = 'USD'; // Default currency
+                                
+                                if (isset($hotel->property_type)) {
+                                    // Property model - get from units
+                                    if (!$minPrice && $hotel->units && $hotel->units->isNotEmpty()) {
+                                        $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
+                                        if ($cheapestUnit) {
+                                            $minPrice = $cheapestUnit->base_price_per_night;
+                                            $currency = $cheapestUnit->currency ?? 'USD';
+                                        }
+                                    } elseif ($hotel->units && $hotel->units->isNotEmpty()) {
+                                        $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
+                                        if ($cheapestUnit) {
+                                            $currency = $cheapestUnit->currency ?? 'USD';
+                                        }
+                                    }
+                                } else {
+                                    // Hotel model - get from rooms
+                                    if (!$minPrice && $hotel->rooms && $hotel->rooms->isNotEmpty()) {
+                                        $cheapestRoom = $hotel->rooms->where('price_per_night', '>', 0)->sortBy('price_per_night')->first();
+                                        if ($cheapestRoom) {
+                                            $minPrice = $cheapestRoom->price_per_night;
+                                            $currency = $cheapestRoom->currency ?? 'USD';
+                                        }
+                                    } elseif ($hotel->rooms && $hotel->rooms->isNotEmpty()) {
+                                        $cheapestRoom = $hotel->rooms->where('price_per_night', '>', 0)->sortBy('price_per_night')->first();
+                                        if ($cheapestRoom) {
+                                            $currency = $cheapestRoom->currency ?? 'USD';
+                                        }
+                                    }
                                 }
+                                $currencySymbol = getCurrencySymbol($currency);
                             @endphp
                             @if($minPrice)
                                 <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                                    ${{ number_format($minPrice, 0) }}/night
+                                    {{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night
                                 </div>
                             @endif
                         </div>
@@ -31,22 +60,30 @@
                             </h3>
 
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="tour-rating">
-                                    @php
-                                        $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
-                                        $stars = max(0, min(5, $stars));
-                                        $avgRating = $hotel->average_rating ?? 0;
-                                        $totalReviews = $hotel->total_reviews ?? 0;
-                                    @endphp
+                                    <div class="tour-rating">
+                                        @php
+                                            // Parse stars - handle different formats like "5", "5 Star", "5-Star", etc.
+                                            $starsValue = $hotel->stars ?? 0;
+                                            if (is_string($starsValue)) {
+                                                // Extract number from string (e.g., "5 Star" -> 5)
+                                                preg_match('/\d+/', $starsValue, $matches);
+                                                $stars = !empty($matches) ? (int)$matches[0] : 0;
+                                            } else {
+                                                $stars = (int)$starsValue;
+                                            }
+                                            $stars = max(0, min(5, $stars)); // Ensure between 0 and 5
+                                            $avgRating = $hotel->average_rating ?? 0;
+                                            $totalReviews = $hotel->total_reviews ?? 0;
+                                        @endphp
 
-                                    <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= $stars)
-                                                <i class="fa-solid fa-star text-warning" aria-hidden="true"></i>
-                                            @else
-                                                <i class="fa-regular fa-star text-warning" aria-hidden="true"></i>
-                                            @endif
-                                        @endfor
+                                        <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= $stars)
+                                                    <i class="fa-solid fa-star text-warning" aria-hidden="true"></i>
+                                                @else
+                                                    <i class="fa-regular fa-star text-warning" aria-hidden="true"></i>
+                                                @endif
+                                            @endfor
                                         @if($totalReviews > 0)
                                             <span class="ms-2" style="font-size: 14px; color: #666;">
                                                 {{ number_format($avgRating, 1) }} ({{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }})
@@ -103,15 +140,23 @@
 
                             <div class="tour-rating">
                                 @php
-                                    $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
-                                    $stars = max(0, min(5, $stars));
+                                    // Parse stars - handle different formats like "5", "5 Star", "5-Star", etc.
+                                    $starsValue = $hotel->stars ?? 0;
+                                    if (is_string($starsValue)) {
+                                        // Extract number from string (e.g., "5 Star" -> 5)
+                                        preg_match('/\d+/', $starsValue, $matches);
+                                        $stars = !empty($matches) ? (int)$matches[0] : 0;
+                                    } else {
+                                        $stars = (int)$starsValue;
+                                    }
+                                    $stars = max(0, min(5, $stars)); // Ensure between 0 and 5
                                 @endphp
                                 <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
                                     @for($i = 1; $i <= 5; $i++)
                                         @if($i <= $stars)
-                                            <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                            <i class="fa-solid fa-star text-warning" aria-hidden="true"></i>
                                         @else
-                                            <i class="fa-regular fa-star" aria-hidden="true"></i>
+                                            <i class="fa-regular fa-star text-warning" aria-hidden="true"></i>
                                         @endif
                                     @endfor
                                     <a href="{{ route('accommodations', $hotel->slug ?? $hotel->id) }}" class="woocommerce-review-link">({{ $stars }} Rating)</a>
