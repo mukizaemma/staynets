@@ -56,6 +56,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     
     Route::get('/getTicketing',[App\Http\Controllers\SettingsController::class,'getTicketing'])->name('getTicketing');
     Route::post('/updateTicketing',[App\Http\Controllers\SettingsController::class,'updateTicketing'])->name('updateTicketing');
+
+    Route::get('/getCarRental',[App\Http\Controllers\SettingsController::class,'getCarRental'])->name('getCarRental');
+    Route::post('/updateCarRental',[App\Http\Controllers\SettingsController::class,'updateCarRental'])->name('updateCarRental');
     
     Route::get('/homePage',[App\Http\Controllers\SettingsController::class,'homePage'])->name('homePage');
     Route::post('/saveHome',[App\Http\Controllers\SettingsController::class,'saveHome'])->name('saveHome');
@@ -211,6 +214,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/car-bookings', [App\Http\Controllers\CarsController::class, 'carBookings'])->name('admin.carBookings.index');
     Route::put('/car-bookings/{id}/status', [App\Http\Controllers\CarsController::class, 'updateBookingStatus'])->name('admin.carBookings.updateStatus');
 
+    // Generic car rental requests (from Car Rental page modal)
+    Route::get('/car-rental/requests', [App\Http\Controllers\Admin\CarRentalRequestController::class, 'index'])->name('admin.carRentalRequests.index');
+    Route::get('/car-rental/requests/{id}/edit', [App\Http\Controllers\Admin\CarRentalRequestController::class, 'edit'])->name('admin.carRentalRequests.edit');
+    Route::put('/car-rental/requests/{id}', [App\Http\Controllers\Admin\CarRentalRequestController::class, 'update'])->name('admin.carRentalRequests.update');
+
     // Left Bagsß
     Route::get('/getBags', [App\Http\Controllers\BagsController::class, 'index'])->name('getBags');
     Route::post('/storeBag', [App\Http\Controllers\BagsController::class, 'store'])->name('storeBag');
@@ -281,6 +289,7 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
     Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
     Route::post('car-booking', [App\Http\Controllers\HomeController::class, 'storeCarBooking'])->name('storeCarBooking');
+    Route::post('car-rental/request', [App\Http\Controllers\CarRentalRequestController::class, 'store'])->name('carRentalRequest.store');
     Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
     Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
     Route::post('/trips/request-multiple', [App\Http\Controllers\HomeController::class, 'tripRequestMultiple'])->name('tripRequestMultiple');

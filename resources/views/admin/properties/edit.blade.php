@@ -115,38 +115,10 @@
                         </div>
                     </div>
 
-                    <!-- Categories & Relationships -->
+                    <!-- Relationships -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Categories & Relationships</h5>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="category_id" class="form-label">Category/Destination</label>
-                            <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" id="category_id">
-                                <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id', $property->category_id) == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('category_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="program_id" class="form-label">Program/Service</label>
-                            <select name="program_id" class="form-select @error('program_id') is-invalid @enderror" id="program_id">
-                                <option value="">Select Program</option>
-                                @foreach($programs as $program)
-                                    <option value="{{ $program->id }}" {{ old('program_id', $property->program_id) == $program->id ? 'selected' : '' }}>
-                                        {{ $program->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('program_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <h5 class="mb-3 border-bottom pb-2">Relationships</h5>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="partner_id" class="form-label">Partner</label>
@@ -178,7 +150,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="city" class="form-label">City</label>
+                            <label for="city" class="form-label">City / Town</label>
                             <input type="text" name="city" class="form-control @error('city') is-invalid @enderror" 
                                    id="city" value="{{ old('city', $property->city) }}">
                             @error('city')
@@ -186,9 +158,51 @@
                             @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" name="location" class="form-control @error('location') is-invalid @enderror" 
-                                   id="location" value="{{ old('location', $property->location) }}">
+                            <label for="location" class="form-label">Location (District)</label>
+                            <select name="location" id="location" class="form-select @error('location') is-invalid @enderror" required>
+                                <option value="">Select District</option>
+                                @php $currentLocation = old('location', $property->location); @endphp
+                                <optgroup label="Kigali City">
+                                    <option value="Gasabo" {{ $currentLocation=='Gasabo' ? 'selected' : '' }}>Gasabo</option>
+                                    <option value="Kicukiro" {{ $currentLocation=='Kicukiro' ? 'selected' : '' }}>Kicukiro</option>
+                                    <option value="Nyarugenge" {{ $currentLocation=='Nyarugenge' ? 'selected' : '' }}>Nyarugenge</option>
+                                </optgroup>
+                                <optgroup label="Northern Province">
+                                    <option value="Burera" {{ $currentLocation=='Burera' ? 'selected' : '' }}>Burera</option>
+                                    <option value="Gakenke" {{ $currentLocation=='Gakenke' ? 'selected' : '' }}>Gakenke</option>
+                                    <option value="Gicumbi" {{ $currentLocation=='Gicumbi' ? 'selected' : '' }}>Gicumbi</option>
+                                    <option value="Musanze" {{ $currentLocation=='Musanze' ? 'selected' : '' }}>Musanze</option>
+                                    <option value="Rulindo" {{ $currentLocation=='Rulindo' ? 'selected' : '' }}>Rulindo</option>
+                                </optgroup>
+                                <optgroup label="Southern Province">
+                                    <option value="Gisagara" {{ $currentLocation=='Gisagara' ? 'selected' : '' }}>Gisagara</option>
+                                    <option value="Huye" {{ $currentLocation=='Huye' ? 'selected' : '' }}>Huye</option>
+                                    <option value="Kamonyi" {{ $currentLocation=='Kamonyi' ? 'selected' : '' }}>Kamonyi</option>
+                                    <option value="Muhanga" {{ $currentLocation=='Muhanga' ? 'selected' : '' }}>Muhanga</option>
+                                    <option value="Nyamagabe" {{ $currentLocation=='Nyamagabe' ? 'selected' : '' }}>Nyamagabe</option>
+                                    <option value="Nyanza" {{ $currentLocation=='Nyanza' ? 'selected' : '' }}>Nyanza</option>
+                                    <option value="Nyaruguru" {{ $currentLocation=='Nyaruguru' ? 'selected' : '' }}>Nyaruguru</option>
+                                    <option value="Ruhango" {{ $currentLocation=='Ruhango' ? 'selected' : '' }}>Ruhango</option>
+                                </optgroup>
+                                <optgroup label="Eastern Province">
+                                    <option value="Bugesera" {{ $currentLocation=='Bugesera' ? 'selected' : '' }}>Bugesera</option>
+                                    <option value="Gatsibo" {{ $currentLocation=='Gatsibo' ? 'selected' : '' }}>Gatsibo</option>
+                                    <option value="Kayonza" {{ $currentLocation=='Kayonza' ? 'selected' : '' }}>Kayonza</option>
+                                    <option value="Kirehe" {{ $currentLocation=='Kirehe' ? 'selected' : '' }}>Kirehe</option>
+                                    <option value="Ngoma" {{ $currentLocation=='Ngoma' ? 'selected' : '' }}>Ngoma</option>
+                                    <option value="Nyagatare" {{ $currentLocation=='Nyagatare' ? 'selected' : '' }}>Nyagatare</option>
+                                    <option value="Rwamagana" {{ $currentLocation=='Rwamagana' ? 'selected' : '' }}>Rwamagana</option>
+                                </optgroup>
+                                <optgroup label="Western Province">
+                                    <option value="Karongi" {{ $currentLocation=='Karongi' ? 'selected' : '' }}>Karongi</option>
+                                    <option value="Ngororero" {{ $currentLocation=='Ngororero' ? 'selected' : '' }}>Ngororero</option>
+                                    <option value="Nyabihu" {{ $currentLocation=='Nyabihu' ? 'selected' : '' }}>Nyabihu</option>
+                                    <option value="Nyamasheke" {{ $currentLocation=='Nyamasheke' ? 'selected' : '' }}>Nyamasheke</option>
+                                    <option value="Rubavu" {{ $currentLocation=='Rubavu' ? 'selected' : '' }}>Rubavu</option>
+                                    <option value="Rutsiro" {{ $currentLocation=='Rutsiro' ? 'selected' : '' }}>Rutsiro</option>
+                                    <option value="Rusizi" {{ $currentLocation=='Rusizi' ? 'selected' : '' }}>Rusizi</option>
+                                </optgroup>
+                            </select>
                             @error('location')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

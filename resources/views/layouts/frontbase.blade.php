@@ -542,14 +542,14 @@
                     <li><a href="{{ route('home') }}">Home</a></li>
 
                     <li>
-                        <a href="{{ route('hotels') }}">Hotels</a>
+                        <a href="{{ route('hotels', ['type' => 'hotel']) }}">Hotels</a>
                     </li>
                     <li>
                         <a href="{{ route('apartments') }}">Apartments</a>
                     </li>
-                    {{-- <li>
-                        <a href="{{ route('accommodations') }}">Car Rental</a>
-                    </li> --}}
+                    <li>
+                        <a href="{{ route('showCars') }}">Car Rental</a>
+                    </li>
 
                     <li class="menu-item-has-children">
                         <a href="{{ route('tours') }}">Tour Destinations</a>
@@ -712,15 +712,11 @@
                                     </li> --}}
 
                                     <li>
-                                        <a href="{{ route('hotels') }}">Hotels</a>
+                                        <a href="{{ route('hotels', ['type' => 'hotel']) }}">Hotels</a>
                                     </li>
                                     <li>
                                         <a href="{{ route('apartments') }}">Apartments</a>
                                     </li>
-
-                                    {{-- <li>
-                                        <a href="{{ route('showCars') }}">Car Rental</a>
-                                    </li> --}}
 
                                     <li class="menu-item-has-children">
                                         <a href="{{ route('tours') }}">Tour Destinations</a>
@@ -733,6 +729,10 @@
                                                 <li><a href="{{ route('tours') }}">View All Destinations</a></li>
                                             @endif
                                         </ul>
+                                    </li>
+
+                                    <li>
+                                        <a href="{{ route('showCars') }}">Car Rental</a>
                                     </li>
 
                                     {{-- <li>
@@ -780,6 +780,10 @@
 	Footer Area
 ==============================-->
     <footer class="footer-wrapper bg-title footer-layout2">
+        @php
+            $reviewsCount = \App\Models\Review::where('is_approved', true)->count();
+            $reviewsAvg = \App\Models\Review::where('is_approved', true)->avg('rating') ?? 0;
+        @endphp
         <div class="widget-area">
             <div class="container">
                 <div class="row justify-content-between">
@@ -808,16 +812,29 @@
                             <h3 class="widget_title">Quick Links</h3>
                             <div class="menu-all-pages-container">
                                 <ul class="menu menu-two-columns">
-                                    <li><a href="{{route('about')}}">About Us</a></li>
-                                    <li><a href="{{ route('destinations') }}">Destinations</a></li>
-                                    <li><a href="{{ route('hotels') }}">Hotels</a></li>
-                                    <li><a href="{{ route('apartments') }}">Apartments</a></li>
-                                    {{-- <li><a href="{{ route('ticketing') }}">Air Ticketing</a></li>
+                                    <li><a href="{{ route('hotels') }}">Accommodation Booking</a></li>
+                                    <li><a href="{{ route('tours') }}">Tour Experiences</a></li>
                                     <li><a href="{{ route('showCars') }}">Car Rental</a></li>
-                                    <li><a href="{{ route('leftBags') }}">Left Bags</a></li> --}}
-                                    <li><a href="{{ route('connect') }}">About Us</a></li>
-                                    <li><a href="{{ route('terms') }}">Our Terms & Conditions</a></li>
+                                    <li><a href="{{ route('connect') }}">Travel Support</a></li>
+                                    <li><a href="{{ route('about') }}">About Stay Nets</a></li>
+                                    <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
                                 </ul>
+                            </div>
+                            <div class="mt-3">
+                                <h4 class="widget_title" style="font-size: 18px; margin-bottom: 8px;">Customer Reviews</h4>
+                                <div class="footer-card" style="gap: 10px; align-items: center;">
+                                    <div>
+                                        <div class="title" style="font-weight: 600;">
+                                            {{ $reviewsCount }} Reviews
+                                        </div>
+                                        <div class="title">
+                                            Average: {{ number_format($reviewsAvg, 1) }}/5
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('reviews.index') }}" class="th-btn style3" style="padding: 6px 14px; font-size: 12px;">
+                                        See Reviews
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -857,23 +874,8 @@
         <div class="copyright-wrap">
             <div class="container">
                 <div class="row justify-content-between align-items-center">
-                    <div class="col-md-6">
-                        <p class="copyright-text">&copy; {{ date('Y') }} <a href="{{route('home')}}">Booking Site</a>. All Rights Reserved. Delivered by <a href="https://www.iremetech.com" target="_blank">Ireme Technologies</a></p>
-                    </div>
-                    <div class="col-md-6 text-end d-none d-md-block">
-                        @php
-                            $reviewsCount = \App\Models\Review::where('is_approved', true)->count();
-                            $reviewsAvg = \App\Models\Review::where('is_approved', true)->avg('rating') ?? 0;
-                        @endphp
-                        <div class="footer-card" style="gap: 12px; justify-content: flex-end;">
-                            <span class="title">Reviews</span>
-                            <span class="title" style="font-weight: 600;">
-                                {{ $reviewsCount }} Reviews | {{ number_format($reviewsAvg, 1) }}/5
-                            </span>
-                            <a href="{{ route('reviews.index') }}" class="th-btn style3" style="padding: 8px 16px; font-size: 12px;">
-                                See Reviews
-                            </a>
-                        </div>
+                    <div class="col-12 text-center">
+                        <p class="copyright-text mb-0">&copy; {{ date('Y') }} <a href="{{route('home')}}">Booking Site</a>. All Rights Reserved. Delivered by <a href="https://www.iremetech.com" target="_blank">Ireme Technologies</a></p>
                     </div>
                 </div>
 

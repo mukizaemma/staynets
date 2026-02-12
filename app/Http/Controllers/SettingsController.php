@@ -9,6 +9,7 @@ use App\Models\Ticketing;
 use App\Models\About;
 use App\Models\Aboutus;
 use App\Models\Setting;
+use App\Models\CarRentalContent;
 use App\Models\Getinvolved;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -313,6 +314,57 @@ class SettingsController extends Controller
         }
 
         return redirect()->back()->with('error', 'No fields were updated');
+    }
+
+    // Car rental content
+    public function getCarRental()
+    {
+        $setting = Setting::first();
+        $data = CarRentalContent::first();
+        if ($data === null) {
+            $data = CarRentalContent::create([
+                'heading' => 'Stay Nets Car Rental Services',
+                'subheading' => 'Reliable, Comfortable, and Flexible Car Rental in Rwanda',
+                'description' => 'Travel Rwanda and East Africa with ease and comfort through Stay Nets Car Rental Services.',
+                'fleet_content' => '',
+                'why_content' => '',
+                'services_content' => '',
+                'booking_content' => '',
+                'cta_book_label' => 'Book Your Car',
+                'cta_quote_label' => 'Request a Quote',
+            ]);
+        }
+
+        return view('admin.pages.carRental', ['data' => $data, 'setting' => $setting]);
+    }
+
+    public function updateCarRental(Request $request)
+    {
+        $data = CarRentalContent::firstOrFail();
+
+        $data->heading = $request->input('heading');
+        $data->subheading = $request->input('subheading');
+        $data->description = $request->input('description');
+        $data->fleet_content = $request->input('fleet_content');
+        $data->why_content = $request->input('why_content');
+        $data->services_content = $request->input('services_content');
+        $data->booking_content = $request->input('booking_content');
+        $data->cta_book_label = $request->input('cta_book_label');
+        $data->cta_quote_label = $request->input('cta_quote_label');
+
+        // Handle hero image upload
+        $dir = 'public/images/car-rental/';
+        if ($request->hasFile('hero_image') && $request->file('hero_image')->isValid()) {
+            if ($data->hero_image) {
+                \Illuminate\Support\Facades\File::delete($dir . $data->hero_image);
+            }
+            $stored = $request->file('hero_image')->store($dir);
+            $data->hero_image = str_replace($dir, '', $stored);
+        }
+
+        $data->save();
+
+        return redirect()->back()->with('success', 'Car rental content updated successfully');
     }
 
 

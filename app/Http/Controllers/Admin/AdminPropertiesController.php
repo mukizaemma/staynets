@@ -191,13 +191,12 @@ class AdminPropertiesController extends Controller
             'property_type' => 'required|in:hotel,apartment,guesthouse,lodge',
             'owner_id' => 'required|exists:users,id',
             'category_id' => 'nullable|exists:categories,id',
-            'program_id' => 'nullable|exists:programs,id',
             'partner_id' => 'nullable|exists:partners,id',
             'stars' => 'nullable|string|max:10',
             'description' => 'nullable|string',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'map_embed_code' => 'nullable|string',
@@ -227,10 +226,12 @@ class AdminPropertiesController extends Controller
             $fileName = basename($path);
         }
 
+        $defaultProgramId = Program::where('title', 'Hotel & Apartment Booking Support')->value('id');
+
         $property = Property::create([
             'owner_id' => $request->owner_id,
             'category_id' => $request->category_id,
-            'program_id' => $request->program_id,
+            'program_id' => $defaultProgramId,
             'partner_id' => $request->partner_id,
             'name' => $request->name,
             'slug' => $slug,
@@ -351,13 +352,12 @@ class AdminPropertiesController extends Controller
             'property_type' => 'required|in:hotel,apartment,guesthouse,lodge',
             'owner_id' => 'required|exists:users,id',
             'category_id' => 'nullable|exists:categories,id',
-            'program_id' => 'nullable|exists:programs,id',
             'partner_id' => 'nullable|exists:partners,id',
             'stars' => 'nullable|string|max:10',
             'description' => 'nullable|string',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'map_embed_code' => 'nullable|string',
@@ -394,7 +394,6 @@ class AdminPropertiesController extends Controller
         $property->update([
             'owner_id' => $request->owner_id,
             'category_id' => $request->category_id,
-            'program_id' => $request->program_id,
             'partner_id' => $request->partner_id,
             'name' => $request->name,
             'slug' => $slug,

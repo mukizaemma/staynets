@@ -124,7 +124,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="city" class="form-label">City</label>
+                            <label for="city" class="form-label">City / Town</label>
                             <input type="text" name="city" class="form-control @error('city') is-invalid @enderror" 
                                    id="city" value="{{ old('city') }}">
                             @error('city')
@@ -132,9 +132,50 @@
                             @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="location" class="form-label">Gate Number if exists</label>
-                            <input type="text" name="location" class="form-control @error('location') is-invalid @enderror" 
-                                   id="location" value="{{ old('location') }}">
+                            <label for="location" class="form-label">Location (District)</label>
+                            <select name="location" id="location" class="form-select @error('location') is-invalid @enderror" required>
+                                <option value="">Select District</option>
+                                <optgroup label="Kigali City">
+                                    <option value="Gasabo" {{ old('location')=='Gasabo' ? 'selected' : '' }}>Gasabo</option>
+                                    <option value="Kicukiro" {{ old('location')=='Kicukiro' ? 'selected' : '' }}>Kicukiro</option>
+                                    <option value="Nyarugenge" {{ old('location')=='Nyarugenge' ? 'selected' : '' }}>Nyarugenge</option>
+                                </optgroup>
+                                <optgroup label="Northern Province">
+                                    <option value="Burera" {{ old('location')=='Burera' ? 'selected' : '' }}>Burera</option>
+                                    <option value="Gakenke" {{ old('location')=='Gakenke' ? 'selected' : '' }}>Gakenke</option>
+                                    <option value="Gicumbi" {{ old('location')=='Gicumbi' ? 'selected' : '' }}>Gicumbi</option>
+                                    <option value="Musanze" {{ old('location')=='Musanze' ? 'selected' : '' }}>Musanze</option>
+                                    <option value="Rulindo" {{ old('location')=='Rulindo' ? 'selected' : '' }}>Rulindo</option>
+                                </optgroup>
+                                <optgroup label="Southern Province">
+                                    <option value="Gisagara" {{ old('location')=='Gisagara' ? 'selected' : '' }}>Gisagara</option>
+                                    <option value="Huye" {{ old('location')=='Huye' ? 'selected' : '' }}>Huye</option>
+                                    <option value="Kamonyi" {{ old('location')=='Kamonyi' ? 'selected' : '' }}>Kamonyi</option>
+                                    <option value="Muhanga" {{ old('location')=='Muhanga' ? 'selected' : '' }}>Muhanga</option>
+                                    <option value="Nyamagabe" {{ old('location')=='Nyamagabe' ? 'selected' : '' }}>Nyamagabe</option>
+                                    <option value="Nyanza" {{ old('location')=='Nyanza' ? 'selected' : '' }}>Nyanza</option>
+                                    <option value="Nyaruguru" {{ old('location')=='Nyaruguru' ? 'selected' : '' }}>Nyaruguru</option>
+                                    <option value="Ruhango" {{ old('location')=='Ruhango' ? 'selected' : '' }}>Ruhango</option>
+                                </optgroup>
+                                <optgroup label="Eastern Province">
+                                    <option value="Bugesera" {{ old('location')=='Bugesera' ? 'selected' : '' }}>Bugesera</option>
+                                    <option value="Gatsibo" {{ old('location')=='Gatsibo' ? 'selected' : '' }}>Gatsibo</option>
+                                    <option value="Kayonza" {{ old('location')=='Kayonza' ? 'selected' : '' }}>Kayonza</option>
+                                    <option value="Kirehe" {{ old('location')=='Kirehe' ? 'selected' : '' }}>Kirehe</option>
+                                    <option value="Ngoma" {{ old('location')=='Ngoma' ? 'selected' : '' }}>Ngoma</option>
+                                    <option value="Nyagatare" {{ old('location')=='Nyagatare' ? 'selected' : '' }}>Nyagatare</option>
+                                    <option value="Rwamagana" {{ old('location')=='Rwamagana' ? 'selected' : '' }}>Rwamagana</option>
+                                </optgroup>
+                                <optgroup label="Western Province">
+                                    <option value="Karongi" {{ old('location')=='Karongi' ? 'selected' : '' }}>Karongi</option>
+                                    <option value="Ngororero" {{ old('location')=='Ngororero' ? 'selected' : '' }}>Ngororero</option>
+                                    <option value="Nyabihu" {{ old('location')=='Nyabihu' ? 'selected' : '' }}>Nyabihu</option>
+                                    <option value="Nyamasheke" {{ old('location')=='Nyamasheke' ? 'selected' : '' }}>Nyamasheke</option>
+                                    <option value="Rubavu" {{ old('location')=='Rubavu' ? 'selected' : '' }}>Rubavu</option>
+                                    <option value="Rutsiro" {{ old('location')=='Rutsiro' ? 'selected' : '' }}>Rutsiro</option>
+                                    <option value="Rusizi" {{ old('location')=='Rusizi' ? 'selected' : '' }}>Rusizi</option>
+                                </optgroup>
+                            </select>
                             @error('location')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -215,40 +256,12 @@
                         </div>
                     </div>
 
-                    <!-- Categories & Relationships -->
+                    <!-- Relationships -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Categories & Relationships</h5>
+                            <h5 class="mb-3 border-bottom pb-2">Relationships</h5>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="category_id" class="form-label">Category/Destination</label>
-                            <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" id="category_id">
-                                <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('category_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="program_id" class="form-label">Program/Service</label>
-                            <select name="program_id" class="form-select @error('program_id') is-invalid @enderror" id="program_id">
-                                <option value="">Select Program</option>
-                                @foreach($programs as $program)
-                                    <option value="{{ $program->id }}" {{ old('program_id') == $program->id ? 'selected' : '' }}>
-                                        {{ $program->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('program_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        {{-- <div class="col-md-4 mb-3">
                             <label for="partner_id" class="form-label">Partner</label>
                             <select name="partner_id" class="form-select @error('partner_id') is-invalid @enderror" id="partner_id">
                                 <option value="">Select Partner</option>
@@ -261,7 +274,7 @@
                             @error('partner_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div> --}}
+                        </div>
                     </div>
 
                     <!-- Facilities/Amenities -->

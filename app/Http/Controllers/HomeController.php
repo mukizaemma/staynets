@@ -224,9 +224,15 @@ public function hotelsSearch(Request $request)
 
     public function hotels(Request $request)
 {
+    $type = $request->input('type'); // optional: hotel, apartment, guesthouse, lodge, etc.
+
     $query = Property::query()
-        ->where('status', 'Active')
-        ->where('property_type', 'hotel');
+        ->where('status', 'Active');
+
+    // Filter by property type only when explicitly requested
+    if (!empty($type) && $type !== 'all') {
+        $query->where('property_type', $type);
+    }
 
     // Enhanced search: search by name OR location when q is provided
     if ($request->filled('q')) {
@@ -277,9 +283,8 @@ public function hotelsSearch(Request $request)
 
     $rooms = $query->with('units')->paginate(12)->appends($request->query());
 
-    // Get unique locations for the search dropdown
+    // Get unique locations for the search dropdown (use all active properties)
     $locations = Property::where('status', 'Active')
-        ->where('property_type', 'hotel')
         ->whereNotNull('location')
         ->where('location', '!=', '')
         ->distinct()
@@ -291,7 +296,6 @@ public function hotelsSearch(Request $request)
 
     // Also include cities
     $cities = Property::where('status', 'Active')
-        ->where('property_type', 'hotel')
         ->whereNotNull('city')
         ->where('city', '!=', '')
         ->distinct()
@@ -311,7 +315,7 @@ public function hotelsSearch(Request $request)
         return response()->json(['html' => $html]);
     }
 
-    return view('frontend.hotels', compact('rooms', 'allLocations'));
+    return view('frontend.hotels', compact('rooms', 'allLocations', 'type'));
 }
 
 

@@ -41,8 +41,10 @@
             </a>
 
             <a href="{{ route('getCars') }}" class="nav-item nav-link"> <i class="fas fa-car me-2"></i>Cars</a>
+            <a href="{{ route('admin.carRentalRequests.index') }}" class="nav-item nav-link"> <i class="fas fa-car-side me-2"></i>Car Rental Requests</a>
             <a href="{{ route('getLeftBags') }}" class="nav-item nav-link"> <i class="fas fa-suitcase-rolling me-2"></i>Left Bags</a>
             <a href="{{ route('getTicketing') }}" class="nav-item nav-link"> <i class="fas fa-ticket-alt me-2"></i>Ticketing</a>
+            <a href="{{ route('getCarRental') }}" class="nav-item nav-link"> <i class="fas fa-car-side me-2"></i>Car Rental Content</a>
             <a href="{{ route('getBlogs') }}" class="nav-item nav-link"><i class="fas fas fa-handshake me-2"></i>Articles</a> 
             <hr>
 

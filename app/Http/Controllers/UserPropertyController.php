@@ -88,6 +88,9 @@ try {
         $slug = Str::slug($request->name);
         $partnerUid = Str::uuid();
 
+        $defaultProgramId = Program::where('title', 'Hotel & Apartment Booking Support')
+            ->value('id') ?? 1;
+
         $hotel = Hotel::create([
             'partner_uid' => $partnerUid,
             'name' => $request->name,
@@ -101,7 +104,7 @@ try {
             'image' => $fileName,
             'website' => $request->website,
             'category_id' => 1,
-            'program_id' => 1,
+            'program_id' => $defaultProgramId,
             'added_by' => $request->user()->id,
             'slug' => $slug,
             'status' => 'Pending', // New properties created by users default to Pending for admin review

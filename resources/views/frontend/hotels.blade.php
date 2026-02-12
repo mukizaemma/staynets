@@ -95,53 +95,39 @@
             </div>
         </div>
 
-        <div class="th-sort-bar" style="display: none;">
-            <div class="row justify-content-between align-items-center">
-                <div class="col-md-4">
-                    <div class="search-form-area">
-                        <form id="accommodationsSearchForm" class="search-form" method="get" action="{{ url()->current() }}" style="position: relative;">
-                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Search" id="searchInputOld">
-
-                            <!-- Clear button always present (hidden when input empty) -->
-                            <button type="button" id="clearSearchOld" aria-label="Clear search"
-                                style="
-                                    position:absolute;
-                                    right:45px;
-                                    top:50%;
-                                    transform:translateY(-50%);
-                                    border:none;
-                                    background:none;
-                                    font-size:18px;
-                                    cursor:pointer;
-                                    color:#999;
-                                    display: {{ request('q') ? 'inline-block' : 'none' }};
-                                ">
-                                &times;
-                            </button>
-
-                            <button type="submit"><i class="fa-light fa-magnifying-glass"></i></button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="col-md-auto">
-                    <div class="sorting-filter-wrap">
-                        <div class="nav" role="tablist">
-                            <a class="active" href="#" id="tab-destination-grid" data-bs-toggle="tab" data-bs-target="#tab-grid" role="tab" aria-controls="tab-grid" aria-selected="true"><i class="fa-light fa-grid-2"></i></a>
-
-                            <a href="#" id="tab-destination-list" data-bs-toggle="tab" data-bs-target="#tab-list" role="tab" aria-controls="tab-list" aria-selected="false" class=""><i class="fa-solid fa-list"></i></a>
-                        </div>
-                        <form class="woocommerce-ordering" method="get">
-                            <select name="orderby" class="orderby" aria-label="destination order">
-                                <option value="menu_order" {{ request('orderby') == 'menu_order' ? 'selected' : '' }}>Default Sorting</option>
-                                <option value="popularity" {{ request('orderby') == 'popularity' ? 'selected' : '' }}>Sort by popularity</option>
-                                <option value="rating" {{ request('orderby') == 'rating' ? 'selected' : '' }}>Sort by average rating</option>
-                                <option value="date" {{ request('orderby') == 'date' ? 'selected' : '' }}>Sort by latest</option>
-                                <option value="price" {{ request('orderby') == 'price' ? 'selected' : '' }}>Sort by price: low to high</option>
-                                <option value="price-desc" {{ request('orderby') == 'price-desc' ? 'selected' : '' }}>Sort by price: high to low</option>
-                            </select>
-                        </form>
-                    </div>
+        {{-- Property type tabs --}}
+        @php
+            $currentType = request('type', 'all');
+            $baseQuery = request()->except('page', 'type');
+        @endphp
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="{{ route('hotels', array_merge($baseQuery, ['type' => 'all'])) }}"
+                       class="btn btn-sm {{ $currentType === 'all' ? 'btn-primary' : 'btn-outline-primary' }}"
+                       style="border-radius: 999px; min-width: 110px;">
+                        All
+                    </a>
+                    <a href="{{ route('hotels', array_merge($baseQuery, ['type' => 'hotel'])) }}"
+                       class="btn btn-sm {{ $currentType === 'hotel' ? 'btn-primary' : 'btn-outline-primary' }}"
+                       style="border-radius: 999px; min-width: 110px;">
+                        Hotels
+                    </a>
+                    <a href="{{ route('hotels', array_merge($baseQuery, ['type' => 'apartment'])) }}"
+                       class="btn btn-sm {{ $currentType === 'apartment' ? 'btn-primary' : 'btn-outline-primary' }}"
+                       style="border-radius: 999px; min-width: 110px;">
+                        Apartments
+                    </a>
+                    <a href="{{ route('hotels', array_merge($baseQuery, ['type' => 'guesthouse'])) }}"
+                       class="btn btn-sm {{ $currentType === 'guesthouse' ? 'btn-primary' : 'btn-outline-primary' }}"
+                       style="border-radius: 999px; min-width: 130px;">
+                        Guest Houses
+                    </a>
+                    <a href="{{ route('hotels', array_merge($baseQuery, ['type' => 'lodge'])) }}"
+                       class="btn btn-sm {{ $currentType === 'lodge' ? 'btn-primary' : 'btn-outline-primary' }}"
+                       style="border-radius: 999px; min-width: 110px;">
+                        Lodges
+                    </a>
                 </div>
             </div>
         </div>
