@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     @php
-    $data = App\Models\Setting::first();
+        $data = App\Models\Setting::first();
+        $favicon = $data->logo
+            ? asset('storage/images/' . $data->logo)
+            : asset('assets/img/favicon.png');
     @endphp
     <base href="/public">
     <head>
@@ -13,7 +16,7 @@
         <!-- Use Minified Plugins Version For Fast Page Load -->
         <link rel="stylesheet" type="text/css" media="screen" href="css/plugins.css" />
         <link rel="stylesheet" type="text/css" media="screen" href="css/main.css" />
-        <link rel="shortcut icon" type="image/x-icon" href="image/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ $favicon }}">
 
 
         {{-- Gallery assests --}}
@@ -32,7 +35,7 @@
         <link href="assets/css/kidz.css" id="option_style" rel="stylesheet">
 
         <!-- Favicon -->
-        <link href="assets/img/favicon.png" rel="shortcut icon">
+        <link href="{{ $favicon }}" rel="shortcut icon">
         
         <!-- Enhanced Footer Styles -->
         <style>
