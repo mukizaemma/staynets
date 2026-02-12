@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
 
 class TripDestinationController extends Controller
 {
@@ -40,25 +41,32 @@ class TripDestinationController extends Controller
         }
     
         $slug = Str::of($request->input('name'))->slug();
-        
-        // Ensure unique slug
+
+        // Ensure unique slug (include soft-deleted rows so we don't hit DB unique constraint)
         $originalSlug = $slug;
         $counter = 1;
-        while (TripDestination::where('slug', $slug)->exists()) {
+        while (TripDestination::withTrashed()->where('slug', $slug)->exists()) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
         }
-    
-        $destination = new TripDestination();
-        $destination->name = $request->input('name');
-        $destination->slug = $slug;
-        $destination->description = $request->input('description');
-        $destination->location = $request->input('location');
-        $destination->image = $fileName;
-        $destination->status = $request->input('status', 'Active');
-        $destination->added_by = $request->user()->id;
-        $destination->save();
-    
+
+        try {
+            $destination = new TripDestination();
+            $destination->name = $request->input('name');
+            $destination->slug = $slug;
+            $destination->description = $request->input('description');
+            $destination->location = $request->input('location');
+            $destination->image = $fileName;
+            $destination->status = $request->input('status', 'Active');
+            $destination->added_by = $request->user()->id;
+            $destination->save();
+        } catch (QueryException $e) {
+            if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                return redirect()->back()->withInput()->with('error', 'A trip destination with this name already exists. Please use a different name.');
+            }
+            return redirect()->back()->withInput()->with('error', 'Unable to save the trip destination. Please try again.');
+        }
+
         return redirect()->route('getTripDestinations')->with('success', 'New Trip Destination has been saved successfully');
     }
 
@@ -100,17 +108,22 @@ class TripDestinationController extends Controller
     
             if ($destination->isDirty('name')) {
                 $slug = Str::of($destination->name)->slug();
-                if (TripDestination::where('slug', $slug)->where('id', '!=', $destination->id)->exists()) {
+                if (TripDestination::withTrashed()->where('slug', $slug)->where('id', '!=', $destination->id)->exists()) {
                     $slug .= '-' . uniqid();
                 }
                 $destination->slug = $slug;
             }
-    
+
             $destination->save();
-    
+
             return redirect()->route('getTripDestinations')->with('success', 'Trip Destination has been updated successfully');
+        } catch (QueryException $e) {
+            if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                return redirect()->back()->withInput()->with('error', 'A trip destination with this name already exists. Please use a different name.');
+            }
+            return redirect()->back()->withInput()->with('error', 'Unable to update the trip destination. Please try again.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Something went wrong. Please try again.');
         }
     }
     
