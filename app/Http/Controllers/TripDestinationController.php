@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\QueryException;
 
 class TripDestinationController extends Controller
@@ -67,6 +68,7 @@ class TripDestinationController extends Controller
             return redirect()->back()->withInput()->with('error', 'Unable to save the trip destination. Please try again.');
         }
 
+        Cache::forget('shared_trip_destinations');
         return redirect()->route('getTripDestinations')->with('success', 'New Trip Destination has been saved successfully');
     }
 
@@ -116,6 +118,7 @@ class TripDestinationController extends Controller
 
             $destination->save();
 
+            Cache::forget('shared_trip_destinations');
             return redirect()->route('getTripDestinations')->with('success', 'Trip Destination has been updated successfully');
         } catch (QueryException $e) {
             if (str_contains($e->getMessage(), 'Duplicate entry')) {
@@ -137,6 +140,7 @@ class TripDestinationController extends Controller
             Storage::delete('public/images/trip-destinations/' . $destination->image);
         }
         $destination->delete();
+        Cache::forget('shared_trip_destinations');
         return back()->with('success', 'Trip Destination deleted successfully');
     }
 
