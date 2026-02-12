@@ -113,86 +113,78 @@ Hero Area
     <!--======== / Hero Section ========-->
     
     <!--==============================
-Destinations Area  
+Our Services  
 ==============================-->
-    <section class="tour-area3 position-relative bg-top-center overflow-hidden space" id="destinations-sec" data-bg-src="#">
+    <section class="space" id="services-sec">
         <div class="container">
-            <div class="row justify-content-center">
+            <div class="row justify-content-center mb-4">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Popular Destinations</h2>
-                        <p class="sec-text">Explore amazing properties in our top destinations</p>
+                        <h2 class="sec-title">Our Services</h2>
+                        <p class="sec-text">Stay, explore, and travel with a single trusted partner.</p>
                     </div>
                 </div>
             </div>
 
-            <div class="row gy-4">
-                @forelse($destinations as $destination)
-                    <div class="col-lg-4 col-md-6">
-                        <div class="destination-card th-ani" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%;">
-                            <div class="destination-card-img" style="position: relative; height: 250px; overflow: hidden;">
-                                @if($destination->image && file_exists(storage_path('app/public/images/destinations/' . $destination->image)))
-                                    <img src="{{ asset('storage/images/destinations/' . $destination->image) }}" 
-                                         alt="{{ $destination->name }}" 
-                                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
-                                @else
-                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" 
-                                         alt="{{ $destination->name }}" 
-                                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
-                                @endif
-                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px;">
-                                    <h3 class="mb-2" style="font-size: 22px; font-weight: 700; color: #fff; margin: 0;">
-                                        {{ $destination->name }}
-                                    </h3>
-                                </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 text-center border-0 shadow-sm" style="border-radius: 18px;">
+                        <div class="card-body p-4">
+                            <div style="width:56px; height:56px; border-radius:18px; background:rgba(37,211,102,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                <i class="fas fa-bed" style="color:#25D366; font-size:22px;"></i>
                             </div>
-                            
-                            <div class="destination-card-content" style="padding: 25px;">
-                                @if($destination->description)
-                                    <p class="mb-3" style="color: #666; font-size: 14px; line-height: 1.6;">
-                                        {{ \Illuminate\Support\Str::limit(strip_tags($destination->description), 100) }}
-                                    </p>
-                                @endif
-                                
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-building text-primary" style="font-size: 18px;"></i>
-                                        @php
-                                            $hotelCount = ($destination->hotels_count ?? 0) + ($destination->properties_count ?? 0);
-                                        @endphp
-                                        <span style="font-size: 16px; font-weight: 600; color: #333;">
-                                            {{ $hotelCount }} {{ $hotelCount == 1 ? 'Property' : 'Properties' }}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <a href="{{ route('destination', ['slug' => $destination->slug]) }}" class="th-btn style3 w-100 text-center">
-                                    View More <i class="fas fa-arrow-right ms-2"></i>
-                                </a>
-                            </div>
+                            <h5 class="card-title mb-2">Accommodation Booking</h5>
+                            <p class="card-text mb-3" style="font-size:14px; color:#555;">
+                                Hotels, apartments, and properties across Rwanda tailored to your comfort and budget.
+                            </p>
+                            <a href="{{ route('hotels') }}" class="th-btn style3 th-icon w-100">Browse Accommodations</a>
                         </div>
                     </div>
-                @empty
-                    <div class="col-12">
-                        <div class="text-center py-5">
-                            <p class="text-muted">No destinations available at the moment.</p>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 text-center border-0 shadow-sm" style="border-radius: 18px;">
+                        <div class="card-body p-4">
+                            <div style="width:56px; height:56px; border-radius:18px; background:rgba(37,211,102,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                <i class="fas fa-mountain" style="color:#25D366; font-size:22px;"></i>
+                            </div>
+                            <h5 class="card-title mb-2">Tour Experiences</h5>
+                            <p class="card-text mb-3" style="font-size:14px; color:#555;">
+                                Safaris, gorilla trekking, cultural tours, and scenic adventures around East Africa.
+                            </p>
+                            <a href="{{ route('tours') }}" class="th-btn style4 th-icon w-100">View Tour Destinations</a>
                         </div>
                     </div>
-                @endforelse
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 text-center border-0 shadow-sm" style="border-radius: 18px;">
+                        <div class="card-body p-4">
+                            <div style="width:56px; height:56px; border-radius:18px; background:rgba(37,211,102,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                <i class="fas fa-headset" style="color:#25D366; font-size:22px;"></i>
+                            </div>
+                            <h5 class="card-title mb-2">Travel Support</h5>
+                            <p class="card-text mb-3" style="font-size:14px; color:#555;">
+                                Friendly assistance with planning, bookings, and on-trip support from our local team.
+                            </p>
+                            <a href="{{ route('connect') }}" class="th-btn style2 w-100">Contact Our Team</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!--==============================
-Latest Properties Area  
+Latest Accommodations  
 ==============================-->
     <section class="position-relative overflow-hidden space" id="latest-properties-sec">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Latest Properties</h2>
-                        <p class="sec-text">Discover our newest accommodations</p>
+                        <h2 class="sec-title">Latest Accommodations</h2>
+                        <p class="sec-text">Discover our newest hotels, apartments, and stays</p>
                     </div>
                 </div>
             </div>
@@ -325,73 +317,57 @@ Latest Properties Area
     </section>
 
     <!--==============================
-Popular Trip Activities Area  
+Top Tour Destinations  
 ==============================-->
     <section class="tour-area3 position-relative bg-top-center overflow-hidden space" id="trip-activities-sec" data-bg-src="#">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Latest Trip Activities</h2>
-                        <p class="sec-text">Explore the newest adventures and experiences</p>
+                        <h2 class="sec-title">Top Tour Destinations</h2>
+                        <p class="sec-text">Choose a destination to explore its latest trip activities</p>
                     </div>
                 </div>
             </div>
 
+            @php
+                $homeTripDestinations = isset($tripDestinations) ? $tripDestinations->take(6) : collect();
+            @endphp
+
             <div class="slider-area tour-slider slider-drag-wrap">
                 <div class="swiper th-slider has-shadow" data-slider-options='{"breakpoints":{"0":{"slidesPerView":1},"576":{"slidesPerView":"1"},"768":{"slidesPerView":"2"},"992":{"slidesPerView":"3"},"1200":{"slidesPerView":"3"},"1400":{"slidesPerView":"4"}}}'>
                     <div class="swiper-wrapper">
-                        @forelse($popularTrips as $trip)
+                        @forelse($homeTripDestinations as $destination)
                             <div class="swiper-slide">
                                 <div class="tour-box th-ani gsap-cursor">
-                                    <div class="tour-box_img global-img">
-                                        @if($trip->image && file_exists(storage_path('app/public/images/trips/' . $trip->image)))
-                                            <img src="{{ asset('storage/images/trips/' . $trip->image) }}" alt="{{ $trip->title }}" style="height: 250px !important; object-fit: cover;">
+                                    <div class="tour-box_img global-img" style="position: relative;">
+                                        @if($destination->image && file_exists(storage_path('app/public/images/trip-destinations/' . $destination->image)))
+                                            <img src="{{ asset('storage/images/trip-destinations/' . $destination->image) }}" alt="{{ $destination->name }}" style="height: 250px !important; object-fit: cover;">
                                         @else
-                                            <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $trip->title }}" style="height: 250px !important; object-fit: cover;">
+                                            <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $destination->name }}" style="height: 250px !important; object-fit: cover;">
                                         @endif
-                                        @if($trip->price)
-                                            <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                                                ${{ number_format($trip->price, 0) }}
-                                            </div>
-                                        @endif
+                                        <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                                            {{ $destination->trips->count() }} Activities
+                                        </div>
                                     </div>
                                     <div class="tour-content">
                                         <h3 class="box-title">
-                                            <a href="{{ route('tour', $trip->slug) }}">{{ $trip->title }}</a>
+                                            <a href="{{ route('tripDestination', $destination->slug) }}">{{ $destination->name }}</a>
                                         </h3>
                                         <div class="tour-rating">
-                                            @if($trip->location)
+                                            @if($destination->location)
                                                 <p style="margin: 5px 0;">
-                                                    <i class="fa-solid fa-location-dot text-primary me-2"></i>{{ $trip->location }}
+                                                    <i class="fa-solid fa-location-dot text-primary me-2"></i>{{ $destination->location }}
                                                 </p>
                                             @endif
-                                            @if($trip->duration)
-                                                <p style="margin: 5px 0;">
-                                                    <i class="fas fa-clock text-primary me-2"></i>{{ $trip->duration }}
+                                            @if($destination->description)
+                                                <p class="mt-2" style="font-size: 14px; color: #666;">
+                                                    {{ \Illuminate\Support\Str::limit(strip_tags($destination->description), 100) }}
                                                 </p>
-                                            @endif
-                                            @php
-                                                $avgRating = $trip->average_rating ?? 0;
-                                                $totalReviews = $trip->total_reviews ?? 0;
-                                            @endphp
-                                            @if($totalReviews > 0)
-                                                <div class="star-rating mt-2">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                        @if($i <= round($avgRating))
-                                                            <i class="fa-solid fa-star text-warning"></i>
-                                                        @else
-                                                            <i class="fa-regular fa-star text-warning"></i>
-                                                        @endif
-                                                    @endfor
-                                                    <span class="ms-2" style="font-size: 13px; color: #666;">
-                                                        {{ number_format($avgRating, 1) }} ({{ $totalReviews }})
-                                                    </span>
-                                                </div>
                                             @endif
                                         </div>
                                         <div class="tour-action">
-                                            <a href="{{ route('tour', $trip->slug) }}" class="th-btn style4 th-icon">View Details</a>
+                                            <a href="{{ route('tripDestination', $destination->slug) }}" class="th-btn style4 th-icon">View Activities</a>
                                         </div>
                                     </div>
                                 </div>
@@ -399,7 +375,7 @@ Popular Trip Activities Area
                         @empty
                             <div class="col-12">
                                 <div class="text-center py-5">
-                                    <p class="text-muted">No trip activities available at the moment.</p>
+                                    <p class="text-muted">No trip destinations available at the moment.</p>
                                 </div>
                             </div>
                         @endforelse
@@ -411,158 +387,107 @@ Popular Trip Activities Area
     </section>
 
     <!--==============================
-Business Reviews/Testimonials Area  
+Why Choose Stay Nets  
 ==============================-->
-    <section class="position-relative overflow-hidden space" id="reviews-sec" style="background: #f8f9fa;">
+    <section class="space" style="background:#f7f7f7;">
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="title-area text-center">
-                        <h2 class="sec-title">What Our Customers Say</h2>
-                        <p class="sec-text">Read testimonials from our satisfied customers</p>
+            <div class="row gy-4 align-items-start">
+                <!-- Left: Benefit cards -->
+                <div class="col-lg-6">
+                    <div class="title-area" style="margin-bottom: 24px;">
+                        <h2 class="sec-title">Why Choose Stay Nets</h2>
+                        <p class="sec-text">Trusted local experts for accommodation and travel across Rwanda & East Africa.</p>
                     </div>
-                </div>
-            </div>
 
-            <div class="row gy-4">
-                @forelse($businessReviews as $review)
-                    <div class="col-lg-3 col-md-6">
-                        <a href="{{ route('reviews.show', $review->id) }}" style="text-decoration: none; color: inherit;">
-                            <div class="review-card" style="background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)'">
-                                <div class="review-content mb-3">
-                                    <div class="quote-icon mb-3" style="font-size: 40px; color: #25D366; opacity: 0.3;">
-                                        <i class="fas fa-quote-left"></i>
+                    <div class="d-flex flex-column">
+                        <div class="row g-3">
+                            <div class="col-sm-12">
+                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                        ★
                                     </div>
-                                    <!-- Rating Stars -->
-                                    @if($review->rating)
-                                        <div class="mb-2">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }}" style="font-size: 14px;"></i>
-                                            @endfor
-                                        </div>
-                                    @endif
-                                    <p style="color: #666; font-size: 15px; line-height: 1.8; font-style: italic; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                                        {{ $review->testimony }}
-                                    </p>
-                                    @if($review->images->count() > 0)
-                                        <div class="mt-2">
-                                            <small class="text-muted">
-                                                <i class="fas fa-images"></i> {{ $review->images->count() }} image(s)
-                                            </small>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="review-author" style="border-top: 1px solid #f0f0f0; padding-top: 15px;">
-                                    <div class="d-flex align-items-center">
-                                        @if($review->user && $review->user->profile_photo_url)
-                                            <img src="{{ $review->user->profile_photo_url }}" alt="{{ $review->names }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">
-                                        @else
-                                            <div class="author-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px; margin-right: 15px;">
-                                                {{ strtoupper(substr($review->names ?? 'A', 0, 1)) }}
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <h5 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">
-                                                {{ $review->names ?? 'Anonymous' }}
-                                            </h5>
-                                            @if($review->website)
-                                                <p style="margin: 0; font-size: 13px; color: #999;">
-                                                    <span style="color: #25D366;">
-                                                        {{ parse_url($review->website, PHP_URL_HOST) }}
-                                                    </span>
-                                                </p>
-                                            @endif
-                                        </div>
+                                    <div>
+                                        <h5 style="margin:0 0 4px; font-size:16px;">Tailor‑Made Tours</h5>
+                                        <p style="margin:0; font-size:14px; color:#555;">Tailor-made tours across Rwanda &amp; East Africa.</p>
                                     </div>
                                 </div>
                             </div>
-                        </a>
-                    </div>
-                @empty
-                    <div class="col-12">
-                        <div class="text-center py-5">
-                            <p class="text-muted">No reviews available at the moment.</p>
+                            <div class="col-sm-12">
+                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                        ★
+                                    </div>
+                                    <div>
+                                        <h5 style="margin:0 0 4px; font-size:16px;">Local Expert Guides</h5>
+                                        <p style="margin:0; font-size:14px; color:#555;">Professional, local guides who know the region deeply.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                        ★
+                                    </div>
+                                    <div>
+                                        <h5 style="margin:0 0 4px; font-size:16px;">Rich Experiences</h5>
+                                        <p style="margin:0; font-size:14px; color:#555;">Wildlife, primates, culture &amp; scenic adventures.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                        ★
+                                    </div>
+                                    <div>
+                                        <h5 style="margin:0 0 4px; font-size:16px;">For Every Budget</h5>
+                                        <p style="margin:0; font-size:14px; color:#555;">Options for both luxury and budget-friendly travel.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                        ★
+                                    </div>
+                                    <div>
+                                        <h5 style="margin:0 0 4px; font-size:16px;">Hassle‑Free Support</h5>
+                                        <p style="margin:0; font-size:14px; color:#555;">Hassle-free booking and complete travel support.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                @endforelse
-            </div>
-            
-            <div class="row mt-4">
-                <div class="col-12 text-center">
-                    <a href="{{ route('reviews.index') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600;">
-                        <i class="fas fa-eye me-2"></i>View All Reviews
-                    </a>
-                    @auth
-                        @if(auth()->user()->hasVerifiedEmail())
-                            <a href="{{ route('reviews.index') }}" class="btn btn-outline-success ms-2" style="padding: 12px 30px; border-radius: 8px; font-weight: 600;">
-                                <i class="fas fa-pen me-2"></i>Submit Review
-                            </a>
-                        @else
-                            <a href="{{ route('verification.notice') }}" class="btn btn-outline-warning ms-2" style="padding: 12px 30px; border-radius: 8px; font-weight: 600;">
-                                <i class="fas fa-envelope-open-text me-2"></i>Verify Email to Submit
-                            </a>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}" class="btn btn-outline-success ms-2" style="padding: 12px 30px; border-radius: 8px; font-weight: 600;">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login to Submit Review
-                        </a>
-                    @endauth
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!--==============================
-Call to Action Form Area  
-==============================-->
-    <section class="position-relative overflow-hidden space" id="cta-sec" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="cta-content text-center text-white mb-4">
-                        <h2 class="sec-title text-white mb-3">Ready to Plan Your Perfect Trip?</h2>
-                        <p class="sec-text text-white-50 mb-4">Get in touch with us and let us help you create an unforgettable experience</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="cta-form-card" style="background: rgba(255,255,255,0.95); border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-                        <form id="ctaForm" method="POST" action="{{ route('sendMessage') }}">
-                            @csrf
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="form-item">
-                                        <label class="form-label mb-2" style="font-weight: 600;">Full Name</label>
-                                        <input type="text" name="names" class="form-control" placeholder="Your Name" required>
-                                    </div>
+                <!-- Right: Clean booking form -->
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100" style="border-radius: 18px; border: none;">
+                        <div class="card-body p-4 p-md-5">
+                            <h3 class="mb-3">Ready to Plan Your Stay & Tour?</h3>
+                            <form id="ctaForm" method="POST" action="{{ route('sendMessage') }}">
+                                @csrf
+                                <div class="mb-3">
+                                    <label class="form-label mb-1" style="font-weight: 600;">Full Name</label>
+                                    <input type="text" name="names" class="form-control" placeholder="Your Name" required>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-item">
-                                        <label class="form-label mb-2" style="font-weight: 600;">Email Address</label>
-                                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label mb-1" style="font-weight: 600;">Email</label>
+                                    <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
                                 </div>
-                                <div class="col-12">
-                                    <div class="form-item">
-                                        <label class="form-label mb-2" style="font-weight: 600;">Subject</label>
-                                        <input type="text" name="subject" class="form-control" placeholder="How can we help?" required>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label mb-1" style="font-weight: 600;">Phone</label>
+                                    <input type="text" name="phone" class="form-control" placeholder="+250 ..." >
                                 </div>
-                                <div class="col-12">
-                                    <div class="form-item">
-                                        <label class="form-label mb-2" style="font-weight: 600;">Message</label>
-                                        <textarea name="message" class="form-control" rows="4" placeholder="Tell us about your travel plans..." required></textarea>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label mb-1" style="font-weight: 600;">What are you looking for?</label>
+                                    <textarea name="message" class="form-control" rows="4" placeholder="Tell us about your accommodation or tour plans..." required></textarea>
                                 </div>
-                                <div class="col-12 text-center">
-                                    <button type="submit" class="th-btn style3" style="padding: 15px 40px; font-size: 16px;">
-                                        <i class="fas fa-paper-plane me-2"></i>Send Message
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                                <button type="submit" class="th-btn style3 w-100 mt-1">
+                                    <i class="fas fa-paper-plane me-2"></i>Request a Custom Plan
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

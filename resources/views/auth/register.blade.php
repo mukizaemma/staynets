@@ -22,7 +22,7 @@
                     <li><a href="{{ route('apartments') }}">Apartments</a></li>
                     {{-- <li><a href="{{ route('showCars') }}">Car Rental</a></li> --}}
                     <li class="menu-item-has-children">
-                        <a href="{{ route('tours') }}">Trips</a>
+                        <a href="{{ route('tours') }}">Tour Destinations</a>
                         <ul class="sub-menu">
                             @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
                                 @foreach ($tripDestinations as $destination)
@@ -76,7 +76,7 @@
                                     <li><a href="{{ route('apartments') }}">Apartments</a></li>
                                     {{-- <li><a href="{{ route('showCars') }}">Car Rental</a></li> --}}
                                     <li class="menu-item-has-children">
-                                        <a href="{{ route('tours') }}">Trips</a>
+                                        <a href="{{ route('tours') }}">Tour Destinations</a>
                                         <ul class="sub-menu">
                                             @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
                                                 @foreach ($tripDestinations as $destination)

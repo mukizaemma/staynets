@@ -552,7 +552,7 @@
                     </li> --}}
 
                     <li class="menu-item-has-children">
-                        <a href="{{ route('tours') }}">Trips</a>
+                        <a href="{{ route('tours') }}">Tour Destinations</a>
                         <ul class="sub-menu">
                             @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
                                 @foreach ($tripDestinations as $destination)
@@ -723,7 +723,7 @@
                                     </li> --}}
 
                                     <li class="menu-item-has-children">
-                                        <a href="{{ route('tours') }}">Trips</a>
+                                        <a href="{{ route('tours') }}">Tour Destinations</a>
                                         <ul class="sub-menu">
                                             @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
                                                 @foreach ($tripDestinations as $destination)
