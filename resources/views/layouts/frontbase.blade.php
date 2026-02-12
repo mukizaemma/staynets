@@ -36,7 +36,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ $favicon }}">
     <link rel="manifest" href="assets/img/favicons/manifest.json">
     <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="assets/img/favicons/ms-icon-144x144.png">
+    <meta name="msapplication-TileImage" content="{{ $favicon }}">
     <meta name="theme-color" content="#ffffff">
 
     <!--==============================
@@ -579,7 +579,7 @@
                         <a href="{{ route('connect') }}">Contact</a>
                     </li>
 
-                    {{-- Mobile login/register or user dropdown --}}
+                    
                     @if(auth()->check())
                         <li><a href="{{ route('myPropertyCreate') }}">Add Property</a></li>
                         <li class="menu-item-has-children">
