@@ -115,7 +115,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/amenities/{id}/edit', [App\Http\Controllers\AmenitiesController::class, 'edit'])->name('amenities.edit');
     Route::post('/amenities/{id}', [App\Http\Controllers\AmenitiesController::class, 'update'])->name('amenities.update');
     Route::get('/amenities/{id}/delete', [App\Http\Controllers\AmenitiesController::class, 'destroy'])->name('amenities.destroy');
-    
+
+    // Facility Categories (amenity categories)
+    Route::get('/admin/facility-categories', [App\Http\Controllers\Admin\FacilityCategoriesController::class, 'index'])->name('admin.facility-categories.index');
+    Route::get('/admin/facility-categories/create', [App\Http\Controllers\Admin\FacilityCategoriesController::class, 'create'])->name('admin.facility-categories.create');
+    Route::post('/admin/facility-categories', [App\Http\Controllers\Admin\FacilityCategoriesController::class, 'store'])->name('admin.facility-categories.store');
+    Route::get('/admin/facility-categories/{id}/edit', [App\Http\Controllers\Admin\FacilityCategoriesController::class, 'edit'])->name('admin.facility-categories.edit');
+    Route::post('/admin/facility-categories/{id}', [App\Http\Controllers\Admin\FacilityCategoriesController::class, 'update'])->name('admin.facility-categories.update');
+    Route::get('/admin/facility-categories/{id}/delete', [App\Http\Controllers\Admin\FacilityCategoriesController::class, 'destroy'])->name('admin.facility-categories.destroy');
+
     // Properties Management (Hotels & Apartments)
     Route::get('/admin/properties', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'index'])->name('admin.properties.index');
     Route::get('/admin/properties/create', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'create'])->name('admin.properties.create');

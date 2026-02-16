@@ -6,39 +6,56 @@ use App\Models\Amenity;
 use App\Models\FacilityCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class AmenitiesController extends Controller
 {
     /**
-     * Display a listing of amenities.
+     * Display a listing of amenities by category (tabs).
      */
     public function index()
     {
-        $amenities = Amenity::with('category')->latest()->get();
-        $categories = FacilityCategory::where('is_active', true)->orderBy('sort_order')->get();
+        $categories = FacilityCategory::with([
+            'facilities' => fn ($q) => $q->orderBy('sort_order')->orderBy('title')
+        ])->orderBy('sort_order')->get();
+
+        $uncategorized = Amenity::whereNull('facility_category_id')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+
         $setting = \App\Models\Setting::first();
-        
+
         return view('admin.amenities.index', [
-            'amenities' => $amenities,
             'categories' => $categories,
+            'uncategorized' => $uncategorized,
             'setting' => $setting,
         ]);
     }
 
     /**
      * Store a newly created amenity.
+     * Prevents duplicate title within the same category.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('amenities', 'title')
+                    ->where('facility_category_id', $request->facility_category_id)
+                    ->whereNull('deleted_at'),
+            ],
             'facility_category_id' => 'required|exists:facility_categories,id',
             'icon' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+        ], [
+            'title.unique' => 'An amenity with this title already exists in this category. Use a different title or add it to another category.',
         ]);
 
         $data = [
@@ -89,6 +106,13 @@ class AmenitiesController extends Controller
             ]);
         }
 
+        // Redirect back to category edit page if that's where the form was submitted from
+        $redirectId = $request->input('redirect_category_id');
+        if ($redirectId && \App\Models\FacilityCategory::where('id', $redirectId)->exists()) {
+            return redirect()->route('admin.facility-categories.edit', $redirectId)
+                ->with('success', 'Amenity has been created successfully');
+        }
+
         return redirect()->route('amenities.index')
             ->with('success', 'Amenity has been created successfully');
     }
@@ -117,12 +141,22 @@ class AmenitiesController extends Controller
         $amenity = Amenity::findOrFail($id);
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('amenities', 'title')
+                    ->where('facility_category_id', $request->facility_category_id)
+                    ->whereNull('deleted_at')
+                    ->ignore($amenity->id),
+            ],
             'facility_category_id' => 'required|exists:facility_categories,id',
             'icon' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+        ], [
+            'title.unique' => 'An amenity with this title already exists in this category. Use a different title.',
         ]);
 
         $data = [
@@ -130,7 +164,6 @@ class AmenitiesController extends Controller
             'icon' => $request->icon,
         ];
 
-        // Only add columns if they exist in the database
         if (Schema::hasColumn('amenities', 'facility_category_id')) {
             $data['facility_category_id'] = $request->facility_category_id;
         }
@@ -144,17 +177,15 @@ class AmenitiesController extends Controller
             $data['is_active'] = $request->has('is_active') ? true : false;
         }
 
-        // Only handle slug if the column exists
         if (Schema::hasColumn('amenities', 'slug')) {
             $slug = Str::slug($request->title);
-            // Ensure slug is unique (excluding current amenity)
             $currentSlug = $amenity->slug ?? null;
             if ($slug !== $currentSlug) {
-                $originalSlug = $slug;
-                $counter = 1;
+                $baseSlug = $slug;
+                $n = 1;
                 while (Amenity::where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                    $slug = $originalSlug . '-' . $counter;
-                    $counter++;
+                    $slug = $baseSlug . '-' . $n;
+                    $n++;
                 }
             } else {
                 $slug = $currentSlug;

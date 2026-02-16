@@ -51,6 +51,9 @@
             <a href="{{ route('getDestinations') }}" class="nav-item nav-link"> 
                 <i class="fas fa-handshake me-2"></i>Destinations
             </a>
+            <a href="{{ route('admin.facility-categories.index') }}" class="nav-item nav-link"> 
+                <i class="fas fa-folder me-2"></i>Facility Categories
+            </a>
             <a href="{{ route('amenities.index') }}" class="nav-item nav-link"> 
                 <i class="fas fa-list me-2"></i>Amenities
             </a>

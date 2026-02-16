@@ -575,10 +575,16 @@ public function hotelsSearch(Request $request)
         $rooms = HotelRoom::oldest()->get();
         $setting = Setting::first();
         $about = About::first();
-        return view('frontend.about',[
-            'rooms'=>$rooms,
-            'setting'=>$setting,
-            'about'=>$about,
+        $reviews = Review::where('is_approved', true)
+            ->with(['user', 'images'])
+            ->latest()
+            ->take(9)
+            ->get();
+        return view('frontend.about', [
+            'rooms' => $rooms,
+            'setting' => $setting,
+            'about' => $about,
+            'reviews' => $reviews,
         ]);
     }
 

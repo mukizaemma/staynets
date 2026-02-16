@@ -123,91 +123,61 @@ class SettingsController extends Controller
 
     public function saveAbout(Request $request){
         $data = About::first();
-        $title = [];
-        $subTitle = [];
-        $welcomeMessage = [];
-        $terms = [];
-        $WhyChooseUs = [];
-        $vision = [];
-        $image1 = [];
-        $image2 = [];
-        $image3 = [];
-        $image4 = [];
-        $storyImage = [];
-        $backImageText = [];
-    
-        if ($data->welcomeMessage != $request->input('welcomeMessage')) {
-            $data->welcomeMessage = $request->input('welcomeMessage');
-            $welcomeMessage[] = 'welcomeMessage';
+        if (!$data) {
+            $data = new About();
+            $data->user_id = Auth::id() ?? 1;
         }
-    
-        if ($data->WhyChooseUs != $request->input('WhyChooseUs')) {
-            $data->WhyChooseUs = $request->input('WhyChooseUs');
-            $WhyChooseUs[] = 'WhyChooseUs';
-        }
-    
-        if ($data->terms != $request->input('terms')) {
-            $data->terms = $request->input('terms');
-            $terms[] = 'terms';
-        }
-    
-        if ($data->mission != $request->input('mission')) {
-            $data->mission = $request->input('mission');
-            $mission[] = 'mission';
-        }
-    
-        if ($data->subTitle != $request->input('subTitle')) {
-            $data->subTitle = $request->input('subTitle');
-            $subTitle[] = 'subTitle';
-        }
-        // Handle file uploads
+
+        $data->title = $request->input('title', $data->title);
+        $data->subTitle = $request->input('subTitle', $data->subTitle);
+        $data->welcomeMessage = $request->input('welcomeMessage', $data->welcomeMessage);
+        $data->mission = $request->input('mission', $data->mission);
+        $data->WhyChooseUs = $request->input('WhyChooseUs', $data->WhyChooseUs);
+        $data->terms = $request->input('terms', $data->terms);
+        $data->vision = $request->input('vision', $data->vision ?? null);
+        $data->what_we_do = $request->input('what_we_do', $data->what_we_do ?? null);
+        $data->commitment = $request->input('commitment', $data->commitment ?? null);
+        $data->cta_services_url = $request->input('cta_services_url') ?: null;
+        $data->cta_book_url = $request->input('cta_book_url') ?: null;
+        $data->cta_contact_url = $request->input('cta_contact_url') ?: null;
+
         $dir = 'public/images/about/';
-    
-        if ($request->hasFile('image1') && request('image1') != '') {
-            // Delete old file
-            File::delete($dir . $data->image1);
-            // Store new file
-            $fileName = $request->file('image1')->store($dir);
-            $data->image1 = str_replace($dir, '', $fileName);
-            $image1[] = 'image1';
+
+        if ($request->hasFile('image1') && $request->file('image1')->isValid()) {
+            if ($data->image1 && \Illuminate\Support\Facades\Storage::exists($dir . $data->image1)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->image1);
+            }
+            $path = $request->file('image1')->store($dir);
+            $data->image1 = str_replace($dir, '', $path);
         }
 
-        if ($request->hasFile('image2') && request('image2') != '') {
-            // Delete old file
-            File::delete($dir . $data->image2);
-            // Store new file
-            $fileName2 = $request->file('image2')->store($dir);
-            $data->image2 = str_replace($dir, '', $fileName2);
-            $image2[] = 'image2';
+        if ($request->hasFile('image2') && $request->file('image2')->isValid()) {
+            if ($data->image2 && \Illuminate\Support\Facades\Storage::exists($dir . $data->image2)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->image2);
+            }
+            $path = $request->file('image2')->store($dir);
+            $data->image2 = str_replace($dir, '', $path);
         }
 
-        if ($request->hasFile('image3') && request('image3') != '') {
-            // Delete old file
-            File::delete($dir . $data->image3);
-            // Store new file
-            $fileName3 = $request->file('image3')->store($dir);
-            $data->image3 = str_replace($dir, '', $fileName3);
-            $image3[] = 'image3';
+        if ($request->hasFile('image3') && $request->file('image3')->isValid()) {
+            if ($data->image3 && \Illuminate\Support\Facades\Storage::exists($dir . $data->image3)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->image3);
+            }
+            $path = $request->file('image3')->store($dir);
+            $data->image3 = str_replace($dir, '', $path);
         }
 
-        if ($request->hasFile('image4') && request('image4') != '') {
-            // Delete old file
-            File::delete($dir . $data->image4);
-            // Store new file
-            $fileName4 = $request->file('image4')->store($dir);
-            $data->image4 = str_replace($dir, '', $fileName4);
-            $image4[] = 'image4';
+        if ($request->hasFile('image4') && $request->file('image4')->isValid()) {
+            if ($data->image4 && \Illuminate\Support\Facades\Storage::exists($dir . $data->image4)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->image4);
+            }
+            $path = $request->file('image4')->store($dir);
+            $data->image4 = str_replace($dir, '', $path);
         }
 
-    
-        $saved = $data->update();
-    
-        if($saved){
-            return redirect()->back()->with('success', 'About us Page fields have been updated successfully');
+        $data->save();
 
-        }
-
-        return redirect()->back()->with('error', 'No fields were updated');
+        return redirect()->back()->with('success', 'About us page has been updated successfully.');
     }
     public function getLeftBags(){
         $data = Leftbag::first();
