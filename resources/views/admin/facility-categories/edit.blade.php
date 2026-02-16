@@ -115,29 +115,22 @@
                             @csrf
                             <input type="hidden" name="facility_category_id" value="{{ $category->id }}">
                             <input type="hidden" name="redirect_category_id" value="{{ $category->id }}">
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label for="amenity_title" class="form-label">Title <span class="text-danger">*</span></label>
                                 <input type="text" name="title" id="amenity_title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title') }}" placeholder="e.g. Free WiFi" required>
                                 @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-3">
-                                <label for="amenity_icon" class="form-label">Icon class</label>
-                                <input type="text" name="icon" id="amenity_icon" class="form-control" value="{{ old('icon') }}" placeholder="fas fa-wifi">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="amenity_sort_order" class="form-label">Sort order</label>
-                                <input type="number" name="sort_order" id="amenity_sort_order" class="form-control" value="{{ old('sort_order', 0) }}" min="0">
-                            </div>
-                            <div class="col-md-2">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="is_active" id="amenity_is_active" value="1" checked>
                                     <label class="form-check-label" for="amenity_is_active">Active</label>
                                 </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <button type="submit" class="btn btn-primary w-100"><i class="fa fa-plus me-1"></i>Add</button>
                             </div>
                         </form>
+                        <p class="text-muted small mt-2 mb-0">Icon, description and sort order can be added when editing the amenity.</p>
                     </div>
                 </div>
 

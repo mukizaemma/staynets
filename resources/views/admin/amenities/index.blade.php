@@ -169,44 +169,21 @@
                     <input type="hidden" name="facility_category_id" id="modalFacilityCategoryId" value="">
                     <div class="modal-body">
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-8">
                                 <label for="title" class="form-label">Amenity Title <span class="text-danger">*</span></label>
                                 <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" id="title" placeholder="e.g., Free WiFi" value="{{ old('title') }}" required>
                                 @error('title')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
-                                <label for="icon" class="form-label">Icon Class</label>
-                                <input type="text" name="icon" class="form-control @error('icon') is-invalid @enderror" id="icon" placeholder="e.g., fas fa-wifi" value="{{ old('icon') }}">
-                                <small class="text-muted">Font Awesome icon class</small>
-                                @error('icon')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="sort_order" class="form-label">Sort Order</label>
-                                <input type="number" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror" id="sort_order" placeholder="0" value="{{ old('sort_order', 0) }}" min="0">
-                                @error('sort_order')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="is_active">Active</label>
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" id="description" rows="3" placeholder="Optional description">{{ old('description') }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <p class="text-muted small mb-0">You can add icon, description and sort order later when editing this amenity.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
