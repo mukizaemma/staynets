@@ -586,6 +586,7 @@
                             <a href="javascript:void(0)">{{ auth()->user()->name }}</a>
                             <ul class="sub-menu">
                                 <li><a href="{{ route('myProperties') }}">My Properties</a></li>
+                                <li><a href="{{ route('guide') }}">Guide</a></li>
                                 <li>
                                     <form id="logout-mobile-form" action="{{ route('logout') }}" method="POST">
                                         @csrf
@@ -665,9 +666,11 @@
                                     {{-- User Menu --}}
                                     @if(auth()->check())
                                         <li><a href="{{ route('myProperties') }}">My Properties</a></li>
+                                        <li><a href="{{ route('guide') }}">Guide</a></li>
                                         <li class="menu-item-has-children">
                                             <a href="javascript:void(0)">{{ auth()->user()->name }} <i class="far fa-caret-down"></i></a>
                                             <ul class="sub-menu">
+                                                <li><a href="{{ route('guide') }}">Guide</a></li>
                                                 <li>
                                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:inline;">
                                                         @csrf

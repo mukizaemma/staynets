@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/guide', [App\Http\Controllers\GuideController::class, 'admin'])->name('admin.guide');
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     Route::get('/logouts', [App\Http\Controllers\AdminController::class, 'logouts'])->name('logouts');
     
@@ -277,6 +278,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
 });
 
 // Frontend routes - admins will be redirected to dashboard via middleware
+Route::get('/guide', [App\Http\Controllers\GuideController::class, 'index'])->name('guide');
+
 Route::middleware(['redirect.admin'])->group(function () {
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/about-us', [App\Http\Controllers\HomeController::class, 'about'])->name('about');

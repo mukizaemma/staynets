@@ -2,9 +2,14 @@
 
 @section('content')
 <div class="container" style="width:90%; margin:20px auto;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="box-title">My Properties</h2>
-        <a href="{{ route('myPropertyCreate') }}" class="th-btn style4">Add New Hotel</a>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h2 class="box-title mb-0">My Properties</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ route('guide') }}" class="btn btn-outline-primary btn-sm" title="How to add and manage properties">
+                <i class="fas fa-book me-1"></i>Guide
+            </a>
+            <a href="{{ route('myPropertyCreate') }}" class="th-btn style4">Add New Hotel</a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -18,7 +23,11 @@
     @if($hotels->isEmpty())
         <div class="card p-4 text-center">
             <h4>You don't have any properties yet</h4>
-            <a href="{{ route('myPropertyCreate') }}" class="th-btn style4">Add First Hotel</a>
+            <p class="text-muted mb-3">Read the guide to see the process and required details, then add your first property.</p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="{{ route('guide') }}" class="btn btn-outline-primary">Guide</a>
+                <a href="{{ route('myPropertyCreate') }}" class="th-btn style4">Add First Hotel</a>
+            </div>
         </div>
     @else
         <div class="row gy-4">

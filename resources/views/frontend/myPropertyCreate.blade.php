@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="container" style="width:70%; margin:20px auto;">
-    <h2 class="box-title mb-3">Add New Hotel</h2>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 class="box-title mb-0">Add New Hotel</h2>
+        <a href="{{ route('guide') }}" class="btn btn-outline-primary btn-sm" title="Step-by-step guide and required details">
+            <i class="fas fa-book me-1"></i>Guide
+        </a>
+    </div>
 
 <form action="{{ route('storeHotel') }}" method="POST" enctype="multipart/form-data">
     @csrf

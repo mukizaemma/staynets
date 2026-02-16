@@ -16,6 +16,7 @@
             </div>
         </div>
         <div class="navbar-nav w-100">
+            <a href="{{ route('admin.guide') }}" class="nav-item nav-link"><i class="fas fa-book me-2"></i>User Guide</a>
             <a href="{{ route('dashboard') }}" class="nav-item nav-link active"><i class="fas fa-grip-horizontal me-2"></i>Dashboard</a>
              
             <a href="{{ route('getServices') }}" class="nav-item nav-link"> 
