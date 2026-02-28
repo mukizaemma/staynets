@@ -6,6 +6,92 @@
         .hero-home { min-height: 85vh; min-height: 85dvh; }
         @media (max-width: 991px) { .hero-home { min-height: 100vh; min-height: 100dvh; } }
         @media (max-width: 575px) { .hero-home { min-height: 100vh; min-height: 100dvh; } }
+
+        /* Small screens: hero image and text fit and readable */
+        @media (max-width: 767px) {
+            #hero.hero-home {
+                background-size: cover !important;
+                background-position: center center !important;
+                background-repeat: no-repeat !important;
+                min-height: 100vh !important;
+                min-height: 100dvh !important;
+                display: flex !important;
+                align-items: center !important;
+                padding: 0 12px;
+            }
+            #hero .hero-overlay {
+                background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%) !important;
+            }
+            #hero .container {
+                padding-left: 12px;
+                padding-right: 12px;
+                max-width: 100%;
+            }
+            #hero .row.align-items-center {
+                min-height: auto !important;
+                padding-top: 48px !important;
+                padding-bottom: 24px !important;
+            }
+            #hero .hero-style7 {
+                padding: 24px 0 20px 0 !important;
+            }
+            #hero .hero-title {
+                font-size: clamp(1.35rem, 5vw, 1.85rem) !important;
+                line-height: 1.3 !important;
+                margin-bottom: 1rem !important;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3) !important;
+                padding: 0 8px;
+            }
+            #hero .btn-group {
+                gap: 10px;
+                margin-bottom: 1.25rem !important;
+            }
+            #hero .btn-group .th-btn {
+                padding: 10px 18px !important;
+                font-size: 0.95rem !important;
+                min-height: 44px;
+            }
+            /* Hero search form: full-width rows on mobile, touch-friendly */
+            #heroSearchForm {
+                padding: 16px !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                max-width: 100% !important;
+            }
+            #heroSearchForm .row.g-2 > [class*="col-"] {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 8px !important;
+            }
+            #heroSearchForm .row.g-2 > [class*="col-"]:last-child {
+                margin-bottom: 0 !important;
+            }
+            #heroSearchForm .form-control,
+            #heroSearchForm .form-select,
+            #heroSearchForm .form-control-sm {
+                height: 46px !important;
+                min-height: 46px !important;
+                font-size: 16px !important;
+                padding-left: 40px !important;
+            }
+            #heroSearchForm .position-absolute i {
+                left: 12px !important;
+                font-size: 14px !important;
+            }
+            #heroSearchForm .btn-primary {
+                height: 46px !important;
+                min-height: 46px !important;
+                font-size: 1rem !important;
+            }
+        }
+        @media (max-width: 575px) {
+            #hero .hero-title {
+                font-size: clamp(1.25rem, 4.5vw, 1.6rem) !important;
+            }
+            #hero .hero-style7 {
+                padding: 20px 0 16px 0 !important;
+            }
+        }
     </style>
     <!--==============================
     Hero Area - full height with top bar on image
@@ -35,7 +121,7 @@
                         <div class="col-12">
                             <form action="{{ route('hotelsSearch') }}" method="GET" id="heroSearchForm" class="hero-search-form bg-white rounded-3 p-3" style="max-width: 900px; margin: 0 auto; background: #ffffff !important; border: 1px solid rgba(0,0,0,0.08) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.2), 0 2px 10px rgba(0,0,0,0.1) !important;">
                                 <div class="row g-2 align-items-center">
-                                    <div class="col-xl-3 col-lg-3 col-md-4">
+                                    <div class="col-12 col-md-4 col-xl-3">
                                         <div class="position-relative">
                                             <i class="fas fa-map-marker-alt position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
                                             <input type="text" name="location" list="hero-destinations" class="form-control form-control-sm" placeholder="Type destination, address or city — or choose All" value="{{ request('location') }}" autocomplete="off" style="padding-left: 38px; border-radius: 8px; height: 44px;">
@@ -53,22 +139,22 @@
                                             </datalist>
                                         </div>
                                     </div>
-                                    <div class="col-xl-2 col-lg-2 col-md-3">
+                                    <div class="col-12 col-md-3 col-xl-2">
                                         <div class="position-relative">
                                             <i class="fas fa-calendar-check position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
                                             <input type="date" name="checkin" id="checkinDate" class="form-control form-control-sm" value="{{ request('checkin') }}" min="{{ date('Y-m-d') }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
                                         </div>
                                     </div>
-                                    <div class="col-xl-2 col-lg-2 col-md-3">
+                                    <div class="col-12 col-md-3 col-xl-2">
                                         <div class="position-relative">
                                             <i class="fas fa-calendar-times position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
                                             <input type="date" name="checkout" id="checkoutDate" class="form-control form-control-sm" value="{{ request('checkout') }}" min="{{ date('Y-m-d', strtotime('+1 day')) }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
                                         </div>
                                     </div>
-                                    <div class="col-xl-2 col-lg-2 col-md-3">
+                                    <div class="col-12 col-md-3 col-xl-2">
                                         @include('frontend.partials.guests_rooms_selector', ['selectorId' => 'hero-guests-rooms'])
                                     </div>
-                                    <div class="col-xl-2 col-lg-2 col-md-4">
+                                    <div class="col-12 col-md-4 col-xl-2">
                                         <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px; height: 44px; font-weight: 600;">
                                             <i class="fas fa-search me-2"></i>Search
                                         </button>
@@ -92,7 +178,7 @@
             <div class="row justify-content-center mb-4">
                 <div class="col-12">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Featured Listings</h2>
+                        <h2 class="sec-title">Explore Properties</h2>
                         <p class="sec-text">Our latest properties. Check availability and book your stay.</p>
                     </div>
                 </div>
@@ -542,7 +628,7 @@ Service Area
 @media (max-width: 991px) {
     #hero.th-hero-wrapper.hero-7 {
         min-height: 450px;
-        max-height: 550px;
+        max-height: none;
     }
     
     .hero-style7 {
@@ -559,36 +645,32 @@ Service Area
 }
 
 @media (max-width: 767px) {
-    #hero.th-hero-wrapper.hero-7 {
-        min-height: 400px;
-        max-height: 500px;
-    }
-    
+    /* Hero height/layout handled by .hero-home and mobile block at top of page */
     .hero-style7 {
         padding: 60px 0 20px 0 !important;
     }
     
     #heroSearchForm .form-control,
     #heroSearchForm .form-select {
-        font-size: 13px;
-        height: 42px !important;
+        font-size: 16px;
+        height: 46px !important;
     }
     
     #heroSearchForm .form-item .position-absolute i {
-        font-size: 12px;
-        left: 10px !important;
+        font-size: 14px;
+        left: 12px !important;
     }
     
     #heroSearchForm .form-control,
     #heroSearchForm .form-select {
-        padding-left: 32px !important;
+        padding-left: 40px !important;
     }
     
     #searchBtn {
-        height: 42px !important;
-        font-size: 14px !important;
+        height: 46px !important;
+        font-size: 1rem !important;
     }
-    }
+}
 
 /* Destination Card Hover Effects */
 .destination-card:hover {

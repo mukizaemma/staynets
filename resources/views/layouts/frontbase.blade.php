@@ -174,6 +174,27 @@
             transform: scale(1.05);
         }
         
+        /* Smaller logo on small screens so it fits the header without dominating */
+        @media (max-width: 991px) {
+            .header-logo img {
+                width: 120px !important;
+                max-width: 120px;
+                height: auto;
+            }
+        }
+        @media (max-width: 575px) {
+            .header-logo img {
+                width: 95px !important;
+                max-width: 95px;
+                height: auto;
+            }
+            .mobile-logo img {
+                width: 90px !important;
+                max-width: 90px;
+                height: auto;
+            }
+        }
+        
         .th-widget-about .about-text {
             color: #E9F6F9;
             font-size: 15px;
