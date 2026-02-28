@@ -66,6 +66,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     
     Route::get('/aboutPage',[App\Http\Controllers\SettingsController::class,'aboutPage'])->name('aboutPage');
     Route::post('/saveAbout',[App\Http\Controllers\SettingsController::class,'saveAbout'])->name('saveAbout');
+    Route::post('/saveSiteImages',[App\Http\Controllers\SettingsController::class,'saveSiteImages'])->name('saveSiteImages');
 
     Route::get('/eventsPage',[App\Http\Controllers\PagesController::class,'eventsPage'])->name('eventsPage');
     Route::post('/saveEvent',[App\Http\Controllers\PagesController::class,'saveEvent'])->name('saveEvent');    

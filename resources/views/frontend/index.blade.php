@@ -10,7 +10,12 @@
     <!--==============================
     Hero Area - full height with top bar on image
     ==============================-->
-    <div class="th-hero-wrapper hero-7 hero-home" id="hero" data-bg-src="{{ asset('storage/images/about') . $about->image1 }}" style="background-size: cover; background-position: center; position: relative; overflow: hidden;">
+    @php
+        $heroBg = (optional($setting)->home_background_image ?? null)
+            ? asset('storage/images/site/' . optional($setting)->home_background_image)
+            : (isset($about) && $about && $about->image1 ? asset('storage/images/about/' . $about->image1) : asset('assets/img/bg/breadcumb-bg-1.jpg'));
+    @endphp
+    <div class="th-hero-wrapper hero-7 hero-home" id="hero" data-bg-src="{{ $heroBg }}" style="background-size: cover; background-position: center; position: relative; overflow: hidden;">
         <!-- Overlay for readability -->
         <div class="hero-overlay" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 100%); z-index: 0;"></div>
 
@@ -736,4 +741,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
     
+ @endsection
  @endsection

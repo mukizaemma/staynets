@@ -49,7 +49,12 @@
         </div>
     </div>
 
-        <div class="space-extra2-top space-extra2-bottom" data-bg-src="assets/img/bg/contact.jpg">
+        @php
+            $contactMiddleBg = (optional($setting)->contact_us_middle_image ?? null)
+                ? asset('storage/images/site/' . optional($setting)->contact_us_middle_image)
+                : asset('assets/img/bg/contact.jpg');
+        @endphp
+        <div class="space-extra2-top space-extra2-bottom" data-bg-src="{{ $contactMiddleBg }}">
         <div class="container">
             <div class="row flex-row-reverse justify-content-center align-items-center">
                 <div class="col-lg-6">

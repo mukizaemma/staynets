@@ -179,6 +179,45 @@ class SettingsController extends Controller
 
         return redirect()->back()->with('success', 'About us page has been updated successfully.');
     }
+
+    public function saveSiteImages(Request $request)
+    {
+        $data = Setting::first();
+        if (!$data) {
+            return redirect()->back()->with('error', 'Settings not found.');
+        }
+
+        $dir = 'public/images/site/';
+
+        if ($request->hasFile('home_header_image') && $request->file('home_header_image')->isValid()) {
+            if ($data->home_header_image && \Illuminate\Support\Facades\Storage::exists($dir . $data->home_header_image)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->home_header_image);
+            }
+            $path = $request->file('home_header_image')->store($dir);
+            $data->home_header_image = str_replace($dir, '', $path);
+        }
+
+        if ($request->hasFile('home_background_image') && $request->file('home_background_image')->isValid()) {
+            if ($data->home_background_image && \Illuminate\Support\Facades\Storage::exists($dir . $data->home_background_image)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->home_background_image);
+            }
+            $path = $request->file('home_background_image')->store($dir);
+            $data->home_background_image = str_replace($dir, '', $path);
+        }
+
+        if ($request->hasFile('contact_us_middle_image') && $request->file('contact_us_middle_image')->isValid()) {
+            if ($data->contact_us_middle_image && \Illuminate\Support\Facades\Storage::exists($dir . $data->contact_us_middle_image)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->contact_us_middle_image);
+            }
+            $path = $request->file('contact_us_middle_image')->store($dir);
+            $data->contact_us_middle_image = str_replace($dir, '', $path);
+        }
+
+        $data->save();
+
+        return redirect()->back()->with('success', 'Site images have been updated successfully.');
+    }
+
     public function getLeftBags(){
         $data = Leftbag::first();
         $setting = Setting::first();

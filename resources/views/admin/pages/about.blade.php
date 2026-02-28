@@ -31,6 +31,9 @@
                                     <button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#about-tab-pane" type="button" role="tab">About Us</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="site-images-tab" data-bs-toggle="tab" data-bs-target="#site-images-tab-pane" type="button" role="tab">Site Images</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="terms-tab" data-bs-toggle="tab" data-bs-target="#terms-tab-pane" type="button" role="tab">Terms & Policies</button>
                                 </li>
                             </ul>
@@ -115,6 +118,52 @@
 
                                         <div class="mt-4">
                                             <button type="submit" class="btn btn-primary px-4"><i class="fa fa-save"></i> Update About Section</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane fade" id="site-images-tab-pane" role="tabpanel">
+                                    <form action="{{ route('saveSiteImages') }}" method="POST" enctype="multipart/form-data" class="p-4 bg-light rounded">
+                                        @csrf
+
+                                        <h6 class="border-bottom pb-2 mb-3">Site Images (Settings)</h6>
+                                        <p class="text-muted small mb-4">These images are used across the site. Leave empty to keep current or use fallbacks.</p>
+
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Home Header Image</label>
+                                            @if($setting && $setting->home_header_image)
+                                                <div class="mb-2">
+                                                    <img src="{{ asset('storage/images/site/' . $setting->home_header_image) }}" alt="Home Header" width="280" class="rounded shadow-sm">
+                                                </div>
+                                            @endif
+                                            <input type="file" name="home_header_image" class="form-control" accept="image/*">
+                                            <small class="text-muted">Used for the About page header. Leave empty to use About header image.</small>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Home Background Image</label>
+                                            @if($setting && $setting->home_background_image)
+                                                <div class="mb-2">
+                                                    <img src="{{ asset('storage/images/site/' . $setting->home_background_image) }}" alt="Home Background" width="280" class="rounded shadow-sm">
+                                                </div>
+                                            @endif
+                                            <input type="file" name="home_background_image" class="form-control" accept="image/*">
+                                            <small class="text-muted">Used for the homepage hero background. Replaces the slide/about image.</small>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Contact Us Middle Image</label>
+                                            @if($setting && $setting->contact_us_middle_image)
+                                                <div class="mb-2">
+                                                    <img src="{{ asset('storage/images/site/' . $setting->contact_us_middle_image) }}" alt="Contact Middle" width="280" class="rounded shadow-sm">
+                                                </div>
+                                            @endif
+                                            <input type="file" name="contact_us_middle_image" class="form-control" accept="image/*">
+                                            <small class="text-muted">Background image for the contact form section on the Contact page.</small>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <button type="submit" class="btn btn-primary px-4"><i class="fa fa-save"></i> Save Site Images</button>
                                         </div>
                                     </form>
                                 </div>

@@ -11,7 +11,9 @@
 @endif
 @php
     $about = $about ?? null;
-    $headerImage = $about && $about->image1 ? asset('storage/images/about/' . $about->image1) : null;
+    $headerImage = (optional($setting)->home_header_image ?? null)
+        ? asset('storage/images/site/' . optional($setting)->home_header_image)
+        : ($about && $about->image1 ? asset('storage/images/about/' . $about->image1) : null);
     $title = optional($about)->title ?? 'Stay Nets - About Us';
     $tagline = optional($about)->subTitle ?? 'Your Trusted Partner for Travel, Stays, and Adventures in Rwanda & East Africa';
     $connectUrl = route('connect');
