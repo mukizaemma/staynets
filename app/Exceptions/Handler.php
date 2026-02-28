@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -35,6 +36,13 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $e)
     {
         if ($e instanceof QueryException) {
+            // Log the real error so you can fix the cause (missing table/column, etc.)
+            Log::error('Database query error', [
+                'message' => $e->getMessage(),
+                'sql' => $e->getSql() ?? null,
+                'bindings' => $e->getBindings() ?? [],
+            ]);
+
             $message = 'A database error occurred. Please try again or contact support if the problem continues.';
             if (str_contains($e->getMessage(), 'Duplicate entry')) {
                 $message = 'This record already exists. Please use a different value or check existing entries.';

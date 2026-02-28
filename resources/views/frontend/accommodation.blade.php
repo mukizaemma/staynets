@@ -775,6 +775,7 @@
                                             @endif
                                         </td>
                                         <td>
+                                            @if($unit->available_units > 0)
                                                 @php
                                                     $unitCurrency = $unit->currency ?? 'USD';
                                                     $unitCurrencySymbol = getCurrencySymbol($unitCurrency);

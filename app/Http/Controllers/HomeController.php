@@ -604,59 +604,69 @@ public function accommodations(Request $request)
 
 public function showAccommodation(Request $request, $slug)
 {
-    $hotel = Property::with([
-        'units' => function($q) {
-            $q->where('status', 'Available')
-                ->with(['images', 'facilities', 'unitType', 'extraCharges'])
-                ->orderBy('base_price_per_night', 'asc');
-        },
-        'images' => function($q) {
-            $q->orderBy('is_primary', 'desc')->orderBy('sort_order');
-        },
-        'facilities.category' => function($q) {
-            $q->where('is_active', true);
-        },
-        'reviews' => function($q) {
-            $q->latest();
-        },
-        'owner',
-        'category'
-    ])
-    ->where(function($q) use ($slug) {
-        if (is_numeric($slug)) {
-            $q->where('id', $slug);
-        } else {
-            $q->where('slug', $slug);
-        }
-    })
-    ->where('status', 'Active') 
-    ->firstOrFail();
-
-    // Group amenities by category
-    $amenitiesByCategory = $hotel->facilities->groupBy('facility_category_id')->map(function($amenities) {
-        return $amenities->first()->category ?? null;
-    })->filter();
-
-    // Related properties: same type or same category, exclude current
-    $relatedProperties = Property::with(['images', 'units'])
-        ->where('id', '!=', $hotel->id)
-        ->where('status', 'Active')
-        ->where(function($q) use ($hotel) {
-            $q->where('property_type', $hotel->property_type)
-                ->orWhere('category_id', $hotel->category_id);
+    try {
+        $hotel = Property::with([
+            'units' => function($q) {
+                $q->where('status', 'Available')
+                    ->with(['images', 'facilities', 'unitType', 'extraCharges'])
+                    ->orderBy('base_price_per_night', 'asc');
+            },
+            'images',
+            'facilities.category',
+            'reviews' => function($q) {
+                $q->latest();
+            },
+            'owner',
+            'category'
+        ])
+        ->where(function($q) use ($slug) {
+            if (is_numeric($slug)) {
+                $q->where('id', $slug);
+            } else {
+                $q->where('slug', $slug);
+            }
         })
-        ->withCount('reviews')
-        ->withAvg('reviews', 'rating')
-        ->latest()
-        ->take(4)
-        ->get();
+        ->where('status', 'Active')
+        ->firstOrFail();
 
-    return view('frontend.accommodation', [
-        'hotel' => $hotel,
-        'rooms' => $hotel->units,
-        'amenitiesByCategory' => $amenitiesByCategory,
-        'relatedProperties' => $relatedProperties,
-    ]);
+        // Sort property images in PHP (handles DBs where is_primary/sort_order may be missing)
+        $hotel->setRelation('images', $hotel->images->sortByDesc('is_primary')->sortBy('sort_order')->values());
+
+        // Group amenities by category; hide categories that are inactive if column exists
+        $amenitiesByCategory = $hotel->facilities->groupBy('facility_category_id')->map(function($amenities) {
+            return $amenities->first()->category ?? null;
+        })->filter(function($cat) {
+            return $cat && ($cat->is_active ?? true);
+        });
+
+        // Related properties: same type or same category, exclude current
+        $relatedProperties = Property::with(['images', 'units'])
+            ->where('id', '!=', $hotel->id)
+            ->where('status', 'Active')
+            ->where(function($q) use ($hotel) {
+                $q->where('property_type', $hotel->property_type)
+                    ->orWhere('category_id', $hotel->category_id);
+            })
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('frontend.accommodation', [
+            'hotel' => $hotel,
+            'rooms' => $hotel->units,
+            'amenitiesByCategory' => $amenitiesByCategory,
+            'relatedProperties' => $relatedProperties,
+        ]);
+    } catch (\Illuminate\Database\QueryException $e) {
+        \Illuminate\Support\Facades\Log::error('showAccommodation query error', [
+            'slug' => $slug,
+            'message' => $e->getMessage(),
+            'sql' => $e->getSql(),
+        ]);
+        throw $e;
+    }
 }
 
 /**
