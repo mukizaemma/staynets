@@ -42,12 +42,13 @@
                             @if(isset($locations) && $locations->isNotEmpty())
                             <div class="mb-4">
                                 <h6 class="fw-bold mb-2">Location</h6>
-                                <select name="location" class="form-select form-select-sm" id="filterLocation">
-                                    <option value="">All Locations</option>
+                                <input type="text" name="location" list="filter-destinations" id="filterLocation" class="form-control form-control-sm" placeholder="Type, select, or choose All" value="{{ request('location') }}" autocomplete="off">
+                                <datalist id="filter-destinations">
+                                    <option value="All">All Locations</option>
                                     @foreach($locations as $loc)
-                                        <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                        <option value="{{ $loc }}">{{ $loc }}</option>
                                     @endforeach
-                                </select>
+                                </datalist>
                             </div>
                             @endif
 
@@ -98,19 +99,6 @@
                                     <label class="form-check-label" for="ptAny">All Types</label>
                                 </div>
                             </div>
-
-                            {{-- Amenities --}}
-                            @if(isset($amenities) && $amenities->isNotEmpty())
-                            <div class="mb-4">
-                                <h6 class="fw-bold mb-2">Amenities</h6>
-                                @foreach($amenities->take(8) as $amenity)
-                                <div class="form-check mb-1">
-                                    <input class="form-check-input" type="checkbox" name="amenities[]" id="am{{ $amenity->id }}" value="{{ $amenity->id }}" {{ in_array($amenity->id, (array)request('amenities', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="am{{ $amenity->id }}">{{ $amenity->title }}</label>
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">

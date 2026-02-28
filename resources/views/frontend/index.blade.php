@@ -38,18 +38,19 @@
                                     <div class="col-xl-3 col-lg-3 col-md-4">
                                         <div class="position-relative">
                                             <i class="fas fa-map-marker-alt position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
-                                            <select name="location" class="form-select form-select-sm" style="padding-left: 38px; border-radius: 8px; height: 44px;">
-                                                <option value="">Enter Destination</option>
+                                            <input type="text" name="location" list="hero-destinations" class="form-control form-control-sm" placeholder="Type destination, address or city — or choose All" value="{{ request('location') }}" autocomplete="off" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                                            <datalist id="hero-destinations">
+                                                <option value="All">All Destinations</option>
                                                 @if(isset($searchLocations) && $searchLocations->isNotEmpty())
                                                     @foreach($searchLocations as $loc)
-                                                        <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                                        <option value="{{ $loc }}">{{ $loc }}</option>
                                                     @endforeach
                                                 @elseif(isset($locations) && $locations->isNotEmpty())
                                                     @foreach($locations as $loc)
-                                                        <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                                        <option value="{{ $loc }}">{{ $loc }}</option>
                                                     @endforeach
                                                 @endif
-                                            </select>
+                                            </datalist>
                                         </div>
                                     </div>
                                     <div class="col-xl-2 col-lg-2 col-md-3">
@@ -65,10 +66,7 @@
                                         </div>
                                     </div>
                                     <div class="col-xl-2 col-lg-2 col-md-3">
-                                        <div class="position-relative">
-                                            <i class="fas fa-users position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
-                                            <input type="number" name="guests" class="form-control form-control-sm" placeholder="Guests" value="{{ request('guests', 1) }}" min="1" max="20" style="padding-left: 38px; border-radius: 8px; height: 44px;">
-                                        </div>
+                                        @include('frontend.partials.guests_rooms_selector', ['selectorId' => 'hero-guests-rooms'])
                                     </div>
                                     <div class="col-xl-2 col-lg-2 col-md-4">
                                         <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px; height: 44px; font-weight: 600;">

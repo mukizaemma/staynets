@@ -136,7 +136,15 @@ public function hotelsSearch(Request $request)
     $address = $request->input('address');
     $location = $request->input('location');
     $propertyType = $request->input('property_type');
-    $guests = $request->input('guests');
+    $adults = (int) $request->input('adults', 1);
+    $children = (int) $request->input('children', 0);
+    $rooms = (int) $request->input('rooms', 1);
+    $guests = $request->input('guests'); // may be sent from form
+    if ($guests === null || $guests === '') {
+        $guests = $adults + $children;
+    } else {
+        $guests = (int) $guests;
+    }
     $checkin = $request->input('checkin');
     $checkout = $request->input('checkout');
     $orderby = $request->input('orderby');
@@ -164,11 +172,13 @@ public function hotelsSearch(Request $request)
         $query->where('city', 'like', "%{$city}%");
     }
 
-    // Filter by location/destination
-    if (!empty($location)) {
+    // Filter by location/destination (supports destination, address, or city)
+    if (!empty($location) && strtolower(trim($location)) !== 'all') {
+        $location = trim($location);
         $query->where(function ($q) use ($location) {
             $q->where('location', 'like', "%{$location}%")
-              ->orWhere('city', 'like', "%{$location}%");
+              ->orWhere('city', 'like', "%{$location}%")
+              ->orWhere('address', 'like', "%{$location}%");
         });
     }
 
@@ -208,7 +218,20 @@ public function hotelsSearch(Request $request)
         });
     }
 
-    // Filter by guests (if units relationship exists, filter properties with available units)
+    // Filter by guests and rooms: show properties with enough available units and capacity
+    $minGuests = max(0, (int) $guests);
+    $minRooms = max(1, (int) $rooms);
+    if ($minRooms > 1 || $minGuests > 0) {
+        if ($minRooms > 1) {
+            $query->whereHas('units', function ($q) {
+                $q->where('status', 'Available');
+            }, '>=', $minRooms);
+        }
+        if ($minGuests > 0) {
+            $query->whereRaw('(SELECT COALESCE(SUM(u.max_occupancy), 0) FROM units u WHERE u.property_id = properties.id AND u.status = ? AND u.deleted_at IS NULL) >= ?', ['Available', $minGuests]);
+        }
+    }
+
     if (!empty($guests)) {
         session(['search_guests' => $guests]);
     }
