@@ -330,6 +330,21 @@
             text-decoration: underline;
         }
         
+        /* Ensure Travel Services dropdown appears above search form */
+        .th-header .menu-area {
+            position: relative;
+            z-index: 1050;
+        }
+        .th-header .main-menu .sub-menu {
+            z-index: 1060;
+        }
+        
+        .btn-add-property:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5) !important;
+            color: #fff !important;
+        }
+        
         .footer-card {
             display: flex;
             align-items: center;
@@ -540,52 +555,25 @@
                 <ul>
 
                     <li><a href="{{ route('home') }}">Home</a></li>
-
-                    <li>
-                        <a href="{{ route('hotels', ['type' => 'hotel']) }}">Hotels</a>
-                    </li>
-                    <li>
-                        <a href="{{ route('apartments') }}">Apartments</a>
-                    </li>
-                    <li>
-                        <a href="{{ route('showCars') }}">Car Rental</a>
-                    </li>
-
+                    <li><a href="{{ route('hotels', ['type' => 'hotel']) }}">Hotels</a></li>
+                    <li><a href="{{ route('apartments') }}">Apartments</a></li>
+                    <li><a href="{{ route('villas') }}">Villas</a></li>
                     <li class="menu-item-has-children">
-                        <a href="{{ route('tours') }}">Tour Destinations</a>
+                        <a href="{{ route('tours') }}">Travel Services</a>
                         <ul class="sub-menu">
-                            @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
-                                @foreach ($tripDestinations as $destination)
-                                    <li><a href="{{route('tripDestination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
-                                @endforeach
-                            @else
-                                <li><a href="{{ route('tours') }}">View All Destinations</a></li>
-                            @endif
+                            <li><a href="{{ route('connect') }}">Airport Transfers</a></li>
+                            <li><a href="{{ route('showCars') }}">Car Rentals</a></li>
+                            <li><a href="{{ route('tours') }}">Tours</a></li>
                         </ul>
                     </li>
-                    
-                    {{-- <li>
-                        <a href="{{ route('ticketing') }}">Air Ticketing</a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('leftBags') }}">Left Bags</a>
-                    </li> --}}
-                    <li>
-                        <a href="{{ route('about') }}">About Us</a>
-                    </li>
+                    <li><a href="{{ route('connect') }}">Contact</a></li>
 
-                    <li>
-                        <a href="{{ route('connect') }}">Contact</a>
-                    </li>
-
-                    
                     @if(auth()->check())
+                        <li><a href="{{ route('myProperties') }}">My Properties</a></li>
                         <li><a href="{{ route('myPropertyCreate') }}">Add Property</a></li>
                         <li class="menu-item-has-children">
                             <a href="javascript:void(0)">{{ auth()->user()->name }}</a>
                             <ul class="sub-menu">
-                                <li><a href="{{ route('myProperties') }}">My Properties</a></li>
                                 <li><a href="{{ route('guide') }}">Guide</a></li>
                                 <li>
                                     <form id="logout-mobile-form" action="{{ route('logout') }}" method="POST">
@@ -596,8 +584,7 @@
                             </ul>
                         </li>
                     @else
-                        <li><a href="{{ route('myPropertyCreate') }}">Add Property</a></li>
-                        <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a></li>
+                        <li><a href="#login-form" class="popup-content"><i class="fas fa-plus-circle me-2"></i>Add your Property</a></li>
                     @endif
 
                 </ul>
@@ -607,169 +594,114 @@
 	Header Area
 ==============================-->
     <header class="th-header header-layout1 header-layout4 header-layout7">
-        <div class="header-top">
-            <div class="container th-container">
-                <div class="row justify-content-center justify-content-xl-between align-items-center">
-                    <div class="col-auto d-none d-md-block">
-                        <div class="header-links">
-                            <ul>
-                                <li class="d-none d-xl-inline-block"><i class="fa-sharp fa-regular fa-location-dot"></i>
-                                    <span>{{ $setting->address ?? '' }}</span>
-                                </li>
-                                <li class="d-none d-xl-inline-block"><i class="fa-regular fa-clock"></i>
-                                    <span>Monday to Saturday: 7.00 am - 8.00 pm</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="header-right">
-                            <div class="header-links">
-                                <ul>
-                                    {{-- Social Media Icons --}}
-                                    @if($setting->facebook ?? null)
-                                        <li class="d-none d-md-inline-block">
-                                            <a href="{{ $setting->facebook }}" target="_blank" title="Facebook">
-                                                <i class="fab fa-facebook-f"></i>
-                                            </a>
-                                        </li>
-                                    @endif
-                                    @if($setting->twitter ?? null)
-                                        <li class="d-none d-md-inline-block">
-                                            <a href="{{ $setting->twitter }}" target="_blank" title="Twitter">
-                                                <i class="fab fa-twitter"></i>
-                                            </a>
-                                        </li>
-                                    @endif
-                                    @if($setting->instagram ?? null)
-                                        <li class="d-none d-md-inline-block">
-                                            <a href="{{ $setting->instagram }}" target="_blank" title="Instagram">
-                                                <i class="fab fa-instagram"></i>
-                                            </a>
-                                        </li>
-                                    @endif
-                                    @if($setting->linkedin ?? null)
-                                        <li class="d-none d-md-inline-block">
-                                            <a href="{{ $setting->linkedin }}" target="_blank" title="LinkedIn">
-                                                <i class="fab fa-linkedin-in"></i>
-                                            </a>
-                                        </li>
-                                    @endif
-                                    @if($setting->youtube ?? null)
-                                        <li class="d-none d-md-inline-block">
-                                            <a href="{{ $setting->youtube }}" target="_blank" title="YouTube">
-                                                <i class="fab fa-youtube"></i>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    {{-- User Menu --}}
-                                    @if(auth()->check())
-                                        <li><a href="{{ route('myProperties') }}">My Properties</a></li>
-                                        <li><a href="{{ route('guide') }}">Guide</a></li>
-                                        <li class="menu-item-has-children">
-                                            <a href="javascript:void(0)">{{ auth()->user()->name }} <i class="far fa-caret-down"></i></a>
-                                            <ul class="sub-menu">
-                                                <li><a href="{{ route('guide') }}">Guide</a></li>
-                                                <li>
-                                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:inline;">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-link p-0">Logout</button>
-                                                    </form>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    @else
-                                        <li><a href="#login-form" class="popup-content">Sign In / Register<i class="fa-regular fa-user"></i></a></li>
-                                    @endif
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="sticky-wrapper">
             <!-- Main Menu Area -->
             <div class="menu-area">
                 <div class="container th-container">
-                    <div class="row align-items-center justify-content-between">
+                    <div class="row align-items-center">
                         <div class="col-auto">
                             <div class="header-logo">
                                 <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets" width="150px"></a>
                             </div>
                         </div>
-                        <div class="col-auto me-xl-auto">
-                            <nav class="main-menu d-none d-xl-inline-block">
+                        <div class="col d-flex justify-content-center d-none d-xl-flex">
+                            <nav class="main-menu">
                                 <ul>
-
                                     <li><a href="{{ route('home') }}">Home</a></li>
-                                
-                                    {{-- <li class="menu-item-has-children">
-                                        <a href="{{ route('services') }}">Services</a>
-                                        <ul class="sub-menu">
-                                            @foreach ($services as $service)
-                                                <li><a href="{{route('service',['slug'=>$service->slug])}}">{{ $service->title }}</a></li>
-                                            @endforeach
-                                        </ul>
-                                    </li> --}}
-
                                     <li>
-                                        <a href="{{ route('hotels', ['type' => 'hotel']) }}">Hotels</a>
+                                        <a href="{{ route('hotels', ['type' => 'hotel']) }}" class="{{ request()->routeIs('hotelsSearch') && request('property_type') == 'hotel' ? 'active' : '' }}">Hotels</a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('apartments') }}">Apartments</a>
+                                        <a href="{{ route('apartments') }}" class="{{ request()->routeIs('hotelsSearch') && request('property_type') == 'apartment' ? 'active' : '' }}">Apartments</a>
                                     </li>
-
+                                    <li>
+                                        <a href="{{ route('villas') }}" class="{{ request()->routeIs('hotelsSearch') && request('property_type') == 'villa' ? 'active' : '' }}">Villas</a>
+                                    </li>
                                     <li class="menu-item-has-children">
-                                        <a href="{{ route('tours') }}">Tour Destinations</a>
+                                        <a href="{{ route('tours') }}">Travel Services <i class="far fa-caret-down"></i></a>
                                         <ul class="sub-menu">
-                                            @if(isset($tripDestinations) && $tripDestinations->isNotEmpty())
-                                                @foreach ($tripDestinations as $destination)
-                                                    <li><a href="{{route('tripDestination',['slug'=>$destination->slug])}}">{{ $destination->name }}</a></li>
-                                                @endforeach
-                                            @else
-                                                <li><a href="{{ route('tours') }}">View All Destinations</a></li>
-                                            @endif
+                                            <li><a href="{{ route('connect') }}"><i class="fas fa-plane-arrival me-2"></i>Airport Transfers</a></li>
+                                            <li><a href="{{ route('showCars') }}"><i class="fas fa-car me-2"></i>Car Rentals</a></li>
+                                            <li><a href="{{ route('tours') }}"><i class="fas fa-map-marked-alt me-2"></i>Tours</a></li>
                                         </ul>
                                     </li>
-
-                                    <li>
-                                        <a href="{{ route('showCars') }}">Car Rental</a>
-                                    </li>
-
-                                    {{-- <li>
-                                        <a href="{{ route('leftBags') }}">Left Bags</a>
-                                    </li>
-
-                                    <li>
-                                        <a href="{{ route('ticketing') }}">Air Ticketing</a>
-                                    </li> --}}
-                                 
-                                    {{-- <li>
-                                        <a href="{{ route('about') }}">About Us</a>
-                                    </li> --}}
-                                 
                                     <li>
                                         <a href="{{ route('connect') }}">Contact</a>
                                     </li>
-                                    
-                                    {{-- Main-menu Add Property (visible on large screens, compact button) --}}
-                                    <li class="d-none d-xl-inline-block">
-                                        <a href="{{ route('myPropertyCreate') }}"
-                                           class="btn btn-primary btn-sm"
-                                           style="border-radius: 999px; padding: 8px 18px; font-weight: 600;">
-                                            Add Property
-                                        </a>
-                                    </li>
                                 </ul>
                             </nav>
-                            <button type="button" class="th-menu-toggle d-block d-xl-none"><i class="far fa-bars"></i></button>
                         </div>
-                        {{-- Right-side header button removed; Add Property is now in main menu as a button --}}
+                        <div class="col-auto d-none d-xl-block">
+                            @if(auth()->check())
+                                <a href="{{ route('myProperties') }}"
+                                   class="btn btn-outline-primary btn-sm me-2"
+                                   style="border-radius: 999px; padding: 8px 18px; font-weight: 600;">
+                                    My Properties
+                                </a>
+                                <a href="{{ route('myPropertyCreate') }}"
+                                   class="btn btn-add-property"
+                                   style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: all 0.3s ease;">
+                                    <i class="fas fa-plus-circle me-2"></i>Add your Property
+                                </a>
+                            @else
+                                <a href="#login-form" class="popup-content btn btn-add-property"
+                                   style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: all 0.3s ease;">
+                                    <i class="fas fa-plus-circle me-2"></i>Add your Property
+                                </a>
+                            @endif
+                        </div>
+                        <div class="col-auto ms-auto d-xl-none">
+                            <button type="button" class="th-menu-toggle"><i class="far fa-bars"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {{-- Search Bar (below menu) - hidden on homepage (hero has its own search bar) --}}
+            @if(!request()->routeIs('home'))
+            <div class="container th-container py-3 d-none d-lg-block">
+                <form action="{{ route('hotelsSearch') }}" method="GET" class="global-search-bar bg-white rounded-3 shadow-sm border p-3" id="headerSearchForm" style="border: 1px solid #e8e8e8 !important;">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-xl-3 col-lg-3 col-md-4">
+                            <div class="position-relative">
+                                <i class="fas fa-map-marker-alt position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                <select name="location" class="form-select form-select-sm" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                                    <option value="">Enter Destination</option>
+                                    @if(isset($searchLocations) && $searchLocations->isNotEmpty())
+                                        @foreach($searchLocations as $loc)
+                                            <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-3">
+                            <div class="position-relative">
+                                <i class="fas fa-calendar-check position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                <input type="date" name="checkin" class="form-control form-control-sm" placeholder="Check-in" value="{{ request('checkin') }}" min="{{ date('Y-m-d') }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-3">
+                            <div class="position-relative">
+                                <i class="fas fa-calendar-times position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                <input type="date" name="checkout" class="form-control form-control-sm" placeholder="Check-out" value="{{ request('checkout') }}" min="{{ date('Y-m-d', strtotime('+1 day')) }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-3">
+                            <div class="position-relative">
+                                <i class="fas fa-users position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                <input type="number" name="guests" class="form-control form-control-sm" placeholder="Guests" value="{{ request('guests', 1) }}" min="1" max="20" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-4">
+                            <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px; height: 44px; font-weight: 600;">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            @endif
         </div>
     </header>
 
@@ -815,7 +747,7 @@
                             <h3 class="widget_title">Quick Links</h3>
                             <div class="menu-all-pages-container">
                                 <ul class="menu menu-two-columns">
-                                    <li><a href="{{ route('hotels') }}">Accommodation Booking</a></li>
+                                    <li><a href="{{ route('hotelsSearch') }}">Accommodation Booking</a></li>
                                     <li><a href="{{ route('tours') }}">Tour Experiences</a></li>
                                     <li><a href="{{ route('showCars') }}">Car Rental</a></li>
                                     <li><a href="{{ route('connect') }}">Travel Support</a></li>

@@ -22,19 +22,89 @@ public function index()
 {
     $hotels = collect();
     $amenities = collect();
+    $earnings = 0;
+    $upcomingBookings = collect();
+    $bookingsHistory = collect();
+    $bookingCalendarData = [];
 
     if (auth()->check()) {
-        $hotels = \App\Models\Hotel::where('added_by', auth()->id())
+        $userId = auth()->id();
+        $hotels = \App\Models\Hotel::where('added_by', $userId)
             ->with(['rooms.images', 'images'])
             ->latest()
             ->get();
 
         $amenities = \App\Models\Amenity::orderBy('title')->get();
+
+        // Get property IDs for Property model (owner_id)
+        $propertyIds = \App\Models\Property::where('owner_id', $userId)->pluck('id')->toArray();
+        $hotelIds = $hotels->pluck('id')->toArray();
+
+        // Bookings for owner's hotels or properties
+        $bookingsQuery = \App\Models\HotelBooking::query()
+            ->with(['hotel', 'property', 'room', 'unit']);
+
+        if (!empty($hotelIds) || !empty($propertyIds)) {
+            $bookingsQuery->where(function ($q) use ($hotelIds, $propertyIds) {
+                if (!empty($hotelIds)) {
+                    $q->whereIn('hotel_id', $hotelIds);
+                }
+                if (!empty($propertyIds)) {
+                    if (!empty($hotelIds)) {
+                        $q->orWhereIn('property_id', $propertyIds);
+                    } else {
+                        $q->whereIn('property_id', $propertyIds);
+                    }
+                }
+            });
+        } else {
+            $bookingsQuery->whereRaw('1 = 0'); // No properties = no bookings
+        }
+
+        // Earnings (total from paid/completed bookings)
+        $earnings = (clone $bookingsQuery)
+            ->whereIn('payment_status', ['paid', 'completed'])
+            ->whereIn('booking_status', ['confirmed', 'completed', 'checked_out'])
+            ->sum('total_amount');
+
+        // Upcoming bookings (check_in >= today)
+        $upcomingBookings = (clone $bookingsQuery)
+            ->where('check_in', '>=', now()->toDateString())
+            ->orderBy('check_in', 'asc')
+            ->limit(20)
+            ->get();
+
+        // Bookings history (past bookings)
+        $bookingsHistory = (clone $bookingsQuery)
+            ->where('check_out', '<', now()->toDateString())
+            ->orderBy('check_out', 'desc')
+            ->limit(50)
+            ->get();
+
+        // Calendar data (bookings for calendar view)
+        $bookingCalendarData = (clone $bookingsQuery)
+            ->where('check_in', '>=', now()->subMonths(1)->toDateString())
+            ->get()
+            ->map(function ($b) {
+                $propName = $b->hotel->name ?? $b->property->name ?? 'Booking';
+                return [
+                    'id' => $b->id,
+                    'title' => $propName . ' - ' . ($b->guest_name ?? 'Guest'),
+                    'start' => $b->check_in,
+                    'end' => $b->check_out,
+                    'status' => $b->booking_status,
+                ];
+            })
+            ->toArray();
     }
 
     return view('frontend.myProperties', [
         'hotels' => $hotels,
         'amenities' => $amenities,
+        'earnings' => $earnings,
+        'upcomingBookings' => $upcomingBookings,
+        'bookingsHistory' => $bookingsHistory,
+        'bookingCalendarData' => $bookingCalendarData,
     ]);
 }
 
@@ -135,7 +205,25 @@ try {
             Mail::to($owner->email)->send(new AdminNotification($ownerDetails));
         }
 
-        // Notify all admins (role = 1) about the new property created
+        // Notify StayNets management (company email) - review and confirm within 30 minutes
+        $setting = \App\Models\Setting::first();
+        $companyEmail = $setting->email ?? null;
+        if ($companyEmail) {
+            $companyDetails = [
+                'subject'  => 'New property submitted – please review within 30 minutes',
+                'greeting' => 'Hello StayNets Team,',
+                'body'     => "A new property has been submitted and requires your review.\n\n"
+                             . "Property: {$hotel->name}\n"
+                             . "Owner: {$owner->name} ({$owner->email})\n\n"
+                             . "Please log in to the admin dashboard, review and confirm this property before 30 minutes:\n"
+                             . route('admin.properties.index') . '?status=Pending',
+                'lastline' => 'New properties must be approved by StayNets management before being displayed on the site.',
+            ];
+
+            Mail::to($companyEmail)->send(new AdminNotification($companyDetails));
+        }
+
+        // Also notify admins (role = 1) as fallback
         $admins = User::where('role', 1)->get();
         if ($admins->isNotEmpty()) {
             $adminDetails = [
@@ -144,9 +232,9 @@ try {
                 'body'     => "A new property has been submitted by a user.\n\n"
                              . "Property: {$hotel->name}\n"
                              . "Owner: {$owner->name} ({$owner->email})\n\n"
-                             . "You can review and approve/reject this property here:\n"
+                             . "Please log in to review and approve/reject within 30 minutes:\n"
                              . route('admin.properties.index') . '?status=Pending',
-                'lastline' => 'Please log in to the admin dashboard to approve or reject this property.',
+                'lastline' => 'New properties require approval before being displayed.',
             ];
 
             foreach ($admins as $admin) {

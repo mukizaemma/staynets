@@ -122,7 +122,8 @@ class Property extends Model
      */
     public function reviews()
     {
-        return $this->hasMany(PropertyReview::class, 'property_id')->where('is_approved', true);
+        return $this->hasMany(PropertyReview::class, 'property_id')
+            ->where('reviewable_type', 'property');
     }
 
     /**

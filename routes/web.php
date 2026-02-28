@@ -290,9 +290,11 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::get('/accommodations', [App\Http\Controllers\HomeController::class, 'accommodations'])->name('accommodations');
     Route::get('/accommodations/hotelsSearch', [App\Http\Controllers\HomeController::class, 'hotelsSearch'])->name('hotelsSearch');
     Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
+    Route::post('/accommodations/{property}/reviews', [App\Http\Controllers\ReviewController::class, 'storePropertyReview'])->name('property.reviews.store');
     Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
     Route::post('/storeBookings', [App\Http\Controllers\HomeController::class, 'storeBooking'])->name('bookings.store');
     Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');
+    Route::get('/villas', [App\Http\Controllers\HomeController::class, 'villas'])->name('villas');
     Route::get('/services/ticketing', [App\Http\Controllers\HomeController::class, 'ticketing'])->name('ticketing');
     Route::get('/services/ticketing/request', [App\Http\Controllers\HomeController::class, 'ticketingRequest'])->name('ticketing.request');
     Route::get('/services/left-bags', [App\Http\Controllers\HomeController::class, 'leftBags'])->name('leftBags');

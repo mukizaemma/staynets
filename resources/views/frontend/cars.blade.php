@@ -1,6 +1,95 @@
 @extends('layouts.frontbase')
 
 @section('content')
+<style>
+    .transport-hero {
+        background: linear-gradient(135deg, #f8fafc 0%, #e8f5e9 50%, #f1f8e9 100%);
+        border-radius: 20px;
+        padding: 48px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    .transport-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 60%;
+        height: 200%;
+        background: radial-gradient(ellipse at center, rgba(18, 140, 126, 0.06) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .transport-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(18, 140, 126, 0.12);
+        color: #128C7E;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        letter-spacing: 0.3px;
+    }
+    .transport-hero-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        line-height: 1.2;
+        margin-bottom: 12px;
+        letter-spacing: -0.02em;
+    }
+    .transport-hero-subtitle {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #128C7E;
+        margin-bottom: 16px;
+    }
+    .transport-hero-desc {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.65;
+        max-width: 540px;
+    }
+    .transport-hero-image {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+    .transport-hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .transport-booking-card {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 12px 40px rgba(18, 140, 126, 0.12);
+        border: 1px solid rgba(18, 140, 126, 0.15);
+    }
+    .transport-booking-card h5 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+    }
+    .transport-booking-card .card-desc {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    @media (max-width: 991px) {
+        .transport-hero {
+            padding: 32px 24px;
+        }
+        .transport-hero-title {
+            font-size: 1.75rem;
+        }
+    }
+</style>
 
 <section class="space">
     @php
@@ -8,34 +97,43 @@
     @endphp
     <div class="container">
         <!-- Hero / Intro -->
-        <div class="row mb-40 align-items-center">
-            <div class="col-lg-7">
-                <h2 class="sec-title mb-2">{{ $carContent->heading ?? 'Stay Nets Car Rental Services' }}</h2>
-                <h4 class="mb-3" style="color:#128C7E;">{{ $carContent->subheading ?? 'Reliable, Comfortable, and Flexible Car Rental in Rwanda' }}</h4>
-                <p class="mb-3" style="color:#555;">
-                    {{ $carContent->description ?? 'Travel Rwanda and East Africa with ease and comfort through Stay Nets Car Rental Services.' }}
-                </p>
-            </div>
-            <div class="col-lg-5 mb-3 mb-lg-0">
-                @if($carContent && $carContent->hero_image)
-                    <div class="mb-3">
-                        <img src="{{ asset('storage/images/car-rental/' . $carContent->hero_image) }}"
-                             alt="Stay Nets Car Rental"
-                             class="img-fluid rounded-3 shadow-sm">
+        <div class="transport-hero mb-40">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <div class="transport-hero-badge">
+                        <i class="fas fa-car-side"></i>
+                        Car Rental
                     </div>
-                @endif
-                <div class="card border-0 shadow-sm" style="border-radius:16px;">
-                    <div class="card-body">
-                        <h5 class="mb-2">Book Your Vehicle</h5>
-                        <p class="text-muted mb-3" style="font-size:14px;">
-                            Select your dates and send us a quick request. Our team will respond with options and pricing.
-                        </p>
-                        <button type="button" class="th-btn style3 w-100 mb-2" data-bs-toggle="modal" data-bs-target="#carRentalRequestModal">
-                            {{ $carContent->cta_book_label ?? 'Book Your Car' }}
-                        </button>
-                        <button type="button" class="th-btn style4 w-100" data-bs-toggle="modal" data-bs-target="#carRentalRequestModal">
-                            {{ $carContent->cta_quote_label ?? 'Request a Quote' }}
-                        </button>
+                    <h2 class="transport-hero-title">{{ $carContent->heading ?? 'Stay Nets Car Rental Services' }}</h2>
+                    <h4 class="transport-hero-subtitle">{{ $carContent->subheading ?? 'Reliable, Comfortable, and Flexible Car Rental in Rwanda' }}</h4>
+                    <p class="transport-hero-desc">
+                        {{ $carContent->description ?? 'Travel Rwanda and East Africa with ease and comfort through Stay Nets Car Rental Services.' }}
+                    </p>
+                </div>
+                <div class="col-lg-5 mt-4 mt-lg-0">
+                    <div class="row g-3 align-items-end">
+                        @if($carContent && $carContent->hero_image)
+                            <div class="col-12">
+                                <div class="transport-hero-image" style="height: 200px;">
+                                    <img src="{{ asset('storage/images/car-rental/' . $carContent->hero_image) }}"
+                                         alt="Stay Nets Car Rental">
+                                </div>
+                            </div>
+                        @endif
+                        <div class="col-12">
+                            <div class="transport-booking-card">
+                                <h5><i class="fas fa-calendar-check me-2" style="color:#128C7E;"></i>Book Your Vehicle</h5>
+                                <p class="card-desc">
+                                    Select your dates and send us a quick request. Our team will respond with options and pricing.
+                                </p>
+                                <button type="button" class="th-btn style3 w-100 mb-2" data-bs-toggle="modal" data-bs-target="#carRentalRequestModal">
+                                    {{ $carContent->cta_book_label ?? 'Book Your Car' }}
+                                </button>
+                                <button type="button" class="th-btn style4 w-100" data-bs-toggle="modal" data-bs-target="#carRentalRequestModal">
+                                    {{ $carContent->cta_quote_label ?? 'Request a Quote' }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

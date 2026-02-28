@@ -2,110 +2,79 @@
 @extends('layouts.frontbase')
 
 @section('content')
+    <style>
+        .hero-home { min-height: 85vh; min-height: 85dvh; }
+        @media (max-width: 991px) { .hero-home { min-height: 100vh; min-height: 100dvh; } }
+        @media (max-width: 575px) { .hero-home { min-height: 100vh; min-height: 100dvh; } }
+    </style>
     <!--==============================
-Hero Area
-==============================-->
-    <div class="th-hero-wrapper hero-7" id="hero" data-bg-src="{{ asset('storage/images/about') . $about->image1 }}" style="min-height: 500px; max-height: 600px; background-size: cover; background-position: center; position: relative; overflow: hidden;">
-        <!-- Hero Overlay for better text readability - Lighter overlay -->
-        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 100%); z-index: 1;"></div>
-        
-        <div class="container" style="position: relative; z-index: 2;">
-            <div class="row">
+    Hero Area - full height with top bar on image
+    ==============================-->
+    <div class="th-hero-wrapper hero-7 hero-home" id="hero" data-bg-src="{{ asset('storage/images/about') . $about->image1 }}" style="background-size: cover; background-position: center; position: relative; overflow: hidden;">
+        <!-- Overlay for readability -->
+        <div class="hero-overlay" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 100%); z-index: 0;"></div>
+
+        <div class="container h-100" style="position: relative; z-index: 1;">
+            <div class="row align-items-center justify-content-center h-100" style="min-height: 60vh; min-height: 60dvh; padding-top: 56px;">
                 <div class="col-12">
-                    <div class="hero-style7" style="padding: 100px 0 30px 0;">
-                        <span class="sub-title style1 text-white mb-20">Welcome to <strong>{{ $setting->company }}</strong></span>
-                        <h1 class="hero-title text-white">Your Travel Booking Partner</h1>
-                        <div class="btn-group mb-4">
+                    <div class="hero-style7 text-center" style="padding: 40px 0 30px 0;">
+                        <h1 class="hero-title text-white mb-4" style="font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 700;">Your Travel Booking Partner</h1>
+                        <div class="btn-group mb-4 flex-wrap justify-content-center">
                             <a href="{{ route('hotels') }}" class="th-btn th-icon style3">Hotels</a>
                             <a href="{{ route('apartments') }}" class="th-btn style2 th-icon">Apartments</a>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Horizontal Search Form - Clean & Minimal -->
-            <div class="row">
-                <div class="col-12">
-                    <form action="{{ route('hotelsSearch') }}" method="GET" class="hero-form" id="heroSearchForm" style="background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-radius: 999px; padding: 12px 18px; margin-top: 20px;">
-                        <div class="row g-2 align-items-center justify-content-center">
-                            <!-- Destination/Location -->
-                            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6">
-                                <div class="form-item position-relative">
-                                    <i class="fas fa-map-marker-alt position-absolute" style="left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.85); z-index: 10; pointer-events: none; font-size: 14px;"></i>
-                                    <select name="location" class="form-select form-select-sm"
-                                            style="background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.6); border-radius: 0; padding-left: 30px; padding-right: 4px; color: #fff; height: 40px; font-size: 14px;"
-                                            title="Destination"
-                                            onchange="this.style.color='white'">
-                                        <option value="" style="color: #333;">All Destinations</option>
-                                        @foreach($locations as $location)
-                                            <option value="{{ $location }}" {{ request('location') == $location ? 'selected' : '' }} style="color:#333;">
-                                                {{ $location }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
 
-                            <!-- Check In Date -->
-                            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6">
-                                <div class="form-item position-relative">
-                                    <i class="fas fa-calendar-check position-absolute" style="left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.85); z-index: 10; pointer-events: none; font-size: 14px;"></i>
-                                    <input type="date"
-                                           class="form-control form-control-sm"
-                                           name="checkin"
-                                           id="checkinDate"
-                                           value="{{ request('checkin') }}"
-                                           min="{{ date('Y-m-d') }}"
-                                           
-                                           style="background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.6); border-radius: 0; padding-left: 30px; color: #fff; height: 40px; font-size: 14px;"
-                                           title="Check In Date">
+                    {{-- Search bar (same as header - redirects to search results) --}}
+                    <div class="row justify-content-center mt-4">
+                        <div class="col-12">
+                            <form action="{{ route('hotelsSearch') }}" method="GET" id="heroSearchForm" class="hero-search-form bg-white rounded-3 p-3" style="max-width: 900px; margin: 0 auto; background: #ffffff !important; border: 1px solid rgba(0,0,0,0.08) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.2), 0 2px 10px rgba(0,0,0,0.1) !important;">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-xl-3 col-lg-3 col-md-4">
+                                        <div class="position-relative">
+                                            <i class="fas fa-map-marker-alt position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                            <select name="location" class="form-select form-select-sm" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                                                <option value="">Enter Destination</option>
+                                                @if(isset($searchLocations) && $searchLocations->isNotEmpty())
+                                                    @foreach($searchLocations as $loc)
+                                                        <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                                    @endforeach
+                                                @elseif(isset($locations) && $locations->isNotEmpty())
+                                                    @foreach($locations as $loc)
+                                                        <option value="{{ $loc }}" {{ request('location') == $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-2 col-lg-2 col-md-3">
+                                        <div class="position-relative">
+                                            <i class="fas fa-calendar-check position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                            <input type="date" name="checkin" id="checkinDate" class="form-control form-control-sm" value="{{ request('checkin') }}" min="{{ date('Y-m-d') }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-2 col-lg-2 col-md-3">
+                                        <div class="position-relative">
+                                            <i class="fas fa-calendar-times position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                            <input type="date" name="checkout" id="checkoutDate" class="form-control form-control-sm" value="{{ request('checkout') }}" min="{{ date('Y-m-d', strtotime('+1 day')) }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-2 col-lg-2 col-md-3">
+                                        <div class="position-relative">
+                                            <i class="fas fa-users position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
+                                            <input type="number" name="guests" class="form-control form-control-sm" placeholder="Guests" value="{{ request('guests', 1) }}" min="1" max="20" style="padding-left: 38px; border-radius: 8px; height: 44px;">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-2 col-lg-2 col-md-4">
+                                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px; height: 44px; font-weight: 600;">
+                                            <i class="fas fa-search me-2"></i>Search
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <!-- Check Out Date -->
-                            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6">
-                                <div class="form-item position-relative">
-                                    <i class="fas fa-calendar-times position-absolute" style="left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.85); z-index: 10; pointer-events: none; font-size: 14px;"></i>
-                                    <input type="date"
-                                           class="form-control form-control-sm"
-                                           name="checkout"
-                                           id="checkoutDate"
-                                           value="{{ request('checkout') }}"
-                                           min="{{ date('Y-m-d', strtotime('+1 day')) }}"
-                                           
-                                           style="background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.6); border-radius: 0; padding-left: 30px; color: #fff; height: 40px; font-size: 14px;"
-                                           title="Check Out Date">
-                                </div>
-                            </div>
-
-                            <!-- Optional Keyword Search -->
-                            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6 d-none d-md-block">
-                                <div class="form-item position-relative">
-                                    <i class="fas fa-search position-absolute" style="left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.85); z-index: 10; pointer-events: none; font-size: 14px;"></i>
-                                    <input type="text"
-                                           class="form-control form-control-sm"
-                                           name="q"
-                                           placeholder="Property name (optional)"
-                                           value="{{ request('q') }}"
-                                           style="background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.6); border-radius: 0; padding-left: 30px; color: #fff; height: 40px; font-size: 14px;"
-                                           title="Search by Name">
-                                </div>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6">
-                                <button type="submit"
-                                        class="th-btn btn-fw style3 w-100"
-                                        id="searchBtn"
-                                        style="height: 40px; padding: 8px 18px; font-size: 14px; font-weight: 600; background: linear-gradient(135deg, #25D366, #128C7E); border: none; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.45);"
-                                        title="Search Properties">
-                                    <i class="fas fa-search me-2"></i>Search
-                                </button>
-                            </div>
+                                <div id="formMessages" class="small mt-2" style="display: none;"></div>
+                            </form>
                         </div>
-
-                        <p class="form-messages mb-0 mt-3 text-white text-center" id="formMessages" style="font-size: 13px;"></p>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -113,278 +82,211 @@ Hero Area
     <!--======== / Hero Section ========-->
     
     <!--==============================
-Our Services  
-==============================-->
-    <section class="space" id="services-sec">
+    Featured Listings – 3 latest items: cover image, short description, rating, Check availability
+    ==============================-->
+    <section class="position-relative overflow-hidden space" id="featured-listings-sec">
         <div class="container">
+            <div class="row justify-content-center mb-4">
+                <div class="col-12">
+                    <div class="title-area text-center">
+                        <h2 class="sec-title">Featured Listings</h2>
+                        <p class="sec-text">Our latest properties. Check availability and book your stay.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                @foreach($latestProperties ?? [] as $item)
+                    @php
+                        $isProperty = $item instanceof \App\Models\Property;
+                        $coverImage = $isProperty
+                            ? ($item->featured_image ? asset('storage/images/properties/' . $item->featured_image) : asset('assets/img/tour/tour_3_1.jpg'))
+                            : ($item->image ? asset('storage/images/hotels/' . $item->image) : asset('assets/img/tour/tour_3_1.jpg'));
+                        $description = $item->description ?? '';
+                        $shortDesc = \Illuminate\Support\Str::limit(strip_tags($description), 120);
+                        $starsValue = $item->stars ?? 0;
+                        preg_match('/\d+/', (string)$starsValue, $m);
+                        $stars = !empty($m) ? max(0, min(5, (int)$m[0])) : 0;
+                        $detailUrl = $isProperty ? route('hotel', $item->slug ?? $item->id) : route('hotelRooms', $item->slug);
+                        $minPrice = null;
+                        $currency = 'USD';
+                        if ($isProperty && $item->units && $item->units->isNotEmpty()) {
+                            $cheapest = $item->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
+                            if ($cheapest) {
+                                $minPrice = $cheapest->base_price_per_night;
+                                $currency = $cheapest->currency ?? 'USD';
+                            }
+                        } elseif (!$isProperty && $item->rooms && $item->rooms->isNotEmpty()) {
+                            $cheapest = $item->rooms->where('price_per_night', '>', 0)->sortBy('price_per_night')->first();
+                            if ($cheapest) {
+                                $minPrice = $cheapest->price_per_night ?? $cheapest->price ?? null;
+                                $currency = $cheapest->currency ?? 'USD';
+                            }
+                        }
+                        $currencySymbol = getCurrencySymbol($currency);
+                    @endphp
+                    <div class="col-lg-4 col-md-6">
+                        <div class="tour-box th-ani h-100">
+                            <div class="tour-box_img global-img">
+                                <img src="{{ $coverImage }}" alt="{{ $item->name }}" style="width: 100%; height: 220px; object-fit: cover;">
+                            </div>
+                            <div class="tour-content">
+                                <h3 class="box-title">
+                                    <a href="{{ $detailUrl }}">{{ $item->name }}</a>
+                                </h3>
+                                <div class="star-rating mb-2" role="img" aria-label="Rated {{ $stars }} out of 5">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= $stars)
+                                            <i class="fa-solid fa-star text-warning" aria-hidden="true"></i>
+                                        @else
+                                            <i class="fa-regular fa-star text-warning" aria-hidden="true"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                                @if($shortDesc)
+                                    <p class="mb-3" style="color: #666; font-size: 0.95rem; line-height: 1.5;">{{ $shortDesc }}</p>
+                                @endif
+                                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                    @if($minPrice)
+                                        <span class="text-success fw-semibold" style="font-size: 1.1rem;">{{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night</span>
+                                    @else
+                                        <span class="text-muted small">Price on request</span>
+                                    @endif
+                                    <a href="{{ $detailUrl }}" class="th-btn style3 featured-listing-avail-btn">Check availability</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <!--==============================
+    Travel Services – buttons/icons with full-width background image
+    ==============================-->
+    @php
+        $travelServicesBg = isset($about) && !empty($about->image1)
+            ? asset('storage/images/about/' . $about->image1)
+            : asset('assets/img/tour/tour_3_1.jpg');
+    @endphp
+    <section class="space travel-services-section" id="travel-services-sec">
+        <div class="travel-services-bg" style="background-image: url('{{ $travelServicesBg }}');"></div>
+        <div class="container position-relative" style="z-index: 2;">
             <div class="row justify-content-center mb-4">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Our Services</h2>
-                        <p class="sec-text">Stay, explore, and travel with a single trusted partner.</p>
+                        <h2 class="sec-title text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.4);">Travel Services</h2>
+                        <p class="sec-text text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Complete your trip with our travel services</p>
                     </div>
                 </div>
             </div>
 
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="card h-100 text-center border-0 shadow-sm" style="border-radius: 18px;">
-                        <div class="card-body p-4">
-                            <div style="width:56px; height:56px; border-radius:18px; background:rgba(37,211,102,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-                                <i class="fas fa-bed" style="color:#25D366; font-size:22px;"></i>
-                            </div>
-                            <h5 class="card-title mb-2">Accommodation Booking</h5>
-                            <p class="card-text mb-3" style="font-size:14px; color:#555;">
-                                Hotels, apartments, and properties across Rwanda tailored to your comfort and budget.
-                            </p>
-                            <a href="{{ route('hotels') }}" class="th-btn style3 th-icon w-100">Browse Accommodations</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card h-100 text-center border-0 shadow-sm" style="border-radius: 18px;">
-                        <div class="card-body p-4">
-                            <div style="width:56px; height:56px; border-radius:18px; background:rgba(37,211,102,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-                                <i class="fas fa-mountain" style="color:#25D366; font-size:22px;"></i>
-                            </div>
-                            <h5 class="card-title mb-2">Tour Experiences</h5>
-                            <p class="card-text mb-3" style="font-size:14px; color:#555;">
-                                Safaris, gorilla trekking, cultural tours, and scenic adventures around East Africa.
-                            </p>
-                            <a href="{{ route('tours') }}" class="th-btn style4 th-icon w-100">View Tour Destinations</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card h-100 text-center border-0 shadow-sm" style="border-radius: 18px;">
-                        <div class="card-body p-4">
-                            <div style="width:56px; height:56px; border-radius:18px; background:rgba(37,211,102,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-                                <i class="fas fa-headset" style="color:#25D366; font-size:22px;"></i>
-                            </div>
-                            <h5 class="card-title mb-2">Travel Support</h5>
-                            <p class="card-text mb-3" style="font-size:14px; color:#555;">
-                                Friendly assistance with planning, bookings, and on-trip support from our local team.
-                            </p>
-                            <a href="{{ route('connect') }}" class="th-btn style2 w-100">Contact Our Team</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!--==============================
-Latest Accommodations  
-==============================-->
-    <section class="position-relative overflow-hidden space" id="latest-properties-sec">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="title-area text-center">
-                        <h2 class="sec-title">Latest Accommodations</h2>
-                        <p class="sec-text">Discover our newest hotels, apartments, and stays</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row gy-30">
-                @forelse($latestProperties as $hotel)
-                    <div class="col-lg-4 col-md-6">
-                        <div class="tour-box th-ani" style="height: 100%;">
-                            <div class="tour-box_img global-img" style="position: relative;">
-                                @php
-                                    $primaryImage = $hotel->featured_image ?? $hotel->image ?? null;
-                                    $isPropertyModel = isset($hotel->property_type);
-                                @endphp
-                                @if($primaryImage)
-                                    @php
-                                        $imagePath = $isPropertyModel
-                                            ? 'storage/images/properties/' . $primaryImage
-                                            : 'storage/images/hotels/' . $primaryImage;
-                                    @endphp
-                                    <img src="{{ asset($imagePath) }}" alt="{{ $hotel->name }}">
-                                @else
-                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $hotel->name }}">
-                                @endif
-                                @php
-                                    $minPrice = null;
-                                    $currency = 'USD'; // Default currency
-                                    
-                                    if (isset($hotel->property_type)) {
-                                        // Property model - get from units
-                                        $minPrice = $hotel->min_price ?? null;
-                                        if ($hotel->units && $hotel->units->isNotEmpty()) {
-                                            $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
-                                            if ($cheapestUnit) {
-                                                if (!$minPrice) {
-                                                    $minPrice = $cheapestUnit->base_price_per_night;
-                                                }
-                                                $currency = $cheapestUnit->currency ?? 'USD';
-                                            }
-                                        }
-                                    } else {
-                                        // Hotel model - get from rooms
-                                        $minPrice = $hotel->min_price ?? ($hotel->rooms ? $hotel->rooms->where('price_per_night', '>', 0)->min('price_per_night') : null);
-                                        if ($hotel->rooms && $hotel->rooms->isNotEmpty()) {
-                                            $cheapestRoom = $hotel->rooms->where('price_per_night', '>', 0)->sortBy('price_per_night')->first();
-                                            if ($cheapestRoom) {
-                                                $currency = $cheapestRoom->currency ?? 'USD';
-                                            }
-                                        }
-                                    }
-                                    $currencySymbol = getCurrencySymbol($currency);
-                                @endphp
-                                @if($minPrice)
-                                    <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                                        {{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="tour-content">
-                                <h3 class="box-title">
-                                    @if(isset($hotel->property_type))
-                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
-                                    @else
-                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}">{{ $hotel->name }}</a>
-                                    @endif
-                                </h3>
-
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="tour-rating">
-                                        @php
-                                            // Parse stars - handle different formats like "5", "5 Star", "5-Star", etc.
-                                            $starsValue = $hotel->stars ?? 0;
-                                            if (is_string($starsValue)) {
-                                                // Extract number from string (e.g., "5 Star" -> 5)
-                                                preg_match('/\d+/', $starsValue, $matches);
-                                                $stars = !empty($matches) ? (int)$matches[0] : 0;
-                                            } else {
-                                                $stars = (int)$starsValue;
-                                            }
-                                            $stars = max(0, min(5, $stars)); // Ensure between 0 and 5
-                                            $avgRating = $hotel->average_rating ?? 0;
-                                            $totalReviews = $hotel->total_reviews ?? 0;
-                                        @endphp
-
-                                        <div class="star-rating" role="img" aria-label="Rated {{ $stars }} out of 5">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                @if($i <= $stars)
-                                                    <i class="fa-solid fa-star text-warning" aria-hidden="true"></i>
-                                                @else
-                                                    <i class="fa-regular fa-star text-warning" aria-hidden="true"></i>
-                                                @endif
-                                            @endfor
-                                            @if($totalReviews > 0)
-                                                <span class="ms-2" style="font-size: 14px; color: #666;">
-                                                    {{ number_format($avgRating, 1) }} ({{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }})
-                                                </span>
-                                            @else
-                                                <span class="ms-2" style="font-size: 14px; color: #666;">No reviews yet</span>
-                                            @endif
-                                        </div>
-                                    </div>
+                    <a href="{{ route('connect') }}" class="text-decoration-none">
+                        <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
+                            <div class="card-body p-4">
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(37,211,102,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="fas fa-plane" style="color:#25D366; font-size:28px;"></i>
                                 </div>
-
-                                <p class="mb-3" style="margin:6px 0; color: #666;">
-                                    <i class="fa-solid fa-location-dot text-primary me-2" aria-hidden="true"></i>
-                                    <strong>{{ $hotel->location ?? $hotel->city ?? 'Location not specified' }}</strong>
+                                <h5 class="card-title mb-2" style="color:#1a1a1a;">Airport Transfers</h5>
+                                <p class="card-text mb-0" style="font-size:14px; color:#555;">
+                                    Reliable airport pickup and drop-off services
                                 </p>
-
-                                <div class="tour-action">
-                                    @if(isset($hotel->property_type))
-                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
-                                        <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
-                                    @else
-                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style4 th-icon">View Rooms</a>
-                                        <a href="{{ route('hotelRooms', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
-                                    @endif
-                                </div>
                             </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="col-12">
-                        <div class="text-center py-5">
-                            <p class="text-muted">No properties available at the moment.</p>
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ route('showCars') }}" class="text-decoration-none">
+                        <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
+                            <div class="card-body p-4">
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(37,211,102,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="fas fa-car" style="color:#25D366; font-size:28px;"></i>
+                                </div>
+                                <h5 class="card-title mb-2" style="color:#1a1a1a;">Car Rentals</h5>
+                                <p class="card-text mb-0" style="font-size:14px; color:#555;">
+                                    Rent a car for your journey
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                @endforelse
+                    </a>
+                </div>
+
+                <div class="col-md-4">
+                    <a href="{{ route('tours') }}" class="text-decoration-none">
+                        <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
+                            <div class="card-body p-4">
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(37,211,102,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="fas fa-map-marked-alt" style="color:#25D366; font-size:28px;"></i>
+                                </div>
+                                <h5 class="card-title mb-2" style="color:#1a1a1a;">Tours</h5>
+                                <p class="card-text mb-0" style="font-size:14px; color:#555;">
+                                    Discover tours and activities
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 
     <!--==============================
-Top Tour Destinations  
-==============================-->
-    <section class="tour-area3 position-relative bg-top-center overflow-hidden space" id="trip-activities-sec" data-bg-src="#">
+    Customer Reviews (StayNets Wireframe)
+    ==============================-->
+    @if(isset($businessReviews) && $businessReviews->isNotEmpty())
+    <section class="space" id="customer-reviews-sec" style="background:#f7f7f7;">
         <div class="container">
-            <div class="row justify-content-center">
+            <div class="row justify-content-center mb-4">
                 <div class="col-lg-8">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Top Tour Destinations</h2>
-                        <p class="sec-text">Choose a destination to explore its latest trip activities</p>
+                        <h2 class="sec-title">Customer Reviews</h2>
+                        <p class="sec-text">What our guests say about their experience</p>
                     </div>
                 </div>
             </div>
-
-            @php
-                $homeTripDestinations = isset($tripDestinations) ? $tripDestinations->take(6) : collect();
-            @endphp
-
-            <div class="slider-area tour-slider slider-drag-wrap">
-                <div class="swiper th-slider has-shadow" data-slider-options='{"breakpoints":{"0":{"slidesPerView":1},"576":{"slidesPerView":"1"},"768":{"slidesPerView":"2"},"992":{"slidesPerView":"3"},"1200":{"slidesPerView":"3"},"1400":{"slidesPerView":"4"}}}'>
-                    <div class="swiper-wrapper">
-                        @forelse($homeTripDestinations as $destination)
-                            <div class="swiper-slide">
-                                <div class="tour-box th-ani gsap-cursor">
-                                    <div class="tour-box_img global-img" style="position: relative;">
-                                        @if($destination->image && file_exists(storage_path('app/public/images/trip-destinations/' . $destination->image)))
-                                            <img src="{{ asset('storage/images/trip-destinations/' . $destination->image) }}" alt="{{ $destination->name }}" style="height: 250px !important; object-fit: cover;">
+            <div class="row g-4">
+                @foreach($businessReviews->take(3) as $review)
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm review-card" style="border-radius: 18px;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                @php
+                                    $stars = (int)($review->rating ?? 5);
+                                    $stars = max(1, min(5, $stars));
+                                @endphp
+                                <div class="star-rating me-2">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= $stars)
+                                            <i class="fa-solid fa-star text-warning"></i>
                                         @else
-                                            <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $destination->name }}" style="height: 250px !important; object-fit: cover;">
+                                            <i class="fa-regular fa-star text-warning"></i>
                                         @endif
-                                        <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                                            {{ $destination->trips->count() }} Activities
-                                        </div>
-                                    </div>
-                                    <div class="tour-content">
-                                        <h3 class="box-title">
-                                            <a href="{{ route('tripDestination', $destination->slug) }}">{{ $destination->name }}</a>
-                                        </h3>
-                                        <div class="tour-rating">
-                                            @if($destination->location)
-                                                <p style="margin: 5px 0;">
-                                                    <i class="fa-solid fa-location-dot text-primary me-2"></i>{{ $destination->location }}
-                                                </p>
-                                            @endif
-                                            @if($destination->description)
-                                                <p class="mt-2" style="font-size: 14px; color: #666;">
-                                                    {{ \Illuminate\Support\Str::limit(strip_tags($destination->description), 100) }}
-                                                </p>
-                                            @endif
-                                        </div>
-                                        <div class="tour-action">
-                                            <a href="{{ route('tripDestination', $destination->slug) }}" class="th-btn style4 th-icon">View Activities</a>
-                                        </div>
-                                    </div>
+                                    @endfor
                                 </div>
+                                @if($review->user)
+                                <span class="text-muted small">{{ $review->user->name ?? 'Guest' }}</span>
+                                @else
+                                <span class="text-muted small">{{ $review->names ?? 'Guest' }}</span>
+                                @endif
                             </div>
-                        @empty
-                            <div class="col-12">
-                                <div class="text-center py-5">
-                                    <p class="text-muted">No trip destinations available at the moment.</p>
-                                </div>
-                            </div>
-                        @endforelse
+                            <p class="card-text mb-0" style="font-size: 14px; color: #555; line-height: 1.6;">
+                                {{ \Illuminate\Support\Str::limit(strip_tags($review->testimony ?? ''), 120) }}
+                            </p>
+                        </div>
                     </div>
-                    <div class="slider-pagination"></div>
                 </div>
+                @endforeach
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ route('reviews.index') }}" class="th-btn style3 th-icon">View All Reviews</a>
             </div>
         </div>
     </section>
+    @endif
 
     <!--==============================
 Why Choose Stay Nets  
@@ -493,7 +395,7 @@ Why Choose Stay Nets
             </div>
         </div>
     </section>
-    
+
     <!--==============================
 About Area  
 ==============================-->
@@ -554,6 +456,13 @@ Service Area
 
 
 <style>
+/* Featured Listings: small availability button */
+#featured-listings-sec .featured-listing-avail-btn {
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+}
+
 /* Hero Section Fixes */
 #hero.th-hero-wrapper.hero-7 {
     min-height: 500px !important;
@@ -576,45 +485,48 @@ Service Area
     padding: 100px 0 30px 0 !important;
 }
 
-/* Glass morphism effect for form - More transparent */
+/* Hero search form - clear, high-contrast on image */
 #heroSearchForm {
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease;
+    background: #ffffff !important;
 }
 
 #heroSearchForm:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 14px 50px rgba(0, 0, 0, 0.25), 0 4px 15px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Form inputs styling - Transparent backgrounds */
 #heroSearchForm .form-control,
 #heroSearchForm .form-select {
     transition: all 0.3s ease;
-    color: white !important;
+    background: #ffffff !important;
+    color: #333 !important;
+    border: 1px solid #dee2e6 !important;
 }
 
 #heroSearchForm .form-control:focus,
 #heroSearchForm .form-select:focus {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+    background: #ffffff !important;
+    border-color: #25D366 !important;
+    box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.2);
     outline: none;
+    color: #333 !important;
 }
 
 #heroSearchForm .form-control::placeholder {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: #6c757d !important;
 }
 
-/* Select dropdown styling */
+#heroSearchForm .position-absolute i {
+    color: #6c757d !important;
+}
+
 #heroSearchForm select option {
     background: white;
     color: #333;
 }
 
-/* Date input calendar icon */
 #heroSearchForm input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: pointer;
 }
 
@@ -689,6 +601,41 @@ Service Area
 .review-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 25px rgba(0,0,0,0.12) !important;
+}
+
+/* Travel Service Card Hover */
+.travel-service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(37, 211, 102, 0.2) !important;
+}
+
+/* Travel Services section – full-width background image */
+.travel-services-section {
+    position: relative;
+    overflow: hidden;
+}
+.travel-services-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Parallax: background stays fixed while content scrolls */
+}
+@media (max-width: 768px) {
+    .travel-services-bg {
+        background-attachment: scroll; /* Fallback for mobile (fixed can cause issues) */
+    }
+}
+.travel-services-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.5) 100%);
+    pointer-events: none;
 }
 </style>
 

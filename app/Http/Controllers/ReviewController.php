@@ -117,7 +117,56 @@ class ReviewController extends Controller
         return back()->with('success', 'Thank you for your review! It has been published.');
     }
     /**
-     * Store a property review
+     * Store a property review (anyone can rate: logged-in user or guest name/email)
+     */
+    public function storePropertyReview(Request $request, $propertySlugOrId)
+    {
+        $property = \App\Models\Property::where('status', 'Active')
+            ->where(function ($q) use ($propertySlugOrId) {
+                if (is_numeric($propertySlugOrId)) {
+                    $q->where('id', $propertySlugOrId);
+                } else {
+                    $q->where('slug', $propertySlugOrId);
+                }
+            })
+            ->firstOrFail();
+
+        $rules = [
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+            'title' => 'nullable|string|max:255',
+        ];
+        if (!Auth::check()) {
+            $rules['guest_name'] = 'required|string|max:255';
+            $rules['guest_email'] = 'required|email';
+        }
+        $request->validate($rules);
+
+        $review = PropertyReview::create([
+            'user_id' => Auth::id(),
+            'guest_name' => Auth::check() ? null : $request->guest_name,
+            'guest_email' => Auth::check() ? null : $request->guest_email,
+            'property_id' => $property->id,
+            'reviewable_type' => 'property',
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            'title' => $request->title,
+            'is_approved' => false,
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Thank you! Your rating has been submitted and will appear after approval.',
+                'review' => $review,
+            ]);
+        }
+
+        return back()->with('success', 'Thank you! Your rating has been submitted and will appear after approval.');
+    }
+
+    /**
+     * Store a property review (legacy: hotel_id)
      */
     public function storeProperty(Request $request, $hotelId)
     {

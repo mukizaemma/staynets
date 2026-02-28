@@ -82,6 +82,8 @@ class HomeController extends Controller
             ->with(['units' => function($q) {
                 $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
             }, 'reviews'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
             ->latest()
             ->take(3)
             ->get();
@@ -96,7 +98,7 @@ class HomeController extends Controller
                 ->get();
         }
 
-        // Get latest 3 trip activities
+        // Featured Listings: 3 latest items only (no filters)
         $popularTrips = Trip::where('status', 'Active')
             ->with(['images', 'reviews', 'destination'])
             ->latest()
@@ -122,7 +124,7 @@ class HomeController extends Controller
             'latestProperties'=>$latestProperties,
             'popularTrips'=>$popularTrips,
             'businessReviews'=>$businessReviews,
-            
+
         ]);
 
     }
@@ -140,7 +142,12 @@ public function hotelsSearch(Request $request)
     $orderby = $request->input('orderby');
 
     $query = Property::query()
-        ->where('status', 'Active');
+        ->where('status', 'Active')
+        ->with(['units' => function($q) {
+            $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
+        }])
+        ->withCount('reviews')
+        ->withAvg('reviews', 'rating');
 
     // Filter by property type
     if (!empty($propertyType)) {
@@ -173,10 +180,36 @@ public function hotelsSearch(Request $request)
         });
     }
 
+    // Filter by star rating (property-defined stars)
+    $starRating = $request->input('star_rating');
+    if ($starRating !== null && $starRating !== '') {
+        $query->whereRaw('COALESCE(CAST(properties.stars AS UNSIGNED), 0) >= ?', [(int) $starRating]);
+    }
+
+    // Filter by amenities (properties that have selected amenities)
+    $amenityIds = array_filter((array) $request->input('amenities', []));
+    if (!empty($amenityIds)) {
+        $query->whereHas('facilities', function ($q) use ($amenityIds) {
+            $q->whereIn('id', $amenityIds);
+        });
+    }
+
+    // Filter by price range (min/max per night from units)
+    $priceMin = $request->input('price_min');
+    $priceMax = $request->input('price_max');
+    if ($priceMin !== null && $priceMin !== '' && is_numeric($priceMin)) {
+        $query->whereHas('units', function ($q) use ($priceMin) {
+            $q->where('base_price_per_night', '>=', (float) $priceMin);
+        });
+    }
+    if ($priceMax !== null && $priceMax !== '' && is_numeric($priceMax)) {
+        $query->whereHas('units', function ($q) use ($priceMax) {
+            $q->where('base_price_per_night', '<=', (float) $priceMax);
+        });
+    }
+
     // Filter by guests (if units relationship exists, filter properties with available units)
-    // This is a basic implementation - you may want to enhance this based on your Unit model
     if (!empty($guests)) {
-        // For now, we'll just store this in session for later use in booking
         session(['search_guests' => $guests]);
     }
 
@@ -195,7 +228,8 @@ public function hotelsSearch(Request $request)
             break;
 
         case 'price':
-            $query->orderBy('name', 'asc'); // replace when price exists
+        case 'best_value':
+            $query->orderBy('name', 'asc'); // Price-based ordering when min_price available
             break;
 
         case 'price-desc':
@@ -203,7 +237,7 @@ public function hotelsSearch(Request $request)
             break;
 
         case 'rating':
-            $query->orderBy('stars', 'desc');
+            $query->orderByRaw('COALESCE(CAST(properties.stars AS UNSIGNED), 0) DESC');
             break;
 
         default:
@@ -212,191 +246,35 @@ public function hotelsSearch(Request $request)
 
     $rooms = $query->paginate(12)->appends($request->query());
 
+    // Filter data for sidebar
+    $locations = Property::where('status', 'Active')->whereNotNull('location')->distinct()->pluck('location');
+    $propertyTypes = ['hotel' => 'Hotel', 'apartment' => 'Apartment', 'villa' => 'Villa', 'guest_house' => 'Guest House', 'lodge' => 'Lodge'];
+    $amenities = \App\Models\Amenity::active()->orderBy('sort_order')->orderBy('title')->get();
+
     // AJAX response
     if ($request->ajax()) {
         $html = view('frontend.partials.accommodations_results', compact('rooms'))->render();
         return response()->json(['html' => $html]);
     }
 
-    return view('frontend.hotelsSearch', compact('rooms'));
+    return view('frontend.hotelsSearch', compact('rooms', 'locations', 'propertyTypes', 'amenities'));
 }
 
 
     public function hotels(Request $request)
 {
-    $type = $request->input('type'); // optional: hotel, apartment, guesthouse, lodge, etc.
-
-    $query = Property::query()
-        ->where('status', 'Active');
-
-    // Filter by property type only when explicitly requested
-    if (!empty($type) && $type !== 'all') {
-        $query->where('property_type', $type);
-    }
-
-    // Enhanced search: search by name OR location when q is provided
-    if ($request->filled('q')) {
-        $searchTerm = $request->q;
-        $query->where(function ($q) use ($searchTerm) {
-            $q->where('name', 'like', '%' . $searchTerm . '%')
-              ->orWhere('location', 'like', '%' . $searchTerm . '%')
-              ->orWhere('city', 'like', '%' . $searchTerm . '%')
-              ->orWhere('address', 'like', '%' . $searchTerm . '%');
-        });
-    }
-
-    // Search by location or city (separate filter)
-    if ($request->filled('location')) {
-        $query->where(function ($q) use ($request) {
-            $q->where('location', 'like', '%' . $request->location . '%')
-              ->orWhere('city', 'like', '%' . $request->location . '%');
-        });
-    }
-
-    // Optional: filter by category
-    if ($request->filled('category_id')) {
-        $query->where('category_id', $request->category_id);
-    }
-
-    // Ordering
-    $orderby = $request->input('orderby', 'menu_order');
-    switch ($orderby) {
-        case 'date':
-            $query->orderBy('created_at', 'desc');
-            break;
-        case 'price':
-            $query->orderBy('name', 'asc'); // Replace when price exists
-            break;
-        case 'price-desc':
-            $query->orderBy('name', 'desc');
-            break;
-        case 'rating':
-            $query->orderBy('stars', 'desc');
-            break;
-        case 'popularity':
-            // You can implement popularity based on bookings/views
-            $query->orderBy('created_at', 'desc');
-            break;
-        default:
-            $query->latest();
-    }
-
-    $rooms = $query->with('units')->paginate(12)->appends($request->query());
-
-    // Get unique locations for the search dropdown (use all active properties)
-    $locations = Property::where('status', 'Active')
-        ->whereNotNull('location')
-        ->where('location', '!=', '')
-        ->distinct()
-        ->pluck('location')
-        ->filter()
-        ->sort()
-        ->values()
-        ->toArray();
-
-    // Also include cities
-    $cities = Property::where('status', 'Active')
-        ->whereNotNull('city')
-        ->where('city', '!=', '')
-        ->distinct()
-        ->pluck('city')
-        ->filter()
-        ->sort()
-        ->values()
-        ->toArray();
-
-    // Merge and remove duplicates
-    $allLocations = array_unique(array_merge($locations, $cities));
-    sort($allLocations);
-
-    // AJAX response
-    if ($request->ajax()) {
-        $html = view('frontend.partials.hotels_results', compact('rooms'))->render();
-        return response()->json(['html' => $html]);
-    }
-
-    return view('frontend.hotels', compact('rooms', 'allLocations', 'type'));
+    return redirect()->route('hotelsSearch', array_merge($request->query(), ['property_type' => 'hotel']));
 }
 
 
     public function apartments(Request $request)
     {
-        $q = $request->input('q');
-        $orderby = $request->input('orderby');
-        $query = Property::query()
-            ->where('status', 'Active')
-            ->where('property_type', 'apartment');
+        return redirect()->route('hotelsSearch', array_merge($request->query(), ['property_type' => 'apartment']));
+    }
 
-        if (!empty($q)) {
-            $query->where(function($qbuilder) use ($q) {
-                $qbuilder->where('name', 'like', "%{$q}%")
-                        ->orWhere('location', 'like', "%{$q}%")
-                        ->orWhere('city', 'like', "%{$q}%");
-            });
-        }
-
-        // ordering
-        switch ($orderby) {
-            case 'date':
-                $query->orderBy('created_at', 'desc');
-                break;
-            case 'price':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'price-desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'rating':
-                $query->orderBy('stars', 'desc');
-                break;
-            case 'popularity':
-                $query->orderBy('created_at', 'desc');
-                break;
-            default:
-                $query->latest();
-        }
-
-        $properties = $query->with('units')->paginate(12)->appends($request->query());
-
-        // Get unique locations for the search dropdown (apartments)
-        $locations = Property::where('status', 'Active')
-            ->where('property_type', 'apartment')
-            ->whereNotNull('location')
-            ->where('location', '!=', '')
-            ->distinct()
-            ->pluck('location')
-            ->filter()
-            ->sort()
-            ->values()
-            ->toArray();
-
-        // Also include cities
-        $cities = Property::where('status', 'Active')
-            ->where('property_type', 'apartment')
-            ->whereNotNull('city')
-            ->where('city', '!=', '')
-            ->distinct()
-            ->pluck('city')
-            ->filter()
-            ->sort()
-            ->values()
-            ->toArray();
-
-        // Merge and remove duplicates
-        $allLocations = array_unique(array_merge($locations, $cities));
-        sort($allLocations);
-
-        if ($request->ajax()) {
-            // render the partial view and return HTML
-            $html = view('frontend.partials.hotels_results', compact('properties'))->render();
-            return response()->json(['html' => $html]);
-        }
-
-        return view('frontend.hotels', [
-            'rooms' => $properties, // Keep 'rooms' for backward compatibility with view
-            'allLocations' => $allLocations,
-        ]);
-    
+    public function villas(Request $request)
+    {
+        return redirect()->route('hotelsSearch', array_merge($request->query(), ['property_type' => 'villa']));
     }
 
 
@@ -716,7 +594,7 @@ public function showAccommodation(Request $request, $slug)
             $q->where('is_active', true);
         },
         'reviews' => function($q) {
-            $q->latest()->take(10);
+            $q->latest();
         },
         'owner',
         'category'
@@ -736,10 +614,25 @@ public function showAccommodation(Request $request, $slug)
         return $amenities->first()->category ?? null;
     })->filter();
 
+    // Related properties: same type or same category, exclude current
+    $relatedProperties = Property::with(['images', 'units'])
+        ->where('id', '!=', $hotel->id)
+        ->where('status', 'Active')
+        ->where(function($q) use ($hotel) {
+            $q->where('property_type', $hotel->property_type)
+                ->orWhere('category_id', $hotel->category_id);
+        })
+        ->withCount('reviews')
+        ->withAvg('reviews', 'rating')
+        ->latest()
+        ->take(4)
+        ->get();
+
     return view('frontend.accommodation', [
         'hotel' => $hotel,
         'rooms' => $hotel->units,
         'amenitiesByCategory' => $amenitiesByCategory,
+        'relatedProperties' => $relatedProperties,
     ]);
 }
 

@@ -38,11 +38,15 @@ class AdminController extends Controller
     }
 
     /**
-     * Display users page - accessible only to admins (role == 1)
-     * Only super admin (email = admin@iremetech.com) can see admin users (role == 1)
-     * Regular admins can only see regular users (role != 1)
+     * Display users page - accessible ONLY to super admin (email = admin@iremetech.com)
+     * Regular admins cannot access the Users section at all.
      */
     public function users(Request $request){
+        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        if (!$isSuperAdmin) {
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+        }
+
         $query = User::withCount(['properties', 'hotelBookings']);
         
         // Check if current user is super admin (email = admin@iremetech.com)
@@ -98,43 +102,33 @@ class AdminController extends Controller
     }
 
     public function showUser($id){
+        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        if (!$isSuperAdmin) {
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+        }
+
         $user = User::with(['properties' => function($query) {
             $query->with('category', 'images')->latest();
         }, 'hotelBookings' => function($query) {
             $query->with('property', 'unit')->latest();
         }])->findOrFail($id);
-        
-        // Check if current user is super admin (email = admin@iremetech.com)
-        // Note: role == 1 means admin
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
-        
-        // If viewing an admin user (role == 1) and current user is not super admin, deny access
-        if ($user->role == 1 && !$isSuperAdmin) {
-            return redirect()->route('users')
-                ->with('error', 'You do not have permission to view admin user details.');
-        }
-        
+
         $setting = Setting::first();
         return view('admin.users.show', [
             'user' => $user,
             'setting' => $setting,
-            'isSuperAdmin' => $isSuperAdmin
+            'isSuperAdmin' => true
         ]);
     }
 
     public function verifyUserEmail($id){
-        $user = User::findOrFail($id);
-        
-        // Check if current user is super admin (email = admin@iremetech.com)
-        // Note: role == 1 means admin
         $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
-        
-        // If trying to verify an admin user (role == 1) and current user is not super admin, deny access
-        if ($user->role == 1 && !$isSuperAdmin) {
-            return redirect()->route('users')
-                ->with('error', 'You do not have permission to verify admin user emails.');
+        if (!$isSuperAdmin) {
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
         }
-        
+
+        $user = User::findOrFail($id);
+
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
             return redirect()->back()->with('success', 'User email has been verified successfully.');
@@ -144,12 +138,9 @@ class AdminController extends Controller
     }
 
     public function makeAdmin($id){
-        // Check if current user is super admin (email = admin@iremetech.com)
-        // Only super admin can grant admin privileges (role == 1)
         $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
-        
         if (!$isSuperAdmin) {
-            return redirect()->back()->with('error', 'Only the super admin can grant admin privileges.');
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
         }
         
         $user = User::findOrFail($id);
@@ -162,17 +153,12 @@ class AdminController extends Controller
     
     public function deleteUser($id)
     {
-        // Check if current user is super admin (email = admin@iremetech.com)
-        // Only super admin can delete admin users (role == 1)
         $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
-        
-        $post = User::findOrFail($id);
-        
-        // Prevent deleting admin users (role == 1) unless super admin
-        if ($post->role == 1 && !$isSuperAdmin) {
-            return redirect()->back()->with('error', 'You do not have permission to delete admin users.');
+        if (!$isSuperAdmin) {
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
         }
-        
+
+        $post = User::findOrFail($id);
         $post->delete();
 
         return redirect()->back()->with('success', 'User has been deleted');

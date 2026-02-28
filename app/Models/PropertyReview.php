@@ -12,6 +12,8 @@ class PropertyReview extends Model
 
     protected $fillable = [
         'user_id',
+        'guest_name',
+        'guest_email',
         'hotel_id',
         'property_id',
         'reviewable_type',

@@ -67,6 +67,18 @@ public function boot(): void
             return collect();
         }
     }));
+
+    View::share('searchLocations', cache()->remember('shared_search_locations', 60 * 60, function () {
+        try {
+            $loc = \App\Models\Property::where('status', 'Active')->whereNotNull('location')->distinct()->pluck('location');
+            if ($loc->isEmpty()) {
+                $loc = \App\Models\Hotel::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
+            }
+            return $loc;
+        } catch (\Throwable $e) {
+            return collect();
+        }
+    }));
 }
 
 }

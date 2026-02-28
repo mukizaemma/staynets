@@ -4,36 +4,51 @@
 <style>
     /* Booking.com Style Layout */
     .property-header-section {
-        margin-bottom: 30px;
+        margin-bottom: 16px;
+    }
+    .property-header-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px 24px;
+        width: 100%;
     }
     .property-title {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
         color: #1a1a1a;
-        margin-bottom: 10px;
+        margin: 0;
         line-height: 1.3;
     }
     .property-location {
         color: #0071c2;
         font-size: 14px;
-        margin-bottom: 15px;
+        margin: 0;
     }
     .property-location:hover {
         text-decoration: underline;
+    }
+    .property-stars-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .property-stars-inline .fa-star {
+        font-size: 14px;
     }
     .property-rating-badge {
         display: inline-flex;
         align-items: center;
         background: #003580;
         color: white;
-        padding: 8px 12px;
+        padding: 6px 12px;
         border-radius: 6px;
         font-weight: 600;
-        font-size: 16px;
-        margin-bottom: 20px;
+        font-size: 14px;
+        margin: 0;
     }
     .property-rating-badge .rating-score {
-        font-size: 20px;
+        font-size: 18px;
         margin-right: 8px;
     }
     
@@ -363,7 +378,10 @@
     }
     @media (max-width: 767px) {
         .property-title {
-            font-size: 24px;
+            font-size: 20px;
+        }
+        .property-header-row {
+            gap: 10px 16px;
         }
         .image-gallery-thumbs {
             grid-template-columns: repeat(2, 1fr);
@@ -378,50 +396,51 @@
     }
 </style>
 
-<div class="container-fluid py-4" style="max-width: 1400px;">
-    <!-- Property Header -->
+<div class="container-fluid py-3" style="max-width: 1400px;">
+    <!-- Property Header - single row full width -->
     <div class="property-header-section">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-            <div>
-                <h1 class="property-title">{{ $hotel->name }}</h1>
-                <div class="property-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    {{ $hotel->location ?? $hotel->city ?? $hotel->address }}
-                    @if($hotel->category)
-                        <span class="text-muted">• {{ $hotel->category->name }}</span>
-                    @endif
-                </div>
-                @if($hotel->stars)
-                    @php
-                        $stars = (int) filter_var($hotel->stars, FILTER_SANITIZE_NUMBER_INT);
-                        $stars = max(0, min(5, $stars));
-                    @endphp
-                    <div class="mb-2">
-                        @for($i = 1; $i <= 5; $i++)
-                            @if($i <= $stars)
-                                <i class="fa-solid fa-star text-warning"></i>
-                            @else
-                                <i class="fa-regular fa-star text-warning"></i>
-                            @endif
-                        @endfor
-                        <span class="ms-2">{{ $stars }} {{ $stars == 1 ? 'Star' : 'Stars' }}</span>
-                    </div>
+        <div class="property-header-row">
+            @php
+                $starsValue = $hotel->stars ?? 0;
+                preg_match('/\d+/', (string)$starsValue, $m);
+                $propertyStars = !empty($m) ? max(0, min(5, (int)$m[0])) : 0;
+                $avgRating = (float) ($hotel->average_rating ?? 0);
+                $totalReviews = (int) ($hotel->total_reviews ?? 0);
+            @endphp
+            <h1 class="property-title">{{ $hotel->name }}</h1>
+            <div class="property-location">
+                <i class="fas fa-map-marker-alt me-1"></i>
+                {{ $hotel->location ?? $hotel->city ?? $hotel->address }}
+                @if($hotel->category)
+                    <span class="text-muted">• {{ $hotel->category->name }}</span>
                 @endif
             </div>
-            @if($hotel->average_rating > 0)
+            @if($propertyStars > 0)
+                <div class="property-stars-inline">
+                    @for($i = 1; $i <= 5; $i++)
+                        @if($i <= $propertyStars)
+                            <i class="fa-solid fa-star text-warning"></i>
+                        @else
+                            <i class="fa-regular fa-star text-warning"></i>
+                        @endif
+                    @endfor
+                    <span class="ms-1" style="font-size: 14px; color: #333;">{{ $propertyStars }} {{ $propertyStars == 1 ? 'Star' : 'Stars' }} property</span>
+                </div>
+            @endif
+            @if($totalReviews > 0)
                 <div class="property-rating-badge">
-                    <span class="rating-score">{{ number_format($hotel->average_rating, 1) }}</span>
+                    <span class="rating-score">{{ number_format($avgRating, 1) }}</span>
                     <div>
                         <div class="star-rating">
                             @for($i = 1; $i <= 5; $i++)
-                                @if($i <= round($hotel->average_rating))
-                                    <i class="fa-solid fa-star" style="font-size: 14px;"></i>
+                                @if($i <= round($avgRating))
+                                    <i class="fa-solid fa-star text-warning" style="font-size: 12px;"></i>
                                 @else
-                                    <i class="fa-regular fa-star" style="font-size: 14px;"></i>
+                                    <i class="fa-regular fa-star text-warning" style="font-size: 12px;"></i>
                                 @endif
                             @endfor
                         </div>
-                        <div style="font-size: 12px; margin-top: 3px;">{{ $hotel->total_reviews }} {{ $hotel->total_reviews == 1 ? 'review' : 'reviews' }}</div>
+                        <div style="font-size: 11px; margin-top: 2px;">{{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }} from guests</div>
                     </div>
                 </div>
             @endif
@@ -538,33 +557,139 @@
                 @endif
             </div>
 
-            <!-- Description -->
+            <!-- Tabs: About | Amenities | Reviews -->
             <div class="content-section">
-                <h2 class="section-title">About this property</h2>
-                <div class="property-description">
-                    {!! $hotel->description ?? '<p class="text-muted">No description available.</p>' !!}
+                <ul class="nav nav-tabs mb-4" id="propertyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-about" data-bs-toggle="tab" data-bs-target="#content-about" type="button" role="tab">About this property</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-amenities" data-bs-toggle="tab" data-bs-target="#content-amenities" type="button" role="tab">Amenities</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-reviews" data-bs-toggle="tab" data-bs-target="#content-reviews" type="button" role="tab">Reviews ({{ $hotel->total_reviews }})</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="propertyTabsContent">
+                    <div class="tab-pane fade show active" id="content-about" role="tabpanel">
+                        <div class="property-description">
+                            {!! $hotel->description ?? '<p class="text-muted">No description available.</p>' !!}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="content-amenities" role="tabpanel">
+                        @if($hotel->facilities->isNotEmpty())
+                            <div class="facilities-grid">
+                                @foreach($hotel->facilities as $facility)
+                                    <div class="facility-item">
+                                        <i class="{{ $facility->icon ?? 'fas fa-check-circle' }}"></i>
+                                        <span>{{ $facility->title }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted">No amenities listed.</p>
+                        @endif
+                    </div>
+                    <div class="tab-pane fade" id="content-reviews" role="tabpanel">
+                        {{-- Guest rating summary --}}
+                        @if($hotel->reviews->isNotEmpty())
+                            <div class="reviews-summary mb-4">
+                                <div class="reviews-score d-inline-block me-4">
+                                    <div class="reviews-score-number">{{ number_format($hotel->average_rating, 1) }}</div>
+                                    <div class="star-rating mb-2">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= round($hotel->average_rating))
+                                                <i class="fa-solid fa-star text-warning"></i>
+                                            @else
+                                                <i class="fa-regular fa-star text-warning"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <div class="reviews-score-label">Total: <strong>{{ $hotel->total_reviews }}</strong> {{ $hotel->total_reviews == 1 ? 'review' : 'reviews' }}</div>
+                                </div>
+                            </div>
+                            <div class="reviews-list mb-4">
+                                @foreach($hotel->reviews as $review)
+                                    <div class="review-item border-bottom pb-3 mb-3">
+                                        <div class="review-header d-flex justify-content-between flex-wrap">
+                                            <span class="review-author fw-semibold">{{ $review->user->name ?? $review->guest_name ?? 'Anonymous' }}</span>
+                                            <div>
+                                                <div class="star-rating d-inline-block">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        @if($i <= $review->rating)
+                                                            <i class="fa-solid fa-star text-warning" style="font-size: 12px;"></i>
+                                                        @else
+                                                            <i class="fa-regular fa-star text-warning" style="font-size: 12px;"></i>
+                                                        @endif
+                                                    @endfor
+                                                </div>
+                                                <span class="text-muted ms-2 small">{{ $review->created_at->format('M j, Y') }}</span>
+                                            </div>
+                                        </div>
+                                        @if($review->title)
+                                            <div class="review-title fw-semibold mt-1">{{ $review->title }}</div>
+                                        @endif
+                                        @if($review->comment)
+                                            <div class="review-text mt-1">{{ $review->comment }}</div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted mb-4">No reviews yet. Be the first to rate this property.</p>
+                        @endif
+
+                        {{-- Rate this property form (anyone can submit) --}}
+                        <div class="content-section" style="padding: 20px; background: #f8f9fa; border-radius: 12px;">
+                            <h4 class="mb-3">Rate this property</h4>
+                            @if(session('success'))
+                                <div class="alert alert-success">{{ session('success') }}</div>
+                            @endif
+                            <form action="{{ url('/accommodations/' . ($hotel->slug ?? $hotel->id) . '/reviews') }}" method="POST" id="propertyReviewForm">
+                                @csrf
+                                @guest
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Your name <span class="text-danger">*</span></label>
+                                        <input type="text" name="guest_name" class="form-control" value="{{ old('guest_name') }}" required maxlength="255">
+                                        @error('guest_name')<div class="text-danger small">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Your email <span class="text-danger">*</span></label>
+                                        <input type="email" name="guest_email" class="form-control" value="{{ old('guest_email') }}" required>
+                                        @error('guest_email')<div class="text-danger small">{{ $message }}</div>@enderror
+                                    </div>
+                                </div>
+                                @endguest
+                                <div class="mb-3">
+                                    <label class="form-label">Rating <span class="text-danger">*</span></label>
+                                    <div class="star-rating-input d-flex gap-1 align-items-center" role="radiogroup" aria-label="Rate from 1 to 5 stars">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <label class="star-rating-star mb-0" data-value="{{ $i }}" title="{{ $i }} {{ $i == 1 ? 'star' : 'stars' }}">
+                                                <input type="radio" name="rating" value="{{ $i }}" {{ old('rating') == $i ? 'checked' : '' }} required class="visually-hidden">
+                                                <i class="fa-star fa-2x {{ old('rating') && old('rating') >= $i ? 'fa-solid text-warning' : 'fa-regular text-warning' }}" style="transition: all 0.2s ease; opacity: 0.9;"></i>
+                                            </label>
+                                        @endfor
+                                        <span class="ms-2 text-muted small" id="ratingLabel">Select your rating</span>
+                                    </div>
+                                    @error('rating')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Title (optional)</label>
+                                    <input type="text" name="title" class="form-control" value="{{ old('title') }}" maxlength="255" placeholder="e.g. Great stay">
+                                    @error('title')<div class="text-danger small">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Your review (optional)</label>
+                                    <textarea name="comment" class="form-control" rows="3" maxlength="1000" placeholder="Share your experience...">{{ old('comment') }}</textarea>
+                                    @error('comment')<div class="text-danger small">{{ $message }}</div>@enderror
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit rating</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- Facilities -->
-            @if($hotel->facilities->isNotEmpty())
-                <div class="content-section">
-                    <h2 class="section-title">Most popular facilities</h2>
-                    <div class="facilities-grid">
-                        @foreach($hotel->facilities->take(12) as $facility)
-                            <div class="facility-item">
-                                <i class="{{ $facility->icon ?? 'fas fa-check-circle' }}"></i>
-                                <span>{{ $facility->title }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                    @if($hotel->facilities->count() > 12)
-                        <p class="text-muted mt-3">
-                            <a href="#all-facilities" class="text-primary">View all {{ $hotel->facilities->count() }} facilities</a>
-                        </p>
-                    @endif
-                </div>
-            @endif
 
             <!-- Rooms Availability Table -->
             @if($rooms->isNotEmpty())
@@ -652,13 +777,71 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Property Location (Map) -->
+            @if($hotel->map_embed_code || ($hotel->latitude && $hotel->longitude) || ($hotel->address || $hotel->location || $hotel->city))
+                <div class="content-section map-container">
+                    <h3 class="section-title"><i class="fas fa-map-marker-alt me-2"></i>Property location</h3>
+                    <p class="text-muted mb-3" style="font-size: 14px;">Use the map below to explore the area and plan your route.</p>
+                    <div class="map-wrapper">
+                        @if($hotel->map_embed_code)
+                            @php
+                                $embedCode = trim($hotel->map_embed_code);
+                                if (preg_match('/<iframe[^>]*>.*?<\/iframe>/is', $embedCode, $matches)) {
+                                    $embedCode = $matches[0];
+                                }
+                                $embedCode = preg_replace('/\s*width\s*=\s*["\'][^"\']*["\']/i', '', $embedCode);
+                                $embedCode = preg_replace('/\s*height\s*=\s*["\'][^"\']*["\']/i', '', $embedCode);
+                                if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/i', $embedCode, $styleMatches)) {
+                                    $existingStyle = $styleMatches[1];
+                                    $existingStyle = preg_replace('/width\s*:\s*[^;]+;?/i', '', $existingStyle);
+                                    $existingStyle = preg_replace('/height\s*:\s*[^;]+;?/i', '', $existingStyle);
+                                    $newStyle = trim($existingStyle, '; ') . '; width:100%;height:100%;border:0;';
+                                    $embedCode = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', 'style="' . $newStyle . '"', $embedCode);
+                                } else {
+                                    $embedCode = preg_replace('/(<iframe[^>]*)(>)/i', '$1 style="width:100%;height:100%;border:0;"$2', $embedCode);
+                                }
+                            @endphp
+                            {!! $embedCode !!}
+                        @elseif($hotel->latitude && $hotel->longitude)
+                            <iframe
+                                src="https://www.google.com/maps?q={{ $hotel->latitude }},{{ $hotel->longitude }}&hl=en&z=14&output=embed"
+                                width="100%"
+                                height="100%"
+                                style="border:0;"
+                                allowfullscreen>
+                            </iframe>
+                        @elseif($hotel->address || $hotel->location || $hotel->city)
+                            @php
+                                $address = $hotel->address ?? $hotel->location ?? $hotel->city;
+                                $encodedAddress = urlencode($address);
+                            @endphp
+                            <iframe
+                                src="https://www.google.com/maps?q={{ $encodedAddress }}&hl=en&z=14&output=embed"
+                                width="100%"
+                                height="100%"
+                                style="border:0;"
+                                allowfullscreen>
+                            </iframe>
+                        @endif
+                    </div>
+                    @if($hotel->address || $hotel->location || $hotel->city)
+                        <p class="text-muted mt-3 mb-0" style="font-size: 13px;">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ $hotel->address ?? $hotel->location ?? $hotel->city }}
+                        </p>
+                    @endif
+                </div>
+            @endif
         </div>
 
-        <!-- Right Column -->
+        <!-- Right Column - Booking Box (StayNets Wireframe) -->
         <div class="col-lg-4">
             <div class="sidebar-sticky">
-                <!-- Reserve Box -->
+                <!-- Booking Box -->
                 <div class="reserve-box" id="reserveBox">
+                    <h5 class="mb-3" style="font-weight: 700; color: #1a1a1a;">
+                        <i class="fas fa-calendar-check me-2"></i>Booking Box
+                    </h5>
                     <div class="reserve-box-header">
                         @php
                             $defaultCurrency = $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD';
@@ -668,7 +851,7 @@
                         <div class="reserve-box-price" id="reservePrice" data-currency="{{ $defaultCurrency }}" data-currency-symbol="{{ $defaultCurrencySymbol }}">
                             {{ $defaultCurrencySymbol }}{{ number_format($defaultPrice, 0) }}
                         </div>
-                        <div class="reserve-box-price-label">per night</div>
+                        <div class="reserve-box-price-label">Price per night</div>
                     </div>
                     
                     <form action="{{ route('bookings.store') }}" method="POST" id="bookingForm">
@@ -719,6 +902,32 @@
                             <label for="special_requests">Special requests (optional)</label>
                             <textarea name="special_requests" id="special_requests" rows="3" class="form-control" placeholder="E.g. late arrival, dietary needs, extra bed"></textarea>
                         </div>
+
+                        <div class="reserve-form-group">
+                            <label for="add_extras">Add Extras (optional)</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extras[]" value="airport_transfer" id="extraAirport">
+                                <label class="form-check-label" for="extraAirport">Airport Transfer</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extras[]" value="breakfast" id="extraBreakfast">
+                                <label class="form-check-label" for="extraBreakfast">Breakfast</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extras[]" value="half_board" id="extraHalfBoard">
+                                <label class="form-check-label" for="extraHalfBoard">Half Board</label>
+                                <small class="d-block text-muted ms-4" style="font-size: 12px;">Breakfast & dinner included</small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extras[]" value="full_board" id="extraFullBoard">
+                                <label class="form-check-label" for="extraFullBoard">Full Board</label>
+                                <small class="d-block text-muted ms-4" style="font-size: 12px;">Breakfast, lunch & dinner included</small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extras[]" value="tour" id="extraTour">
+                                <label class="form-check-label" for="extraTour">Tour Package</label>
+                            </div>
+                        </div>
                         
                         <div class="reserve-form-group">
                             @php
@@ -744,7 +953,7 @@
                         </div>
                         
                         <button type="submit" class="btn-reserve" id="btnReserve" disabled>
-                            <i class="fas fa-calendar-check me-2"></i>Request Availability
+                            <i class="fas fa-calendar-check me-2"></i>Book Now
                         </button>
 
                         <p class="text-center mt-2" style="font-size: 12px; color: #666;">
@@ -753,115 +962,79 @@
                         </p>
                     </form>
                 </div>
-
-                <!-- Reviews & Ratings -->
-                @if($hotel->reviews->isNotEmpty())
-                    <div class="reviews-summary">
-                        <h3 class="section-title" style="font-size: 20px; margin-bottom: 20px;">Guest reviews</h3>
-                        <div class="reviews-score">
-                            <div class="reviews-score-number">{{ number_format($hotel->average_rating, 1) }}</div>
-                            <div class="star-rating mb-2">
-                                @for($i = 1; $i <= 5; $i++)
-                                    @if($i <= round($hotel->average_rating))
-                                        <i class="fa-solid fa-star text-warning"></i>
-                                    @else
-                                        <i class="fa-regular fa-star text-warning"></i>
-                                    @endif
-                                @endfor
-                            </div>
-                            <div class="reviews-score-label">{{ $hotel->total_reviews }} {{ $hotel->total_reviews == 1 ? 'review' : 'reviews' }}</div>
-                        </div>
-                        
-                        <div class="reviews-list">
-                            @foreach($hotel->reviews->take(3) as $review)
-                                <div class="review-item">
-                                    <div class="review-header">
-                                        <span class="review-author">{{ $review->user->name ?? 'Anonymous' }}</span>
-                                        <div>
-                                            <div class="star-rating" style="display: inline-block;">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= $review->rating)
-                                                        <i class="fa-solid fa-star text-warning" style="font-size: 12px;"></i>
-                                                    @else
-                                                        <i class="fa-regular fa-star text-warning" style="font-size: 12px;"></i>
-                                                    @endif
-                                                @endfor
-                                            </div>
-                                            <span class="review-date ms-2">{{ $review->created_at->format('M Y') }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="review-text">{{ Str::limit($review->comment, 150) }}</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Map -->
-                @if($hotel->map_embed_code || ($hotel->latitude && $hotel->longitude) || ($hotel->address || $hotel->location || $hotel->city))
-                    <div class="map-container">
-                        <h3 class="section-title" style="font-size: 20px; margin-bottom: 15px;">Property surroundings</h3>
-                        <div class="map-wrapper">
-                            @if($hotel->map_embed_code)
-                                @php
-                                    // Process the embed code to ensure it fits our container
-                                    $embedCode = trim($hotel->map_embed_code);
-                                    
-                                    // Extract iframe if it's wrapped in other tags
-                                    if (preg_match('/<iframe[^>]*>.*?<\/iframe>/is', $embedCode, $matches)) {
-                                        $embedCode = $matches[0];
-                                    }
-                                    
-                                    // Remove width and height attributes to let CSS handle sizing
-                                    $embedCode = preg_replace('/\s*width\s*=\s*["\'][^"\']*["\']/i', '', $embedCode);
-                                    $embedCode = preg_replace('/\s*height\s*=\s*["\'][^"\']*["\']/i', '', $embedCode);
-                                    
-                                    // Update or add style attribute
-                                    if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/i', $embedCode, $styleMatches)) {
-                                        $existingStyle = $styleMatches[1];
-                                        // Remove width/height from existing style
-                                        $existingStyle = preg_replace('/width\s*:\s*[^;]+;?/i', '', $existingStyle);
-                                        $existingStyle = preg_replace('/height\s*:\s*[^;]+;?/i', '', $existingStyle);
-                                        $newStyle = trim($existingStyle, '; ') . '; width:100%;height:100%;border:0;';
-                                        $embedCode = preg_replace('/style\s*=\s*["\'][^"\']*["\']/i', 'style="' . $newStyle . '"', $embedCode);
-                                    } else {
-                                        // Add style attribute if it doesn't exist
-                                        $embedCode = preg_replace('/(<iframe[^>]*)(>)/i', '$1 style="width:100%;height:100%;border:0;"$2', $embedCode);
-                                    }
-                                @endphp
-                                {!! $embedCode !!}
-                            @elseif($hotel->latitude && $hotel->longitude)
-                                <iframe
-                                    src="https://www.google.com/maps?q={{ $hotel->latitude }},{{ $hotel->longitude }}&hl=en&z=14&output=embed"
-                                    width="100%"
-                                    height="100%"
-                                    style="border:0;"
-                                    allowfullscreen>
-                                </iframe>
-                            @elseif($hotel->address || $hotel->location || $hotel->city)
-                                @php
-                                    $address = $hotel->address ?? $hotel->location ?? $hotel->city;
-                                    $encodedAddress = urlencode($address);
-                                @endphp
-                                <iframe
-                                    src="https://www.google.com/maps?q={{ $encodedAddress }}&hl=en&z=14&output=embed"
-                                    width="100%"
-                                    height="100%"
-                                    style="border:0;"
-                                    allowfullscreen>
-                                </iframe>
-                            @endif
-                        </div>
-                        @if($hotel->address || $hotel->location || $hotel->city)
-                            <p class="text-muted mt-3" style="font-size: 13px;">
-                                <i class="fas fa-map-marker-alt me-2"></i>{{ $hotel->address ?? $hotel->location ?? $hotel->city }}
-                            </p>
-                        @endif
-                    </div>
-                @endif
             </div>
         </div>
     </div>
+
+    <!-- Related Properties -->
+    @if(isset($relatedProperties) && $relatedProperties->isNotEmpty())
+        <div class="mt-5 pt-4 border-top">
+            <h2 class="section-title mb-4">Related properties</h2>
+            <div class="row g-4">
+                @foreach($relatedProperties as $prop)
+                    @php
+                        $propImage = $prop->featured_image ? asset('storage/images/properties/' . $prop->featured_image) : asset('assets/img/tour/tour_3_1.jpg');
+                        if ($prop->images && $prop->images->isNotEmpty()) {
+                            $primary = $prop->images->where('is_primary', true)->first() ?? $prop->images->first();
+                            $propImage = asset('storage/images/properties/' . $primary->image_path);
+                        }
+                        $propMinPrice = $prop->min_price ?? null;
+                        $propCurrency = 'USD';
+                        if ($prop->units && $prop->units->isNotEmpty()) {
+                            $cheapest = $prop->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
+                            if ($cheapest) {
+                                $propMinPrice = $propMinPrice ?? $cheapest->base_price_per_night;
+                                $propCurrency = $cheapest->currency ?? 'USD';
+                            }
+                        }
+                        $propCurrencySymbol = getCurrencySymbol($propCurrency);
+                        $propStars = 0;
+                        if (!empty($prop->stars)) {
+                            preg_match('/\d+/', (string)$prop->stars, $m);
+                            $propStars = !empty($m) ? max(0, min(5, (int)$m[0])) : 0;
+                        }
+                    @endphp
+                    <div class="col-lg-3 col-md-6">
+                        <div class="content-section h-100" style="padding: 0; overflow: hidden;">
+                            <a href="{{ route('hotel', $prop->slug ?? $prop->id) }}" class="d-block">
+                                <div style="height: 180px; overflow: hidden;">
+                                    <img src="{{ $propImage }}" alt="{{ $prop->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="padding: 20px;">
+                                    <h5 class="mb-2" style="font-size: 16px; font-weight: 600;">{{ $prop->name }}</h5>
+                                    @if($propStars > 0)
+                                        <div class="mb-2">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= $propStars)
+                                                    <i class="fa-solid fa-star text-warning" style="font-size: 12px;"></i>
+                                                @else
+                                                    <i class="fa-regular fa-star text-warning" style="font-size: 12px;"></i>
+                                                @endif
+                                            @endfor
+                                            <span class="ms-1 small text-muted">{{ $propStars }} {{ $propStars == 1 ? 'Star' : 'Stars' }}</span>
+                                        </div>
+                                    @endif
+                                    @if($prop->reviews_count > 0)
+                                        <div class="mb-2 small text-muted">
+                                            {{ number_format($prop->reviews_avg_rating ?? 0, 1) }} · {{ $prop->reviews_count }} {{ $prop->reviews_count == 1 ? 'review' : 'reviews' }}
+                                        </div>
+                                    @endif
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        @if($propMinPrice)
+                                            <span class="text-success fw-semibold">{{ $propCurrencySymbol }}{{ number_format($propMinPrice, 0) }}/night</span>
+                                        @else
+                                            <span class="text-muted small">Price on request</span>
+                                        @endif
+                                        <span class="btn btn-sm btn-outline-primary">View</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- Gallery Modal -->
@@ -906,6 +1079,27 @@
     }
     .gallery-thumbnail:hover {
         opacity: 0.8;
+    }
+    /* Star rating form - interactive */
+    .star-rating-star {
+        cursor: pointer;
+        display: inline-flex;
+        padding: 6px 4px;
+        border-radius: 8px;
+        transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .star-rating-star:hover {
+        transform: scale(1.2);
+        background: rgba(255, 193, 7, 0.15);
+    }
+    .star-rating-star i {
+        transition: color 0.2s ease;
+    }
+    .star-rating-star i.fa-regular {
+        color: #ddd !important;
+    }
+    .star-rating-star i.fa-solid {
+        color: #ffc107 !important;
     }
 </style>
 
@@ -1058,14 +1252,65 @@
         });
     @endif
     
+    // Star rating - interactive hover and selection
+    (function initStarRating() {
+        const container = document.querySelector('.star-rating-input');
+        if (!container) return;
+        const stars = container.querySelectorAll('.star-rating-star');
+        const ratingLabel = document.getElementById('ratingLabel');
+        const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+        
+        function updateStars(upToValue) {
+            stars.forEach((star, idx) => {
+                const value = parseInt(star.getAttribute('data-value'), 10);
+                const icon = star.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-regular', 'fa-solid');
+                    icon.classList.add(value <= upToValue ? 'fa-solid' : 'fa-regular');
+                    icon.classList.add('text-warning');
+                }
+            });
+            if (ratingLabel && upToValue > 0) {
+                ratingLabel.textContent = labels[upToValue] + ' (' + upToValue + ' ' + (upToValue === 1 ? 'star' : 'stars') + ')';
+            } else if (ratingLabel) {
+                ratingLabel.textContent = 'Select your rating';
+            }
+        }
+        
+        function getSelectedValue() {
+            const checked = container.querySelector('input[name="rating"]:checked');
+            return checked ? parseInt(checked.value, 10) : 0;
+        }
+        
+        stars.forEach((star) => {
+            star.addEventListener('mouseenter', function() {
+                const value = parseInt(this.getAttribute('data-value'), 10);
+                updateStars(value);
+            });
+            star.addEventListener('mouseleave', function() {
+                updateStars(getSelectedValue());
+            });
+            star.addEventListener('click', function() {
+                const value = parseInt(this.getAttribute('data-value'), 10);
+                this.querySelector('input[type="radio"]').checked = true;
+                updateStars(value);
+            });
+        });
+        
+        updateStars(getSelectedValue());
+    })();
+    
     // Form validation: ensure a room/unit is selected before submit
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    const bookingForm = document.getElementById('bookingForm');
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
         if (!selectedUnitId) {
             e.preventDefault();
             alert('Please select a room first');
             return false;
         }
     });
+    }
 </script>
 
 <!-- Booking Login/Register Modal -->

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container" style="width:90%; margin:20px auto;">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-        <h2 class="box-title mb-0">My Properties</h2>
+        <h2 class="box-title mb-0">Owner Dashboard</h2>
         <div class="d-flex gap-2">
             <a href="{{ route('guide') }}" class="btn btn-outline-primary btn-sm" title="How to add and manage properties">
                 <i class="fas fa-book me-1"></i>Guide
@@ -20,6 +20,154 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
+    {{-- Owner Dashboard Tabs (StayNets Wireframe) --}}
+    <ul class="nav nav-tabs mb-4" id="ownerDashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="earnings-tab" data-bs-toggle="tab" data-bs-target="#earnings" type="button" role="tab">
+                <i class="fas fa-piggy-bank me-2"></i>Earnings
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                <i class="fas fa-lock me-2"></i>Upcoming Bookings
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab">
+                <i class="fas fa-calendar-alt me-2"></i>Calendar
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                <i class="fas fa-history me-2"></i>Bookings History
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="properties-tab" data-bs-toggle="tab" data-bs-target="#properties" type="button" role="tab">
+                <i class="fas fa-building me-2"></i>My Properties
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="ownerDashboardTabContent">
+        {{-- Earnings Tab --}}
+        <div class="tab-pane fade show active" id="earnings" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title"><i class="fas fa-piggy-bank me-2 text-success"></i>Total Earnings</h5>
+                    <p class="display-4 fw-bold text-success mb-0">${{ number_format($earnings ?? 0, 2) }}</p>
+                    <p class="text-muted small mb-0 mt-2">From confirmed and completed bookings</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Upcoming Bookings Tab --}}
+        <div class="tab-pane fade" id="upcoming" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Upcoming Bookings</h5>
+                    @if(isset($upcomingBookings) && $upcomingBookings->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Guest</th>
+                                        <th>Property</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($upcomingBookings as $b)
+                                    <tr>
+                                        <td>{{ $b->guest_name ?? 'N/A' }}</td>
+                                        <td>{{ $b->hotel->name ?? $b->property->name ?? 'N/A' }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($b->check_in)->format('M d, Y') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($b->check_out)->format('M d, Y') }}</td>
+                                        <td>${{ number_format($b->total_amount ?? 0, 2) }}</td>
+                                        <td><span class="badge bg-info">{{ $b->booking_status ?? 'N/A' }}</span></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">No upcoming bookings.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- Booking Calendar Tab --}}
+        <div class="tab-pane fade" id="calendar" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Booking Calendar</h5>
+                    @if(isset($bookingCalendarData) && count($bookingCalendarData) > 0)
+                        <div class="list-group">
+                            @foreach($bookingCalendarData as $evt)
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ $evt['title'] ?? 'Booking' }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ \Carbon\Carbon::parse($evt['start'])->format('M d, Y') }} – {{ \Carbon\Carbon::parse($evt['end'])->format('M d, Y') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-primary">{{ $evt['status'] ?? 'N/A' }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">No bookings in the calendar.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- Bookings History Tab --}}
+        <div class="tab-pane fade" id="history" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Bookings History</h5>
+                    @if(isset($bookingsHistory) && $bookingsHistory->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Guest</th>
+                                        <th>Property</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($bookingsHistory as $b)
+                                    <tr>
+                                        <td>{{ $b->guest_name ?? 'N/A' }}</td>
+                                        <td>{{ $b->hotel->name ?? $b->property->name ?? 'N/A' }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($b->check_in)->format('M d, Y') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($b->check_out)->format('M d, Y') }}</td>
+                                        <td>${{ number_format($b->total_amount ?? 0, 2) }}</td>
+                                        <td><span class="badge bg-secondary">{{ $b->booking_status ?? 'N/A' }}</span></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">No past bookings.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- My Properties Tab --}}
+        <div class="tab-pane fade" id="properties" role="tabpanel">
     @if($hotels->isEmpty())
         <div class="card p-4 text-center">
             <h4>You don't have any properties yet</h4>
@@ -702,6 +850,8 @@
             @endforeach
         </div>
     @endif
+        </div>{{-- end properties tab-pane --}}
+    </div>{{-- end tab-content --}}
 </div>
 
 {{-- ADD ROOM MODAL --}}
