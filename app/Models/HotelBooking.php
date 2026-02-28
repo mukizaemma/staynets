@@ -54,4 +54,9 @@ class HotelBooking extends Model
     {
         return $this->belongsTo(Unit::class);
     }
+
+    public function bookingExtras()
+    {
+        return $this->hasMany(BookingExtra::class, 'hotel_booking_id');
+    }
 }

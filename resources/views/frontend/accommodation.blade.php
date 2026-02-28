@@ -700,7 +700,7 @@
                             <thead>
                                 <tr>
                                     <th>Room Type</th>
-                                    <th>Price per night</th>
+                                    <th>Price</th>
                                     <th>Availability</th>
                                     <th>Action</th>
                                 </tr>
@@ -716,7 +716,17 @@
                                     @endphp
                                     <tr>
                                         <td>
-                                            <div class="room-type-name">{{ $unit->name ?? 'Unit ' . $unit->id }}</div>
+                                            @php
+                                                $unitDisplayName = $unit->name ?? 'Unit ' . $unit->id;
+                                                $unitTypeName = $unit->unitType->name ?? null;
+                                            @endphp
+                                            <div class="room-type-name">
+                                                @if($unitTypeName && $unitTypeName !== $unitDisplayName)
+                                                    {{ $unitTypeName }} – {{ $unitDisplayName }}
+                                                @else
+                                                    {{ $unitDisplayName }}
+                                                @endif
+                                            </div>
                                             <div class="room-type-details">
                                                 @if($unit->max_occupancy)
                                                     <i class="fas fa-users"></i> {{ $unit->max_occupancy }} guests
@@ -736,9 +746,22 @@
                                             @php
                                                 $currency = $unit->currency ?? 'USD';
                                                 $currencySymbol = getCurrencySymbol($currency);
+                                                $uPt = $unit->price_display_type ?? 'per_night';
                                             @endphp
-                                            <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
-                                            <div class="room-price-label">per night</div>
+                                            @if($uPt === 'per_month')
+                                                <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_month ?? 0, 0) }}</div>
+                                                <div class="room-price-label">per month</div>
+                                            @elseif($uPt === 'both')
+                                                <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
+                                                <div class="room-price-label">per night</div>
+                                                @if(!empty($unit->base_price_per_month))
+                                                    <div class="room-price mt-1">{{ $currencySymbol }}{{ number_format($unit->base_price_per_month, 0) }}</div>
+                                                    <div class="room-price-label">per month</div>
+                                                @endif
+                                            @else
+                                                <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
+                                                <div class="room-price-label">per night</div>
+                                            @endif
                                         </td>
                                         <td>
                                             @if($unit->available_units > 0)
@@ -752,12 +775,15 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($unit->available_units > 0)
                                                 @php
                                                     $unitCurrency = $unit->currency ?? 'USD';
                                                     $unitCurrencySymbol = getCurrencySymbol($unitCurrency);
+                                                    $primaryPrice = ($uPt === 'per_month') ? ($unit->base_price_per_month ?? 0) : ($unit->base_price_per_night ?? 0);
+                                                    $unitDisplayNameForJs = $unitTypeName && $unitTypeName !== $unitDisplayName
+                                                        ? $unitTypeName . ' – ' . $unitDisplayName
+                                                        : $unitDisplayName;
                                                 @endphp
-                                                <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $unit->base_price_per_night ?? 0 }}, '{{ $unit->name ?? 'Unit ' . $unit->id }}', '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}')">
+                                                <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $primaryPrice }}, {{ json_encode($unitDisplayNameForJs) }}, '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}', '{{ $uPt }}')">
                                                     Select room
                                                 </button>
                                             @else
@@ -844,14 +870,16 @@
                     </h5>
                     <div class="reserve-box-header">
                         @php
-                            $defaultCurrency = $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD';
+                            $firstUnit = $rooms->isNotEmpty() ? $rooms->first() : null;
+                            $defaultCurrency = $firstUnit ? ($firstUnit->currency ?? 'USD') : 'USD';
                             $defaultCurrencySymbol = getCurrencySymbol($defaultCurrency);
-                            $defaultPrice = $hotel->min_price ?? ($rooms->isNotEmpty() ? ($rooms->first()->base_price_per_night ?? 0) : 0);
+                            $defaultPt = $firstUnit ? ($firstUnit->price_display_type ?? 'per_night') : 'per_night';
+                            $defaultPrice = $hotel->min_price ?? ($firstUnit ? (($defaultPt === 'per_month') ? ($firstUnit->base_price_per_month ?? 0) : ($firstUnit->base_price_per_night ?? 0)) : 0);
                         @endphp
-                        <div class="reserve-box-price" id="reservePrice" data-currency="{{ $defaultCurrency }}" data-currency-symbol="{{ $defaultCurrencySymbol }}">
+                        <div class="reserve-box-price" id="reservePrice" data-currency="{{ $defaultCurrency }}" data-currency-symbol="{{ $defaultCurrencySymbol }}" data-price-type="{{ $defaultPt }}">
                             {{ $defaultCurrencySymbol }}{{ number_format($defaultPrice, 0) }}
                         </div>
-                        <div class="reserve-box-price-label">Price per night</div>
+                        <div class="reserve-box-price-label" id="reservePriceLabel">{{ $defaultPt === 'per_month' ? 'Price per month' : 'Price per night' }}</div>
                     </div>
                     
                     <form action="{{ route('bookings.store') }}" method="POST" id="bookingForm">
@@ -905,27 +933,9 @@
 
                         <div class="reserve-form-group">
                             <label for="add_extras">Add Extras (optional)</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="extras[]" value="airport_transfer" id="extraAirport">
-                                <label class="form-check-label" for="extraAirport">Airport Transfer</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="extras[]" value="breakfast" id="extraBreakfast">
-                                <label class="form-check-label" for="extraBreakfast">Breakfast</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="extras[]" value="half_board" id="extraHalfBoard">
-                                <label class="form-check-label" for="extraHalfBoard">Half Board</label>
-                                <small class="d-block text-muted ms-4" style="font-size: 12px;">Breakfast & dinner included</small>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="extras[]" value="full_board" id="extraFullBoard">
-                                <label class="form-check-label" for="extraFullBoard">Full Board</label>
-                                <small class="d-block text-muted ms-4" style="font-size: 12px;">Breakfast, lunch & dinner included</small>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="extras[]" value="tour" id="extraTour">
-                                <label class="form-check-label" for="extraTour">Tour Package</label>
+                            <div id="extrasContainer">
+                                <p class="text-muted small mb-0" id="extrasPlaceholder">Select a room above to see available extras.</p>
+                                <div id="extrasList"></div>
                             </div>
                         </div>
                         
@@ -933,11 +943,12 @@
                             @php
                                 $formCurrency = $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD';
                                 $formCurrencySymbol = getCurrencySymbol($formCurrency);
-                                $formDefaultPrice = $hotel->min_price ?? ($rooms->isNotEmpty() ? ($rooms->first()->base_price_per_night ?? 0) : 0);
+                                $formPt = $rooms->isNotEmpty() ? ($rooms->first()->price_display_type ?? 'per_night') : 'per_night';
+                                $formDefaultPrice = $hotel->min_price ?? ($rooms->isNotEmpty() ? (($formPt === 'per_month') ? ($rooms->first()->base_price_per_month ?? 0) : ($rooms->first()->base_price_per_night ?? 0)) : 0);
                             @endphp
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
                                 <div class="d-flex justify-content-between mb-2">
-                                    <span>Price per night:</span>
+                                    <span id="priceLabelText">{{ $formPt === 'per_month' ? 'Price per month:' : 'Price per night:' }}</span>
                                     <span id="pricePerNight" data-currency="{{ $formCurrency }}" data-currency-symbol="{{ $formCurrencySymbol }}">{{ $formCurrencySymbol }}{{ number_format($formDefaultPrice, 0) }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
@@ -1105,10 +1116,14 @@
 
 <script>
     let selectedUnitId = null;
-    let selectedUnitPrice = {{ $hotel->min_price ?? ($rooms->first()->base_price_per_night ?? 0) }};
-    let selectedUnitName = '{{ $rooms->first()->name ?? "Unit" }}';
+    let selectedUnitPrice = {{ $rooms->isNotEmpty() ? (($rooms->first()->price_display_type ?? 'per_night') === 'per_month' ? ($rooms->first()->base_price_per_month ?? 0) : ($rooms->first()->base_price_per_night ?? 0)) : 0 }};
+    let selectedUnitName = {!! json_encode($rooms->isNotEmpty() ? ($rooms->first()->name ?? 'Unit') : 'Unit') !!};
     let selectedUnitCurrency = '{{ $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD' }}';
     let selectedUnitCurrencySymbol = '{{ $rooms->isNotEmpty() ? getCurrencySymbol($rooms->first()->currency ?? 'USD') : '$' }}';
+    let selectedUnitPriceType = '{{ $rooms->isNotEmpty() ? ($rooms->first()->price_display_type ?? 'per_night') : 'per_night' }}';
+
+    // Unit extras: unitId => [{ id, name, price }]
+    const unitsExtras = @json($rooms->keyBy('id')->map(function($u) { return $u->extraCharges->map(function($e) { return ['id' => $e->id, 'name' => $e->extraChargeType->name ?? 'Extra', 'price' => (float)$e->price]; })->values()->toArray(); })->toArray());
     
     // Gallery images array
     const galleryImages = @json($allImages->map(function($img) { return $img['url']; })->values());
@@ -1170,23 +1185,52 @@
         }
     });
     
-    function selectRoom(unitId, price, name, currency, currencySymbol) {
+    function selectRoom(unitId, price, name, currency, currencySymbol, priceType) {
+        priceType = priceType || 'per_night';
         selectedUnitId = unitId;
         selectedUnitPrice = price;
         selectedUnitName = name;
         selectedUnitCurrency = currency || 'USD';
         selectedUnitCurrencySymbol = currencySymbol || '$';
+        selectedUnitPriceType = priceType;
         
         document.getElementById('bookingUnitId').value = unitId;
         document.getElementById('reservePrice').textContent = selectedUnitCurrencySymbol + price.toLocaleString();
         document.getElementById('reservePrice').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('reservePrice').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
+        document.getElementById('reservePrice').setAttribute('data-price-type', priceType);
+        var priceLabelEl = document.getElementById('reservePriceLabel');
+        if (priceLabelEl) priceLabelEl.textContent = priceType === 'per_month' ? 'Price per month' : 'Price per night';
         document.getElementById('pricePerNight').textContent = selectedUnitCurrencySymbol + price.toLocaleString();
         document.getElementById('pricePerNight').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('pricePerNight').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
+        var priceLabelTextEl = document.getElementById('priceLabelText');
+        if (priceLabelTextEl) priceLabelTextEl.textContent = priceType === 'per_month' ? 'Price per month:' : 'Price per night:';
         document.getElementById('totalAmount').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('totalAmount').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
         document.getElementById('btnReserve').disabled = false;
+        
+        // Populate Add Extras for this unit
+        var extrasList = document.getElementById('extrasList');
+        var extrasPlaceholder = document.getElementById('extrasPlaceholder');
+        extrasList.innerHTML = '';
+        var extras = unitsExtras[unitId] || [];
+        if (extras.length > 0) {
+            extrasPlaceholder.style.display = 'none';
+            extras.forEach(function(extra) {
+                var div = document.createElement('div');
+                div.className = 'form-check';
+                div.innerHTML = '<input class="form-check-input extra-charge-cb" type="checkbox" name="extra_charges[]" value="' + extra.id + '" id="extra_' + extra.id + '" data-price="' + extra.price + '">' +
+                    '<label class="form-check-label" for="extra_' + extra.id + '">' + extra.name + ' (+' + selectedUnitCurrencySymbol + extra.price.toLocaleString() + ')</label>';
+                extrasList.appendChild(div);
+            });
+            extrasList.querySelectorAll('.extra-charge-cb').forEach(function(cb) {
+                cb.addEventListener('change', calculateTotal);
+            });
+        } else {
+            extrasPlaceholder.style.display = 'block';
+            extrasPlaceholder.textContent = 'No additional extras for this room.';
+        }
         
         // Scroll to reserve box
         document.getElementById('reserveBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1206,6 +1250,21 @@
         const checkIn = document.getElementById('check_in').value;
         const checkOut = document.getElementById('check_out').value;
         const pricePerNight = selectedUnitPrice;
+        const priceType = (typeof selectedUnitPriceType !== 'undefined') ? selectedUnitPriceType : 'per_night';
+
+        var extrasTotal = 0;
+        document.querySelectorAll('#extrasList .extra-charge-cb:checked').forEach(function(cb) {
+            extrasTotal += parseFloat(cb.getAttribute('data-price')) || 0;
+        });
+        
+        if (priceType === 'per_month' && pricePerNight > 0) {
+            document.getElementById('numberOfNights').textContent = '1 month';
+            const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
+            const total = pricePerNight + extrasTotal;
+            document.getElementById('totalAmount').textContent = currencySymbol + total.toLocaleString();
+            if (selectedUnitId) document.getElementById('btnReserve').disabled = false;
+            return;
+        }
         
         if (checkIn && checkOut && pricePerNight > 0) {
             const date1 = new Date(checkIn);
@@ -1217,7 +1276,9 @@
                 
                 document.getElementById('numberOfNights').textContent = diffDays + ' ' + (diffDays == 1 ? 'night' : 'nights');
                 const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
-                document.getElementById('totalAmount').textContent = currencySymbol + (pricePerNight * diffDays).toLocaleString();
+                const baseTotal = pricePerNight * diffDays;
+                const total = baseTotal + extrasTotal;
+                document.getElementById('totalAmount').textContent = currencySymbol + total.toLocaleString();
                 
                 if (selectedUnitId) {
                     document.getElementById('btnReserve').disabled = false;
@@ -1225,13 +1286,13 @@
             } else {
                 document.getElementById('numberOfNights').textContent = '-';
                 const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
-                document.getElementById('totalAmount').textContent = currencySymbol + '0';
+                document.getElementById('totalAmount').textContent = currencySymbol + (extrasTotal || 0).toLocaleString();
                 document.getElementById('btnReserve').disabled = true;
             }
         } else {
             document.getElementById('numberOfNights').textContent = '-';
             const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
-            document.getElementById('totalAmount').textContent = currencySymbol + '0';
+            document.getElementById('totalAmount').textContent = currencySymbol + (extrasTotal || 0).toLocaleString();
             document.getElementById('btnReserve').disabled = true;
         }
     }
@@ -1241,13 +1302,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const firstAvailableRoom = document.querySelector('.btn-book-room:not(:disabled)');
             if (firstAvailableRoom) {
-                const row = firstAvailableRoom.closest('tr');
                 const unitId = {{ $rooms->first()->id }};
-                const price = {{ $rooms->first()->base_price_per_night ?? 0 }};
-                const name = '{{ addslashes($rooms->first()->name ?? "Unit") }}';
+                const pt = '{{ $rooms->first()->price_display_type ?? 'per_night' }}';
+                const price = pt === 'per_month' ? {{ $rooms->first()->base_price_per_month ?? 0 }} : {{ $rooms->first()->base_price_per_night ?? 0 }};
+                const name = {!! json_encode($rooms->first()->name ?? 'Unit') !!};
                 const currency = '{{ $rooms->first()->currency ?? 'USD' }}';
                 const currencySymbol = '{{ getCurrencySymbol($rooms->first()->currency ?? 'USD') }}';
-                selectRoom(unitId, price, name, currency, currencySymbol);
+                selectRoom(unitId, price, name, currency, currencySymbol, pt);
             }
         });
     @endif

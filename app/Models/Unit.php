@@ -161,6 +161,22 @@ class Unit extends Model
     }
 
     /**
+     * Get additional/extra charges for this unit
+     */
+    public function extraCharges()
+    {
+        return $this->hasMany(UnitExtraCharge::class)->where('is_active', true)->with('extraChargeType');
+    }
+
+    /**
+     * Get all extra charge assignments (including inactive) for admin
+     */
+    public function extraChargesAll()
+    {
+        return $this->hasMany(UnitExtraCharge::class)->with('extraChargeType');
+    }
+
+    /**
      * Scope for available units
      */
     public function scopeAvailable($query)

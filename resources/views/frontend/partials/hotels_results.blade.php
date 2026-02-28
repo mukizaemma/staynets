@@ -15,6 +15,7 @@
                                 // Get min price and currency from units relationship (Property model uses units, not rooms)
                                 $minPrice = $hotel->min_price ?? null;
                                 $currency = 'USD'; // Default currency
+                                $priceLabel = '/night';
                                 
                                 if (isset($hotel->property_type)) {
                                     // Property model - get from units
@@ -23,11 +24,23 @@
                                         if ($cheapestUnit) {
                                             $minPrice = $cheapestUnit->base_price_per_night;
                                             $currency = $cheapestUnit->currency ?? 'USD';
+                                            $priceLabel = ($cheapestUnit->price_display_type ?? 'per_night') === 'per_month' ? '/month' : '/night';
+                                        } else {
+                                            $cheapestUnit = $hotel->units->where('base_price_per_month', '>', 0)->sortBy('base_price_per_month')->first();
+                                            if ($cheapestUnit) {
+                                                $minPrice = $cheapestUnit->base_price_per_month;
+                                                $currency = $cheapestUnit->currency ?? 'USD';
+                                                $priceLabel = ($cheapestUnit->price_display_type ?? 'per_night') === 'per_month' ? '/month' : '/night';
+                                            }
                                         }
                                     } elseif ($hotel->units && $hotel->units->isNotEmpty()) {
                                         $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
+                                        if (!$cheapestUnit) {
+                                            $cheapestUnit = $hotel->units->where('base_price_per_month', '>', 0)->sortBy('base_price_per_month')->first();
+                                        }
                                         if ($cheapestUnit) {
                                             $currency = $cheapestUnit->currency ?? 'USD';
+                                            $priceLabel = ($cheapestUnit->price_display_type ?? 'per_night') === 'per_month' ? '/month' : '/night';
                                         }
                                     }
                                 } else {
@@ -37,11 +50,23 @@
                                         if ($cheapestRoom) {
                                             $minPrice = $cheapestRoom->price_per_night;
                                             $currency = $cheapestRoom->currency ?? 'USD';
+                                            $priceLabel = ($cheapestRoom->price_display_type ?? 'per_night') === 'per_month' ? '/month' : '/night';
+                                        } else {
+                                            $cheapestRoom = $hotel->rooms->where('price_per_month', '>', 0)->sortBy('price_per_month')->first();
+                                            if ($cheapestRoom) {
+                                                $minPrice = $cheapestRoom->price_per_month;
+                                                $currency = $cheapestRoom->currency ?? 'USD';
+                                                $priceLabel = ($cheapestRoom->price_display_type ?? 'per_night') === 'per_month' ? '/month' : '/night';
+                                            }
                                         }
                                     } elseif ($hotel->rooms && $hotel->rooms->isNotEmpty()) {
                                         $cheapestRoom = $hotel->rooms->where('price_per_night', '>', 0)->sortBy('price_per_night')->first();
+                                        if (!$cheapestRoom) {
+                                            $cheapestRoom = $hotel->rooms->where('price_per_month', '>', 0)->sortBy('price_per_month')->first();
+                                        }
                                         if ($cheapestRoom) {
                                             $currency = $cheapestRoom->currency ?? 'USD';
+                                            $priceLabel = ($cheapestRoom->price_display_type ?? 'per_night') === 'per_month' ? '/month' : '/night';
                                         }
                                     }
                                 }
@@ -49,7 +74,7 @@
                             @endphp
                             @if($minPrice)
                                 <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                                    {{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night
+                                    {{ $currencySymbol }}{{ number_format($minPrice, 0) }}{{ $priceLabel }}
                                 </div>
                             @endif
                         </div>

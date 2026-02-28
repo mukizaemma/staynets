@@ -16,11 +16,20 @@
                             @php
                                 $minPrice = $hotel->min_price ?? null;
                                 $currency = 'USD';
+                                $priceLabel = '/night';
                                 if (isset($hotel->property_type) && $hotel->units && $hotel->units->isNotEmpty()) {
                                     $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
-                                    if ($cheapestUnit) {
+                                    if (!$cheapestUnit) {
+                                        $cheapestUnit = $hotel->units->where('base_price_per_month', '>', 0)->sortBy('base_price_per_month')->first();
+                                        if ($cheapestUnit) {
+                                            $minPrice = $minPrice ?? $cheapestUnit->base_price_per_month;
+                                            $currency = $cheapestUnit->currency ?? 'USD';
+                                            $priceLabel = (($cheapestUnit->price_display_type ?? 'per_night') === 'per_month') ? '/month' : '/night';
+                                        }
+                                    } else {
                                         $minPrice = $minPrice ?? $cheapestUnit->base_price_per_night;
                                         $currency = $cheapestUnit->currency ?? 'USD';
+                                        $priceLabel = (($cheapestUnit->price_display_type ?? 'per_night') === 'per_month') ? '/month' : '/night';
                                     }
                                 }
                                 $currencySymbol = getCurrencySymbol($currency);
@@ -67,7 +76,7 @@
                             @endif
                             <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
                                 @if($minPrice)
-                                    <span class="text-success fw-semibold" style="font-size: 1.05rem;">{{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night</span>
+                                    <span class="text-success fw-semibold" style="font-size: 1.05rem;">{{ $currencySymbol }}{{ number_format($minPrice, 0) }}{{ $priceLabel }}</span>
                                 @else
                                     <span class="text-muted small">Price on request</span>
                                 @endif

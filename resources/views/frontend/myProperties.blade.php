@@ -373,7 +373,23 @@
                                                                 <div class="card-body p-2">
                                                                     <h6 class="card-title mb-1" style="font-size:0.9rem;">{{ $room->room_type }}</h6>
                                                                     <p class="card-text small mb-1">
-                                                                        <strong>Price:</strong> ${{ number_format($room->price_per_night ?? 0, 2) }}/night<br>
+                                                                        @php
+                                                                            $roomCur = $room->currency ?? 'USD';
+                                                                            $roomSym = getCurrencySymbol($roomCur);
+                                                                            $pt = $room->price_display_type ?? 'per_night';
+                                                                        @endphp
+                                                                        <strong>Price:</strong>
+                                                                        @if($pt === 'per_month')
+                                                                            {{ $roomSym }}{{ number_format($room->price_per_month ?? 0, 2) }}/month
+                                                                        @elseif($pt === 'both')
+                                                                            {{ $roomSym }}{{ number_format($room->price_per_night ?? 0, 2) }}/night
+                                                                            @if(!empty($room->price_per_month))
+                                                                                · {{ $roomSym }}{{ number_format($room->price_per_month, 2) }}/month
+                                                                            @endif
+                                                                        @else
+                                                                            {{ $roomSym }}{{ number_format($room->price_per_night ?? 0, 2) }}/night
+                                                                        @endif
+                                                                        <br>
                                                                         <strong>Max Occupancy:</strong> {{ $room->max_occupancy ?? 'N/A' }}<br>
                                                                         <strong>Available:</strong> {{ $room->available_rooms ?? 0 }}/{{ $room->total_rooms ?? 0 }}
                                                                     </p>
@@ -441,13 +457,18 @@
                                                                             <label>Price Display Type</label>
                                                                             <select name="price_display_type" class="form-control">
                                                                                 <option value="per_night" {{ ($room->price_display_type ?? 'per_night') == 'per_night' ? 'selected' : '' }}>Per Night</option>
+                                                                                <option value="per_month" {{ ($room->price_display_type ?? '') == 'per_month' ? 'selected' : '' }}>Per Month</option>
+                                                                                <option value="both" {{ ($room->price_display_type ?? '') == 'both' ? 'selected' : '' }}>Both</option>
                                                                             </select>
                                                                         </div>
                                                                         <div class="col-md-4">
                                                                             <label>Price per Night</label>
                                                                             <input type="number" step="0.01" class="form-control" name="price_per_night" value="{{ $room->price_per_night }}" required>
                                                                         </div>
-                                                                    </div>
+                                                                        <div class="col-md-4">
+                                                                            <label>Price per Month</label>
+                                                                            <input type="number" step="0.01" class="form-control" name="price_per_month" value="{{ $room->price_per_month }}" placeholder="Optional">
+                                                                        </div>
 
 
                                                                     <div class="row mb-3">
@@ -894,11 +915,17 @@
                             <label>Price Display Type</label>
                             <select name="price_display_type" class="form-control">
                                 <option value="per_night" selected>Per Night</option>
+                                <option value="per_month">Per Month</option>
+                                <option value="both">Both</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label>Price per Night</label>
                             <input type="number" step="0.01" class="form-control" name="price_per_night" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Price per Month</label>
+                            <input type="number" step="0.01" class="form-control" name="price_per_month" placeholder="Optional">
                         </div>
                     </div>
 

@@ -125,46 +125,22 @@
                         </div>
                     </div>
 
-                    <!-- Inventory -->
+                    <!-- Inventory & Pricing (one row) -->
                     <div class="row mb-3">
                         <div class="col-12">
-                            <h5 class="mb-2 border-bottom pb-2">Inventory</h5>
+                            <h5 class="mb-2 border-bottom pb-2">Inventory &amp; Pricing</h5>
                         </div>
-                        <div class="col-md-3 mb-2">
+                        <div class="col-6 col-md-2 mb-2">
                             <label for="total_units" class="form-label">Total Units <span class="text-danger">*</span></label>
-                            <input type="number" name="total_units" class="form-control @error('total_units') is-invalid @enderror" 
-                                   id="total_units" value="{{ old('total_units', 1) }}" min="1" required>
-                            @error('total_units')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="number" name="total_units" class="form-control @error('total_units') is-invalid @enderror" id="total_units" value="{{ old('total_units', 1) }}" min="1" required>
+                            @error('total_units')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-3 mb-2">
+                        <div class="col-6 col-md-2 mb-2">
                             <label for="available_units" class="form-label">Available Units <span class="text-danger">*</span></label>
-                            <input type="number" name="available_units" class="form-control @error('available_units') is-invalid @enderror" 
-                                   id="available_units" value="{{ old('available_units', 1) }}" min="0" required>
-                            @error('available_units')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="number" name="available_units" class="form-control @error('available_units') is-invalid @enderror" id="available_units" value="{{ old('available_units', 1) }}" min="0" required>
+                            @error('available_units')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-3 mb-2">
-                            <label for="status" class="form-label">Status</label>
-                            <select name="status" class="form-select @error('status') is-invalid @enderror" id="status">
-                                <option value="Available" {{ old('status', 'Available') == 'Available' ? 'selected' : '' }}>Available</option>
-                                <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-                                <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                            </select>
-                            @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Pricing -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <h5 class="mb-2 border-bottom pb-2">Pricing</h5>
-                        </div>
-                        <div class="col-md-4 mb-2">
+                        <div class="col-6 col-md-2 mb-2">
                             <label for="currency" class="form-label">Currency</label>
                             <select name="currency" class="form-select @error('currency') is-invalid @enderror" id="currency">
                                 <option value="USD" {{ old('currency', 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
@@ -175,19 +151,36 @@
                                 <option value="UGX" {{ old('currency') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
                                 <option value="TZS" {{ old('currency') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
                             </select>
-                            @error('currency')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @error('currency')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-8 mb-2">
-                            <label for="base_price_per_night" class="form-label">Price per Night</label>
-                            <input type="number" name="base_price_per_night" class="form-control @error('base_price_per_night') is-invalid @enderror" 
-                                   id="base_price_per_night" value="{{ old('base_price_per_night') }}" min="0" step="0.01">
-                            @error('base_price_per_night')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="col-6 col-md-2 mb-2">
+                            <label for="price_display_type" class="form-label">Price is</label>
+                            <select name="price_display_type" class="form-select @error('price_display_type') is-invalid @enderror" id="price_display_type">
+                                <option value="per_night" {{ old('price_display_type', 'per_night') == 'per_night' ? 'selected' : '' }}>Per night</option>
+                                <option value="per_month" {{ old('price_display_type') == 'per_month' ? 'selected' : '' }}>Per month</option>
+                                <option value="both" {{ old('price_display_type') == 'both' ? 'selected' : '' }}>Both (night &amp; month)</option>
+                            </select>
+                            @error('price_display_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <input type="hidden" name="price_display_type" value="per_night">
+                        <div class="col-6 col-md-2 mb-2">
+                            <label for="base_price_per_night" class="form-label">Price per night</label>
+                            <input type="number" name="base_price_per_night" class="form-control @error('base_price_per_night') is-invalid @enderror" id="base_price_per_night" value="{{ old('base_price_per_night') }}" min="0" step="0.01">
+                            @error('base_price_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-6 col-md-1 mb-2">
+                            <label for="base_price_per_month" class="form-label">Per month</label>
+                            <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" id="base_price_per_month" value="{{ old('base_price_per_month') }}" min="0" step="0.01">
+                            @error('base_price_per_month')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-6 col-md-1 mb-2">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" class="form-select @error('status') is-invalid @enderror" id="status">
+                                <option value="Available" {{ old('status', 'Available') == 'Available' ? 'selected' : '' }}>Available</option>
+                                <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+                                <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                            </select>
+                            @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
                     <!-- Description & Image -->
@@ -283,6 +276,32 @@
                                 </div>
                             @endif
                         @endforeach
+                    </div>
+
+                    <!-- Additional Charges (Extras) -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-2 border-bottom pb-2">Additional Charges (Extras)</h5>
+                            <p class="text-muted small mb-3">Set a price for each extra to offer during booking. Leave 0 or empty to not offer that extra for this unit.</p>
+                        </div>
+                        @foreach($extraChargeTypes as $chargeType)
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <label for="extra_charge_{{ $chargeType->id }}" class="form-label">{{ $chargeType->name }}</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">Price</span>
+                                    <input type="number" name="extra_charges[{{ $chargeType->id }}]" id="extra_charge_{{ $chargeType->id }}"
+                                           class="form-control" min="0" step="0.01" value="{{ old('extra_charges.'.$chargeType->id, 0) }}" placeholder="0">
+                                </div>
+                                @if($chargeType->description)
+                                    <small class="text-muted">{{ $chargeType->description }}</small>
+                                @endif
+                            </div>
+                        @endforeach
+                        @if($extraChargeTypes->isEmpty())
+                            <div class="col-12">
+                                <p class="text-muted mb-0">No extra charge types defined. Run <code>php artisan db:seed --class=ExtraChargeTypeSeeder</code> to seed defaults.</p>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Submit Buttons -->

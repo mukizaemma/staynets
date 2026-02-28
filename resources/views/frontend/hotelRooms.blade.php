@@ -24,10 +24,24 @@
                                     </h3>
 
                                     <p style="margin:6px 0;">
+                                        @php
+                                            $roomCur = $room->currency ?? 'USD';
+                                            $roomSym = getCurrencySymbol($roomCur);
+                                            $roomPt = $room->price_display_type ?? 'per_night';
+                                        @endphp
                                         <i class="fa-solid fa-user" aria-hidden="true"></i>
                                         Max: <strong>{{ $room->max_occupancy }}</strong> &nbsp;•&nbsp;
                                         <i class="fa-solid fa-money-bill" aria-hidden="true"></i>
-                                        <strong>{{ number_format($room->price_per_night, 2) }}</strong> / night
+                                        @if($roomPt === 'per_month')
+                                            <strong>{{ $roomSym }}{{ number_format($room->price_per_month ?? 0, 2) }}</strong> / month
+                                        @elseif($roomPt === 'both')
+                                            <strong>{{ $roomSym }}{{ number_format($room->price_per_night ?? 0, 2) }}</strong> / night
+                                            @if(!empty($room->price_per_month))
+                                                · <strong>{{ $roomSym }}{{ number_format($room->price_per_month, 2) }}</strong> / month
+                                            @endif
+                                        @else
+                                            <strong>{{ $roomSym }}{{ number_format($room->price_per_night ?? 0, 2) }}</strong> / night
+                                        @endif
                                     </p>
 
                                     <p style="margin:6px 0;">

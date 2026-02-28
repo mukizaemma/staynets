@@ -133,8 +133,20 @@ $trips = $trips ?? collect();
                             @php
                                 $roomCurrency = $room->currency ?? 'USD';
                                 $roomCurrencySymbol = getCurrencySymbol($roomCurrency);
+                                $pt = $room->price_display_type ?? 'per_night';
                             @endphp
-                            <div style="font-size:18px; font-weight:700;">{{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small></div>
+                            <div style="font-size:18px; font-weight:700;">
+                                @if($pt === 'per_month')
+                                    {{ $roomCurrencySymbol }}{{ number_format($room->price_per_month ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ month</small>
+                                @elseif($pt === 'both')
+                                    {{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small>
+                                    @if(!empty($room->price_per_month))
+                                        <span class="ms-2">{{ $roomCurrencySymbol }}{{ number_format($room->price_per_month, 2) }} <small class="text-muted" style="font-weight:400;">/ month</small></span>
+                                    @endif
+                                @else
+                                    {{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small>
+                                @endif
+                            </div>
                             <div class="mt-1"><a href="{{ route('connect') }}" class="th-btn style4 th-icon">Book Now</a></div>
                         </div>
                     </div>
@@ -157,8 +169,19 @@ $trips = $trips ?? collect();
                             <div class="tour-snap">
                                 <div class="icon"><img src="{{ asset('assets/img/icon/guide2.svg') }}" alt=""></div>
                                 <div class="content">
-                                    <span class="title">Price Per Night:</span>
-                                    <span>{{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }}</span>
+                                    <span class="title">Price</span>
+                                    <span>
+                                        @if($pt === 'per_month')
+                                            {{ $roomCurrencySymbol }}{{ number_format($room->price_per_month ?? 0, 2) }}/month
+                                        @elseif($pt === 'both')
+                                            {{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }}/night
+                                            @if(!empty($room->price_per_month))
+                                                · {{ $roomCurrencySymbol }}{{ number_format($room->price_per_month, 2) }}/month
+                                            @endif
+                                        @else
+                                            {{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }}/night
+                                        @endif
+                                    </span>
                                 </div>
                             </div>
 
@@ -248,7 +271,18 @@ $trips = $trips ?? collect();
                                     <div class="card-body">
                                         <h5 style="font-weight:700;margin-bottom:8px;">{{ $room->room_type }}</h5>
                                         <p class="mb-1 text-muted">{{ $hotel->name ?? '' }}</p>
-                                        <p style="font-size:18px;font-weight:700;">{{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0,2) }} <small class="text-muted" style="font-weight:400;">/ night</small></p>
+                                        <p style="font-size:18px;font-weight:700;">
+                                            @if($pt === 'per_month')
+                                                {{ $roomCurrencySymbol }}{{ number_format($room->price_per_month ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ month</small>
+                                            @elseif($pt === 'both')
+                                                {{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small>
+                                                @if(!empty($room->price_per_month))
+                                                    · {{ $roomCurrencySymbol }}{{ number_format($room->price_per_month, 2) }} <small class="text-muted" style="font-weight:400;">/ month</small>
+                                                @endif
+                                            @else
+                                                {{ $roomCurrencySymbol }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small>
+                                            @endif
+                                        </p>
                                         <ul class="list-unstyled small mb-3">
                                             <li>Max occupancy: <strong>{{ $room->max_occupancy ?? 0 }}</strong></li>
                                             <li>Available: <strong>{{ $room->available_rooms ?? 0 }}</strong></li>
@@ -302,8 +336,19 @@ $trips = $trips ?? collect();
                                                     @php
                                                         $relatedRoomCurrency = $r->currency ?? 'USD';
                                                         $relatedRoomCurrencySymbol = getCurrencySymbol($relatedRoomCurrency);
+                                                        $rPt = $r->price_display_type ?? 'per_night';
                                                     @endphp
-                                                    <strong>Price / night:</strong> {{ $relatedRoomCurrencySymbol }}{{ number_format($r->price_per_night ?? 0, 2) }}
+                                                    <strong>Price:</strong>
+                                                    @if($rPt === 'per_month')
+                                                        {{ $relatedRoomCurrencySymbol }}{{ number_format($r->price_per_month ?? 0, 2) }}/month
+                                                    @elseif($rPt === 'both')
+                                                        {{ $relatedRoomCurrencySymbol }}{{ number_format($r->price_per_night ?? 0, 2) }}/night
+                                                        @if(!empty($r->price_per_month))
+                                                            · {{ $relatedRoomCurrencySymbol }}{{ number_format($r->price_per_month, 2) }}/month
+                                                        @endif
+                                                    @else
+                                                        {{ $relatedRoomCurrencySymbol }}{{ number_format($r->price_per_night ?? 0, 2) }}/night
+                                                    @endif
                                                 </p>
 
                                                 <p class="mb-2" style="margin:6px 0;">

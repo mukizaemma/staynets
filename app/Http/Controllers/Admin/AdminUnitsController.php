@@ -8,6 +8,8 @@ use App\Models\Property;
 use App\Models\UnitType;
 use App\Models\Amenity;
 use App\Models\FacilityCategory;
+use App\Models\ExtraChargeType;
+use App\Models\UnitExtraCharge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +59,7 @@ class AdminUnitsController extends Controller
             $query->active()->orderBy('title');
         }])->where('is_active', true)->orderBy('sort_order')->get();
         $setting = \App\Models\Setting::first();
+        $extraChargeTypes = ExtraChargeType::where('is_active', true)->orderBy('sort_order')->get();
 
         return view('admin.units.create', [
             'propertyId' => $propertyId,
@@ -64,6 +67,7 @@ class AdminUnitsController extends Controller
             'unitTypes' => $unitTypes,
             'amenities' => $amenities,
             'facilityCategories' => $facilityCategories,
+            'extraChargeTypes' => $extraChargeTypes,
             'setting' => $setting,
         ]);
     }
@@ -94,6 +98,8 @@ class AdminUnitsController extends Controller
             'is_active' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*' => 'exists:amenities,id',
+            'extra_charges' => 'nullable|array',
+            'extra_charges.*' => 'nullable|numeric|min:0',
         ]);
 
         $name = $request->name ?: 'Unit ' . Str::random(6);
@@ -140,6 +146,22 @@ class AdminUnitsController extends Controller
             $unit->facilities()->sync($request->facilities);
         }
 
+        // Sync additional/extra charges
+        $unit->extraChargesAll()->delete();
+        if ($request->has('extra_charges') && is_array($request->extra_charges)) {
+            foreach ($request->extra_charges as $typeId => $price) {
+                $price = is_numeric($price) ? (float) $price : 0;
+                if ($price > 0 && ExtraChargeType::find($typeId)) {
+                    UnitExtraCharge::create([
+                        'unit_id' => $unit->id,
+                        'extra_charge_type_id' => $typeId,
+                        'price' => $price,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        }
+
         return redirect()->route('admin.units.index', ['property_id' => $request->property_id])
             ->with('success', 'Unit created successfully');
     }
@@ -149,7 +171,7 @@ class AdminUnitsController extends Controller
      */
     public function edit($id)
     {
-        $unit = Unit::with(['facilities', 'images' => function($query) {
+        $unit = Unit::with(['facilities', 'extraChargesAll', 'images' => function($query) {
             $query->orderBy('is_primary', 'desc')->orderBy('sort_order');
         }])->findOrFail($id);
         $properties = Property::active()->get();
@@ -159,6 +181,7 @@ class AdminUnitsController extends Controller
             $query->active()->orderBy('title');
         }])->where('is_active', true)->orderBy('sort_order')->get();
         $setting = \App\Models\Setting::first();
+        $extraChargeTypes = ExtraChargeType::where('is_active', true)->orderBy('sort_order')->get();
 
         return view('admin.units.edit', [
             'unit' => $unit,
@@ -166,6 +189,7 @@ class AdminUnitsController extends Controller
             'unitTypes' => $unitTypes,
             'amenities' => $amenities,
             'facilityCategories' => $facilityCategories,
+            'extraChargeTypes' => $extraChargeTypes,
             'setting' => $setting,
         ]);
     }
@@ -198,6 +222,8 @@ class AdminUnitsController extends Controller
             'is_active' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*' => 'exists:amenities,id',
+            'extra_charges' => 'nullable|array',
+            'extra_charges.*' => 'nullable|numeric|min:0',
         ]);
 
         if ($request->hasFile('featured_image')) {
@@ -234,6 +260,22 @@ class AdminUnitsController extends Controller
             $unit->facilities()->sync($request->facilities);
         } else {
             $unit->facilities()->detach();
+        }
+
+        // Sync additional/extra charges
+        $unit->extraChargesAll()->delete();
+        if ($request->has('extra_charges') && is_array($request->extra_charges)) {
+            foreach ($request->extra_charges as $typeId => $price) {
+                $price = is_numeric($price) ? (float) $price : 0;
+                if ($price > 0 && ExtraChargeType::find($typeId)) {
+                    UnitExtraCharge::create([
+                        'unit_id' => $unit->id,
+                        'extra_charge_type_id' => $typeId,
+                        'price' => $price,
+                        'is_active' => true,
+                    ]);
+                }
+            }
         }
 
         return redirect()->route('admin.units.index', ['property_id' => $unit->property_id])

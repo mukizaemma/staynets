@@ -607,7 +607,7 @@ public function showAccommodation(Request $request, $slug)
     $hotel = Property::with([
         'units' => function($q) {
             $q->where('status', 'Available')
-                ->with(['images', 'facilities'])
+                ->with(['images', 'facilities', 'unitType', 'extraCharges'])
                 ->orderBy('base_price_per_night', 'asc');
         },
         'images' => function($q) {
@@ -675,10 +675,12 @@ public function storeBooking(Request $request)
         'guest_country' => 'nullable|string|max:255',
         'guest_phone' => 'nullable|string|max:100',
         'special_requests' => 'nullable|string',
+        'extra_charges' => 'nullable|array',
+        'extra_charges.*' => 'integer|exists:unit_extra_charges,id',
     ]);
 
     // Get unit to calculate price
-    $unit = \App\Models\Unit::findOrFail($request->unit_id);
+    $unit = \App\Models\Unit::with('extraCharges')->findOrFail($request->unit_id);
     $property = Property::findOrFail($request->property_id);
 
     // Verify unit belongs to property
@@ -686,24 +688,46 @@ public function storeBooking(Request $request)
         return redirect()->back()->with('error', 'Invalid unit for this property.');
     }
 
-    // Calculate number of nights
-    $checkIn = new \DateTime($request->check_in);
-    $checkOut = new \DateTime($request->check_out);
-    $nights = $checkIn->diff($checkOut)->days;
+    // Validate extra_charges belong to this unit
+    $unitExtraChargeIds = $unit->extraCharges->pluck('id')->toArray();
+    $selectedExtraIds = array_map('intval', $request->input('extra_charges', []));
+    $validExtraIds = array_intersect($selectedExtraIds, $unitExtraChargeIds);
 
-    // Calculate total amount
-    $pricePerNight = $unit->base_price_per_night ?? 0;
-    $totalAmount = $pricePerNight * $nights;
+    // Calculate base total (per night or per month)
+    $priceType = $unit->price_display_type ?? 'per_night';
+    if ($priceType === 'per_month') {
+        $baseTotal = (float) ($unit->base_price_per_month ?? 0);
+    } else {
+        $checkIn = new \DateTime($request->check_in);
+        $checkOut = new \DateTime($request->check_out);
+        $nights = $checkIn->diff($checkOut)->days;
+        $baseTotal = ((float) ($unit->base_price_per_night ?? 0)) * $nights;
+    }
+
+    // Add extras total
+    $extrasTotal = 0;
+    $extrasForBooking = [];
+    foreach ($unit->extraCharges as $extra) {
+        if (in_array($extra->id, $validExtraIds)) {
+            $extrasTotal += (float) $extra->price;
+            $extrasForBooking[] = [
+                'unit_extra_charge_id' => $extra->id,
+                'price_snapshot' => $extra->price,
+                'charge_name' => $extra->extraChargeType->name ?? 'Extra',
+            ];
+        }
+    }
+    $totalAmount = $baseTotal + $extrasTotal;
 
     // Generate reference number
     $referenceNumber = 'BK' . strtoupper(uniqid());
 
-    // Create booking as an availability request (no login required)
+    // Create booking
     $booking = HotelBooking::create([
-        'user_id' => Auth::id(), // nullable if guest is not logged in
-        'hotel_id' => null, // Using property_id instead for new system
+        'user_id' => Auth::id(),
+        'hotel_id' => null,
         'property_id' => $request->property_id,
-        'room_id' => null, // Using unit_id instead for new system
+        'room_id' => null,
         'unit_id' => $request->unit_id,
         'check_in' => $request->check_in,
         'check_out' => $request->check_out,
@@ -719,8 +743,18 @@ public function storeBooking(Request $request)
         'booking_status' => 'availability_requested',
     ]);
 
+    // Attach booking extras
+    foreach ($extrasForBooking as $item) {
+        \App\Models\BookingExtra::create([
+            'hotel_booking_id' => $booking->id,
+            'unit_extra_charge_id' => $item['unit_extra_charge_id'],
+            'price_snapshot' => $item['price_snapshot'],
+            'charge_name' => $item['charge_name'],
+        ]);
+    }
+
     // Load relationships for email
-    $booking->load(['property', 'unit']);
+    $booking->load(['property', 'unit', 'bookingExtras']);
 
     // Send email notification to StayNets team
     try {
@@ -732,7 +766,10 @@ public function storeBooking(Request $request)
 
     // Send confirmation email to client (availability request received)
     try {
-        Mail::to($booking->user->email)->send(new BookingConfirmation($booking));
+        $guestEmail = $booking->guest_email ?? ($booking->user->email ?? null);
+        if ($guestEmail) {
+            Mail::to($guestEmail)->send(new BookingConfirmation($booking));
+        }
     } catch (\Exception $e) {
         // Log error but don't fail the booking
         \Log::error('Failed to send client booking confirmation: ' . $e->getMessage());

@@ -98,7 +98,23 @@ Tour Area
                             <div class="card-body">
                                 <h4 class="mb-2" style="font-weight:700;">{{ $room->title }}</h4>
                                 <p class="mb-1 text-muted" style="font-size:14px;">{{ $room->hotel->name ?? 'Hotel' }}</p>
-                                <p class="mb-2" style="font-size:18px; font-weight:700;">{{ number_format($room->price_per_night, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small></p>
+                                <p class="mb-2" style="font-size:18px; font-weight:700;">
+                                    @php
+                                        $roomCur = $room->currency ?? 'USD';
+                                        $roomSym = getCurrencySymbol($roomCur);
+                                        $roomPt = $room->price_display_type ?? 'per_night';
+                                    @endphp
+                                    @if($roomPt === 'per_month')
+                                        {{ $roomSym }}{{ number_format($room->price_per_month ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ month</small>
+                                    @elseif($roomPt === 'both')
+                                        {{ $roomSym }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small>
+                                        @if(!empty($room->price_per_month))
+                                            · {{ $roomSym }}{{ number_format($room->price_per_month, 2) }} <small class="text-muted" style="font-weight:400;">/ month</small>
+                                        @endif
+                                    @else
+                                        {{ $roomSym }}{{ number_format($room->price_per_night ?? 0, 2) }} <small class="text-muted" style="font-weight:400;">/ night</small>
+                                    @endif
+                                </p>
 
                                 <ul class="list-unstyled mb-3">
                                     <li class="mb-2"><i class="fa-solid fa-users me-2"></i> Max occupancy: <strong>{{ $room->max_occupancy }}</strong></li>
@@ -153,7 +169,23 @@ Tour Area
                                 </div>
                                 <div class="media-body">
                                     <h4 class="post-title mb-1"><a class="text-inherit" href="{{ route('room',['slug'=>$related->slug]) }}" style="font-weight:600;">{{ $related->title }}</a></h4>
-                                    <small class="text-muted">{{ number_format($related->price_per_night, 2) }} / night</small>
+                                    @php
+                                        $relCur = $related->currency ?? 'USD';
+                                        $relSym = getCurrencySymbol($relCur);
+                                        $relPt = $related->price_display_type ?? 'per_night';
+                                    @endphp
+                                    <small class="text-muted">
+                                        @if($relPt === 'per_month')
+                                            {{ $relSym }}{{ number_format($related->price_per_month ?? 0, 2) }} / month
+                                        @elseif($relPt === 'both')
+                                            {{ $relSym }}{{ number_format($related->price_per_night ?? 0, 2) }}/night
+                                            @if(!empty($related->price_per_month))
+                                                · {{ $relSym }}{{ number_format($related->price_per_month, 2) }}/month
+                                            @endif
+                                        @else
+                                            {{ $relSym }}{{ number_format($related->price_per_night ?? 0, 2) }} / night
+                                        @endif
+                                    </small>
                                 </div>
                             </div>
                         @endforeach
