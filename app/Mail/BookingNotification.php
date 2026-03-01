@@ -32,8 +32,8 @@ class BookingNotification extends Mailable
     {
         return new Envelope(
             subject: 'New Booking Received - Reference: ' . $this->booking->reference_number,
-            from: new Address(config('mail.from.address', 'iremetechnologies@gmail.com'), config('mail.from.name', 'Accommodation Booking System')),
-            to: ['info@iremetech.com'],
+            from: new Address(config('mail.from.address'), config('mail.from.name', 'StayNets')),
+            to: [config('mail.admin_email')],
         );
     }
 

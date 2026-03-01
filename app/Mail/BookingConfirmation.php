@@ -30,10 +30,11 @@ class BookingConfirmation extends Mailable
      */
     public function envelope(): Envelope
     {
+        $recipient = $this->booking->guest_email ?? ($this->booking->user?->email ?? null);
         return new Envelope(
             subject: 'Booking Confirmation - Reference: ' . $this->booking->reference_number,
-            from: new Address(config('mail.from.address', 'iremetechnologies@gmail.com'), config('mail.from.name', 'Accommodation Booking System')),
-            to: [$this->booking->user->email],
+            from: new Address(config('mail.from.address'), config('mail.from.name', 'StayNets')),
+            to: $recipient ? [$recipient] : [],
         );
     }
 
@@ -47,6 +48,7 @@ class BookingConfirmation extends Mailable
             with: [
                 'booking' => $this->booking,
                 'user' => $this->booking->user,
+                'guestName' => $this->booking->guest_name ?? ($this->booking->user?->name ?? 'Guest'),
             ]
         );
     }

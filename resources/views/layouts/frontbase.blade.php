@@ -768,7 +768,7 @@
                                 </div>
 
                                 <div class="destination-btn text-center mt-60">
-                                    <a href="{{ route('connect') }}" class="th-btn style3 th-icon">Book Your Stay Now</a>
+                                    <a href="{{ route('hotelsSearch') }}" class="th-btn style3 th-icon">Book With Us</a>
                                 </div>
                             </div>
                         </div>

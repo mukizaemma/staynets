@@ -33,7 +33,7 @@ class AdminNotification extends Mailable
     public function build()
     {
         return $this
-            ->from('info@iremetech.com', 'Accommodation Booking Engine')
+            ->from(config('mail.from.address'), config('mail.from.name', 'StayNets'))
             ->subject($this->details['subject'] ?? 'New Update')
             ->view('emails.registrationNotifications')
             ->with(['details' => $this->details]);

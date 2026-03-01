@@ -85,6 +85,10 @@ return [
                 'log',
             ],
         ],
+
+        'resend' => [
+            'transport' => 'resend',
+        ],
     ],
 
     /*
@@ -99,9 +103,11 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'iremetechnologies@gmail.com'),
-        'name' => env('MAIL_FROM_NAME', 'Hello There'),
+        'address' => env('MAIL_FROM_ADDRESS', 'info@staynets.com'),
+        'name' => env('MAIL_FROM_NAME', 'StayNets'),
     ],
+
+    'admin_email' => env('MAIL_ADMIN_EMAIL', env('MAIL_FROM_ADDRESS', 'info@staynets.com')),
 
     /*
     |--------------------------------------------------------------------------

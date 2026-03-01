@@ -25,7 +25,7 @@ class WelcomeEmail extends Mailable
     {
         return new Envelope(
             subject: 'Account Created',
-            from: new Address('iremetechnologies@gmail.com', 'Ireme Technologies'),
+            from: new Address(config('mail.from.address'), config('mail.from.name', 'StayNets')),
             to: [$this->user->email],
             bcc: ['mukizaemma34@gmail.com']
         );

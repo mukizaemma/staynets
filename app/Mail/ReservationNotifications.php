@@ -20,7 +20,7 @@ class ReservationNotifications extends Mailable
     }
 
     public function build(){
-        return $this->from('iremetechnologies@gmail.com', 'StayNets')
+        return $this->from(config('mail.from.address'), config('mail.from.name', 'StayNets'))
         ->subject('New Update')
         ->view('emails.registrationNotifications')
         ->with($this->details);

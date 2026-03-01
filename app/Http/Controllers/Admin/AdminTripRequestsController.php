@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ReservationConfirmed;
 use App\Models\Reservation;
 use App\Models\Trip;
 use App\Models\TripDestination;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AdminTripRequestsController extends Controller
 {
@@ -57,6 +59,15 @@ class AdminTripRequestsController extends Controller
         $requestItem->quoted_cost = $request->quoted_cost;
         $requestItem->responded_at = now();
         $requestItem->save();
+
+        // Send confirmation email to guest when status is confirmed
+        if ($request->status === 'confirmed' && $requestItem->email) {
+            try {
+                Mail::to($requestItem->email)->send(new ReservationConfirmed($requestItem));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation confirmation email: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('admin.tripRequests.show', $id)
             ->with('success', 'Trip request updated successfully.');

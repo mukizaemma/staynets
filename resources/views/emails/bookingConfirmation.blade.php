@@ -92,8 +92,9 @@
     </div>
     
     <div class="content">
-        <p>Dear {{ $user->name }},</p>
-        <p>Thank you for your booking! We have received your reservation request and will contact you soon to confirm your booking.</p>
+        <p>Dear {{ $guestName ?? (optional($user)->name ?? 'Guest') }},</p>
+        <p>Thank you for your booking! Your reservation has been submitted successfully.</p>
+        <p>Confirmation regarding availability will be communicated to you soon. Our team will review your request and get back to you shortly.</p>
         
         <div class="reference-number">
             Your Booking Reference: {{ $booking->reference_number }}
@@ -160,7 +161,7 @@
         
         <div class="info-box">
             <p><strong>What's Next?</strong></p>
-            <p>Our team will review your booking and contact you within 24 hours to confirm availability and provide payment instructions.</p>
+            <p>Our team will review your booking and contact you within 24 hours to confirm availability and provide payment instructions. You will receive a follow-up communication once your reservation is confirmed.</p>
         </div>
         
         <p>If you have any questions or need to make changes to your booking, please contact us using your booking reference number.</p>
@@ -171,7 +172,7 @@
     
     <div class="footer">
         <p>This is an automated confirmation email. Please do not reply to this email.</p>
-        <p>For inquiries, please contact: info@iremetech.com</p>
+        <p>For inquiries, please contact: {{ config('mail.from.address') }}</p>
     </div>
 </body>
 </html>

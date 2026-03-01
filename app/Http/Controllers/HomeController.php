@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Mail\BookingNotification;
 use App\Mail\BookingConfirmation;
 use App\Mail\AdminNotification;
+use App\Mail\ReservationSubmitted;
 use Illuminate\Support\Collection;
 
 
@@ -768,7 +769,7 @@ public function storeBooking(Request $request)
 
     // Send email notification to StayNets team
     try {
-        Mail::to('info@iremetech.com')->send(new BookingNotification($booking));
+        Mail::to(config('mail.admin_email'))->send(new BookingNotification($booking));
     } catch (\Exception $e) {
         // Log error but don't fail the booking
         \Log::error('Failed to send admin booking notification: ' . $e->getMessage());
@@ -1182,6 +1183,12 @@ public function bookNow(Request $request)
         $booking = \App\Models\Reservation::create($bookingData);
 
         if ($booking) {
+            try {
+                $booking->load('tour');
+                Mail::to($booking->email)->send(new ReservationSubmitted($booking));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation submitted email: ' . $e->getMessage());
+            }
             $successMessages = [
                 'enquiry' => "✅ Your enquiry has been received! We'll contact you soon.",
                 'hotel_booking' => "✅ Your hotel booking request has been received! We'll contact you soon to confirm availability.",
@@ -1306,11 +1313,19 @@ public function bookNow(Request $request)
             'tour_id' => $validatedData['trip_id'],
             'selected_trip_ids' => json_encode([$validatedData['trip_id']]),
             'trip_destination_id' => $trip?->trip_destination_id,
+            'tour_date' => $request->input('preferred_date'),
+            'tour_people' => $request->input('number_of_people') ?? 1,
             'guests' => $request->input('number_of_people') ?? 1,
             'status' => 'pending',
         ]);
 
         if ($reservation) {
+            try {
+                $reservation->load('tour');
+                Mail::to($reservation->email)->send(new ReservationSubmitted($reservation));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation submitted email: ' . $e->getMessage());
+            }
             return redirect()->back()->with('success', '✅ Your reservation inquiry has been received! We\'ll contact you soon to confirm your booking.');
         } else {
             return redirect()->back()->with('error', '❌ Sorry, your inquiry could not be submitted. Please try again.');
@@ -1354,11 +1369,19 @@ public function bookNow(Request $request)
             'message' => $messageContent,
             'selected_trip_ids' => json_encode($validatedData['trip_ids']),
             'trip_destination_id' => $validatedData['trip_destination_id'],
+            'tour_date' => $request->input('preferred_date'),
+            'tour_people' => $request->input('number_of_people') ?? 1,
             'guests' => $request->input('number_of_people') ?? 1,
             'status' => 'pending',
         ]);
 
         if ($reservation) {
+            try {
+                $reservation->load('tour');
+                Mail::to($reservation->email)->send(new ReservationSubmitted($reservation));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation submitted email: ' . $e->getMessage());
+            }
             return redirect()->back()->with('success', '✅ Your trip request has been received! We will send you a plan and quote.');
         }
 
