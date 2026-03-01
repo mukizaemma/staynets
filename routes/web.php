@@ -158,6 +158,20 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/units/images/{id}/delete', [App\Http\Controllers\Admin\UnitImagesController::class, 'destroy'])->name('admin.units.images.destroy');
     Route::get('/admin/units/images/{id}/primary', [App\Http\Controllers\Admin\UnitImagesController::class, 'setPrimary'])->name('admin.units.images.primary');
     
+    // Stay modification (admin: approve/reject)
+    Route::post('/admin/bookings/{bookingId}/stay-modification/{modificationId}/approve', [App\Http\Controllers\Admin\AdminBookingsController::class, 'approveStayModification'])->name('admin.bookings.stay-modification.approve');
+    Route::post('/admin/bookings/{bookingId}/stay-modification/{modificationId}/reject', [App\Http\Controllers\Admin\AdminBookingsController::class, 'rejectStayModification'])->name('admin.bookings.stay-modification.reject');
+    
+    // Revenue & commission report (admin only)
+    Route::get('/admin/reports/revenue', [App\Http\Controllers\Admin\RevenueReportController::class, 'index'])->name('admin.reports.revenue');
+    
+    // StayNets invoices (admin only)
+    Route::get('/admin/invoices', [App\Http\Controllers\Admin\InvoicesController::class, 'index'])->name('admin.invoices.index');
+    Route::get('/admin/invoices/create', [App\Http\Controllers\Admin\InvoicesController::class, 'create'])->name('admin.invoices.create');
+    Route::post('/admin/invoices', [App\Http\Controllers\Admin\InvoicesController::class, 'store'])->name('admin.invoices.store');
+    Route::get('/admin/invoices/{id}', [App\Http\Controllers\Admin\InvoicesController::class, 'show'])->name('admin.invoices.show');
+    Route::post('/admin/invoices/{id}/send', [App\Http\Controllers\Admin\InvoicesController::class, 'send'])->name('admin.invoices.send');
+    
     // Unit Pricing
     Route::post('/admin/units/{unitId}/pricing', [App\Http\Controllers\Admin\UnitPricingController::class, 'store'])->name('admin.units.pricing.store');
     Route::post('/admin/units/pricing/{id}', [App\Http\Controllers\Admin\UnitPricingController::class, 'update'])->name('admin.units.pricing.update');
@@ -168,12 +182,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/units/{unitId}/availability/bulk', [App\Http\Controllers\Admin\UnitAvailabilityController::class, 'bulkUpdate'])->name('admin.units.availability.bulk');
     Route::get('/admin/units/availability/{id}/delete', [App\Http\Controllers\Admin\UnitAvailabilityController::class, 'destroy'])->name('admin.units.availability.destroy');
     
-    // Bookings Management
-    Route::get('/admin/bookings', [App\Http\Controllers\Admin\AdminBookingsController::class, 'index'])->name('admin.bookings.index');
-    Route::get('/admin/bookings/{id}', [App\Http\Controllers\Admin\AdminBookingsController::class, 'show'])->name('admin.bookings.show');
-    Route::post('/admin/bookings/{id}/status', [App\Http\Controllers\Admin\AdminBookingsController::class, 'updateStatus'])->name('admin.bookings.updateStatus');
-    Route::get('/admin/bookings/{id}/delete', [App\Http\Controllers\Admin\AdminBookingsController::class, 'destroy'])->name('admin.bookings.destroy');
-
     // Facilities
     Route::get('/getFacilities', [App\Http\Controllers\FacilitiesController::class, 'index'])->name('getFacilities');
     Route::post('/storeFacility', [App\Http\Controllers\FacilitiesController::class, 'store'])->name('storeFacility');
@@ -278,6 +286,16 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 });
 
+// Bookings: admin and property owners (owners see only their property's bookings)
+Route::middleware(['auth', 'allow.booking.owner'])->group(function () {
+    Route::get('/admin/bookings', [App\Http\Controllers\Admin\AdminBookingsController::class, 'index'])->name('admin.bookings.index');
+    Route::get('/admin/bookings/{id}', [App\Http\Controllers\Admin\AdminBookingsController::class, 'show'])->name('admin.bookings.show');
+    Route::post('/admin/bookings/{id}/status', [App\Http\Controllers\Admin\AdminBookingsController::class, 'updateStatus'])->name('admin.bookings.updateStatus');
+    Route::post('/admin/bookings/{id}/comment', [App\Http\Controllers\Admin\AdminBookingsController::class, 'storeComment'])->name('admin.bookings.comment.store');
+    Route::post('/admin/bookings/{id}/stay-modification', [App\Http\Controllers\Admin\AdminBookingsController::class, 'storeStayModification'])->name('admin.bookings.stay-modification.store');
+    Route::get('/admin/bookings/{id}/delete', [App\Http\Controllers\Admin\AdminBookingsController::class, 'destroy'])->name('admin.bookings.destroy');
+});
+
 // Frontend routes - admins will be redirected to dashboard via middleware
 Route::get('/guide', [App\Http\Controllers\GuideController::class, 'index'])->name('guide');
 
@@ -292,6 +310,7 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::get('/accommodations/hotelsSearch', [App\Http\Controllers\HomeController::class, 'hotelsSearch'])->name('hotelsSearch');
     Route::get('/accommodations/hotels', [App\Http\Controllers\HomeController::class, 'hotels'])->name('hotels');
     Route::post('/accommodations/{property}/reviews', [App\Http\Controllers\ReviewController::class, 'storePropertyReview'])->name('property.reviews.store');
+    Route::get('/accommodations/{property}/rooms/{unit}', [App\Http\Controllers\HomeController::class, 'showUnit'])->name('unit.details');
     Route::get('/accommodations/{slug}', [App\Http\Controllers\HomeController::class, 'showAccommodation'])->name('hotel');
     Route::post('/storeBookings', [App\Http\Controllers\HomeController::class, 'storeBooking'])->name('bookings.store');
     Route::get('our-apartments', [App\Http\Controllers\HomeController::class, 'apartments'])->name('apartments');

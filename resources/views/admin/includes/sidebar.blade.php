@@ -40,6 +40,12 @@
             <a href="{{ route('admin.bookings.index') }}" class="nav-item nav-link"> 
                 <i class="fas fa-calendar-check me-2"></i>Bookings
             </a>
+            <a href="{{ route('admin.reports.revenue') }}" class="nav-item nav-link"> 
+                <i class="fas fa-chart-line me-2"></i>Revenue &amp; Commission Report
+            </a>
+            <a href="{{ route('admin.invoices.index') }}" class="nav-item nav-link"> 
+                <i class="fas fa-file-invoice-dollar me-2"></i>Invoices
+            </a>
 
             <a href="{{ route('getCars') }}" class="nav-item nav-link"> <i class="fas fa-car me-2"></i>Cars</a>
             <a href="{{ route('admin.carRentalRequests.index') }}" class="nav-item nav-link"> <i class="fas fa-car-side me-2"></i>Car Rental Requests</a>

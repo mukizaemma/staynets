@@ -26,7 +26,7 @@
 
         <div class="info-box">
             <strong>What happens next?</strong><br>
-            Our team will review your reservation and confirm availability. We will communicate with you shortly regarding confirmation and next steps.
+            Our team will review your reservation and confirm availability. We will communicate with you shortly regarding confirmation and next steps. <strong>Payment is on arrival</strong>—no advance payment is required.
         </div>
 
         <div class="details">
@@ -63,9 +63,24 @@
 
         <p>If you have any questions in the meantime, please don't hesitate to contact us.</p>
         <p>Thank you for choosing us!</p>
+
+        @php
+            $setting = \App\Models\Setting::first();
+            $companyEmail = $setting->email ?? config('mail.from.address');
+            $companyPhone = $setting->phone ?? $setting->phone1 ?? '';
+            $companyPhoneDigits = preg_replace('/\D/', '', $companyPhone);
+            $whatsappUrl = $companyPhoneDigits ? 'https://wa.me/' . $companyPhoneDigits : '';
+        @endphp
+        <div class="info-box" style="background: #f8f9fa; border-left: 4px solid #6c757d;">
+            <strong>Follow-up contacts</strong>
+            <p class="mb-1 mt-2">Email: <a href="mailto:{{ $companyEmail }}">{{ $companyEmail }}</a></p>
+            @if($companyPhone)
+                <p class="mb-0">Phone / WhatsApp: <a href="{{ $whatsappUrl ?: 'tel:' . $companyPhone }}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px;">{{ $companyPhone }} <img src="https://static.whatsapp.net/rsrc.php/v3/yP/r/2xyb0_DNcZR.png" alt="WhatsApp" width="20" height="20" style="vertical-align: middle;"></a></p>
+            @endif
+        </div>
     </div>
     <div class="footer">
-        <p>This is an automated confirmation. For inquiries, contact us at {{ config('mail.from.address') }}</p>
+        <p>This is an automated confirmation. For inquiries, contact us at {{ $companyEmail }}</p>
     </div>
 </body>
 </html>

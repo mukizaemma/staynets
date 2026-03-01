@@ -450,23 +450,20 @@
     <div class="row">
         <!-- Left Column -->
         <div class="col-lg-8">
-            <!-- Image Gallery -->
+            <!-- Property Gallery (only property images - room galleries are on their own pages) -->
             @php
                 $allImages = collect();
                 
-                // Add property images
+                // Add property images only (from property_images table)
                 if($hotel->images && $hotel->images->isNotEmpty()) {
                     foreach($hotel->images as $img) {
-                        // Handle both PropertyImage (image_path) and HotelImage (image) models
                         if(isset($img->image_path)) {
-                            // PropertyImage model
                             $allImages->push([
                                 'url' => asset('storage/images/properties/' . $img->image_path),
                                 'type' => 'property',
                                 'caption' => ($img->caption ?? $hotel->name)
                             ]);
                         } elseif(isset($img->image)) {
-                            // HotelImage model
                             $allImages->push([
                                 'url' => asset('storage/images/hotels/' . $img->image),
                                 'type' => 'property',
@@ -489,43 +486,7 @@
                     }
                 }
                 
-                // Add room/unit images
-                foreach($hotel->units as $unit) {
-                    if($unit->images && $unit->images->isNotEmpty()) {
-                        foreach($unit->images as $roomImg) {
-                            // Handle both UnitImage (image_path) and HotelRoomImage (image) models
-                            if(isset($roomImg->image_path)) {
-                                // UnitImage model
-                                $allImages->push([
-                                    'url' => asset('storage/images/units/' . $roomImg->image_path),
-                                    'type' => 'room',
-                                    'caption' => ($roomImg->caption ?? $unit->name) . ' - ' . $hotel->name
-                                ]);
-                            } elseif(isset($roomImg->image)) {
-                                // HotelRoomImage model
-                                $allImages->push([
-                                    'url' => asset('storage/images/rooms/' . $roomImg->image),
-                                    'type' => 'room',
-                                    'caption' => ($roomImg->caption ?? $unit->name) . ' - ' . $hotel->name
-                                ]);
-                            }
-                        }
-                    }
-                    // Add unit featured image if exists
-                    $unitFeaturedImage = $unit->featured_image ?? null;
-                    if(!empty($unitFeaturedImage)) {
-                        $unitUrl = asset('storage/images/units/' . $unitFeaturedImage);
-                        if(!$allImages->contains('url', $unitUrl)) {
-                            $allImages->push([
-                                'url' => $unitUrl,
-                                'type' => 'room',
-                                'caption' => $unit->name . ' - ' . $hotel->name
-                            ]);
-                        }
-                    }
-                }
-                
-                // Fallback if no images
+                // Fallback if no property images
                 if($allImages->isEmpty()) {
                     $allImages->push([
                         'url' => asset('assets/img/tour/tour_3_1.jpg'),
@@ -537,7 +498,7 @@
                 $mainImage = $allImages->first()['url'];
             @endphp
             
-            <div class="content-section">
+            <div class="content-section" id="property-gallery">
                 <div class="image-gallery-main">
                     <img src="{{ $mainImage }}" alt="{{ $hotel->name }}" id="mainGalleryImage" onclick="openGalleryModal(0)">
                     @if($allImages->count() > 1)
@@ -702,7 +663,7 @@
                                     <th>Room Type</th>
                                     <th>Price</th>
                                     <th>Availability</th>
-                                    <th>Action</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -775,21 +736,27 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($unit->available_units > 0)
-                                                @php
-                                                    $unitCurrency = $unit->currency ?? 'USD';
-                                                    $unitCurrencySymbol = getCurrencySymbol($unitCurrency);
-                                                    $primaryPrice = ($uPt === 'per_month') ? ($unit->base_price_per_month ?? 0) : ($unit->base_price_per_night ?? 0);
-                                                    $unitDisplayNameForJs = $unitTypeName && $unitTypeName !== $unitDisplayName
-                                                        ? $unitTypeName . ' – ' . $unitDisplayName
-                                                        : $unitDisplayName;
-                                                @endphp
-                                                <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $primaryPrice }}, {{ json_encode($unitDisplayNameForJs) }}, '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}', '{{ $uPt }}')">
-                                                    Select room
-                                                </button>
-                                            @else
-                                                <button class="btn-book-room" disabled>Unavailable</button>
-                                            @endif
+                                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                <a href="{{ route('unit.details', ['property' => $hotel->slug ?? $hotel->id, 'unit' => $unit->slug ?? $unit->id]) }}" 
+                                                   class="btn btn-sm btn-outline-primary" style="padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+                                                    <i class="fas fa-images me-1"></i>View room
+                                                </a>
+                                                @if($unit->available_units > 0)
+                                                    @php
+                                                        $unitCurrency = $unit->currency ?? 'USD';
+                                                        $unitCurrencySymbol = getCurrencySymbol($unitCurrency);
+                                                        $primaryPrice = ($uPt === 'per_month') ? ($unit->base_price_per_month ?? 0) : ($unit->base_price_per_night ?? 0);
+                                                        $unitDisplayNameForJs = $unitTypeName && $unitTypeName !== $unitDisplayName
+                                                            ? $unitTypeName . ' – ' . $unitDisplayName
+                                                            : $unitDisplayName;
+                                                    @endphp
+                                                    <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $primaryPrice }}, {{ json_encode($unitDisplayNameForJs) }}, '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}', '{{ $uPt }}')">
+                                                        Select room
+                                                    </button>
+                                                @else
+                                                    <button class="btn-book-room" disabled>Unavailable</button>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1298,21 +1265,24 @@
         }
     }
     
-    // Auto-select first available room if none selected
-        @if($rooms->isNotEmpty() && $rooms->first()->available_units > 0)
-        document.addEventListener('DOMContentLoaded', function() {
-            const firstAvailableRoom = document.querySelector('.btn-book-room:not(:disabled)');
-            if (firstAvailableRoom) {
-                const unitId = {{ $rooms->first()->id }};
-                const pt = '{{ $rooms->first()->price_display_type ?? 'per_night' }}';
-                const price = pt === 'per_month' ? {{ $rooms->first()->base_price_per_month ?? 0 }} : {{ $rooms->first()->base_price_per_night ?? 0 }};
-                const name = {!! json_encode($rooms->first()->name ?? 'Unit') !!};
-                const currency = '{{ $rooms->first()->currency ?? 'USD' }}';
-                const currencySymbol = '{{ getCurrencySymbol($rooms->first()->currency ?? 'USD') }}';
-                selectRoom(unitId, price, name, currency, currencySymbol, pt);
-            }
-        });
-    @endif
+    // Room data for auto-selection (from URL ?unit= or first available)
+    const roomsData = @json($roomsDataJson ?? []);
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const unitIdParam = urlParams.get('unit') ? parseInt(urlParams.get('unit'), 10) : null;
+        let roomToSelect = null;
+        if (unitIdParam && roomsData.length) {
+            roomToSelect = roomsData.find(r => r.id === unitIdParam && r.available);
+        }
+        if (!roomToSelect && roomsData.length) {
+            roomToSelect = roomsData.find(r => r.available);
+        }
+        if (roomToSelect) {
+            selectRoom(roomToSelect.id, roomToSelect.price, roomToSelect.name, roomToSelect.currency, roomToSelect.currencySymbol, roomToSelect.priceType);
+            document.getElementById('reserveBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
     
     // Star rating - interactive hover and selection
     (function initStarRating() {
@@ -1333,7 +1303,7 @@
                 }
             });
             if (ratingLabel && upToValue > 0) {
-                ratingLabel.textContent = labels[upToValue] + ' (' + upToValue + ' ' + (upToValue === 1 ? 'star' : 'stars') + ')';
+                ratingLabel.textContent = (labels.at ? labels.at(upToValue) : labels[upToValue]) + ' (' + upToValue + ' ' + (upToValue === 1 ? 'star' : 'stars') + ')';
             } else if (ratingLabel) {
                 ratingLabel.textContent = 'Select your rating';
             }

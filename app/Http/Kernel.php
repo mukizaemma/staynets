@@ -65,6 +65,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'allow.booking.owner' => \App\Http\Middleware\AllowAdminOrBookingOwner::class,
         'TrackVisits' => \App\Http\Middleware\TrackVisits::class,
         'redirect.admin' => \App\Http\Middleware\RedirectAdminToDashboard::class,
     ];

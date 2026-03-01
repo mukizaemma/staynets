@@ -24,6 +24,8 @@ class HotelBooking extends Model
         'guest_phone',
         'special_requests',
         'total_amount',
+        'commission_rate',
+        'commission_amount',
         'payment_status',
         'booking_status',
         'reference_number',
@@ -58,5 +60,15 @@ class HotelBooking extends Model
     public function bookingExtras()
     {
         return $this->hasMany(BookingExtra::class, 'hotel_booking_id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(BookingComment::class, 'hotel_booking_id')->orderBy('created_at');
+    }
+
+    public function stayModifications()
+    {
+        return $this->hasMany(BookingStayModification::class, 'hotel_booking_id')->orderByDesc('created_at');
     }
 }

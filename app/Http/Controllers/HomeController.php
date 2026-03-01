@@ -36,6 +36,7 @@ use App\Mail\BookingNotification;
 use App\Mail\BookingConfirmation;
 use App\Mail\AdminNotification;
 use App\Mail\ReservationSubmitted;
+use App\Mail\ReservationAdminNotification;
 use Illuminate\Support\Collection;
 
 
@@ -654,11 +655,28 @@ public function showAccommodation(Request $request, $slug)
             ->take(4)
             ->get();
 
+        $roomsDataJson = $hotel->units->map(function ($u) {
+            $pt = $u->price_display_type ?? 'per_night';
+            $price = ($pt === 'per_month') ? (float)($u->base_price_per_month ?? 0) : (float)($u->base_price_per_night ?? 0);
+            $unitTypeName = $u->unitType->name ?? null;
+            $unitDisplayName = $unitTypeName && $unitTypeName !== $u->name ? $unitTypeName . ' – ' . $u->name : $u->name;
+            return [
+                'id' => $u->id,
+                'price' => $price,
+                'name' => $unitDisplayName,
+                'currency' => $u->currency ?? 'USD',
+                'currencySymbol' => getCurrencySymbol($u->currency ?? 'USD'),
+                'priceType' => $pt,
+                'available' => $u->available_units > 0,
+            ];
+        })->values()->toArray();
+
         return view('frontend.accommodation', [
             'hotel' => $hotel,
             'rooms' => $hotel->units,
             'amenitiesByCategory' => $amenitiesByCategory,
             'relatedProperties' => $relatedProperties,
+            'roomsDataJson' => $roomsDataJson,
         ]);
     } catch (\Illuminate\Database\QueryException $e) {
         \Illuminate\Support\Facades\Log::error('showAccommodation query error', [
@@ -668,6 +686,64 @@ public function showAccommodation(Request $request, $slug)
         ]);
         throw $e;
     }
+}
+
+/**
+ * Show single unit/room page for a property (Property + Unit model)
+ */
+public function showUnit($property, $unit)
+{
+    $propertyModel = Property::with(['facilities.category', 'category'])
+        ->where(function($q) use ($property) {
+            if (is_numeric($property)) {
+                $q->where('id', $property);
+            } else {
+                $q->where('slug', $property);
+            }
+        })
+        ->where('status', 'Active')
+        ->firstOrFail();
+
+    $unitModel = \App\Models\Unit::with(['images', 'facilities', 'unitType', 'extraCharges'])
+        ->where('property_id', $propertyModel->id)
+        ->where(function($q) use ($unit) {
+            if (is_numeric($unit)) {
+                $q->where('id', $unit);
+            } else {
+                $q->where('slug', $unit);
+            }
+        })
+        ->where('status', 'Available')
+        ->firstOrFail();
+
+    // Build room gallery from unit images only
+    $roomImages = collect();
+    if ($unitModel->images && $unitModel->images->isNotEmpty()) {
+        foreach ($unitModel->images->sortByDesc('is_primary')->sortBy('sort_order') as $img) {
+            $roomImages->push([
+                'url' => asset('storage/images/units/' . $img->image_path),
+                'caption' => $img->caption ?? $unitModel->name,
+            ]);
+        }
+    }
+    if ($unitModel->featured_image && !$roomImages->contains('url', asset('storage/images/units/' . $unitModel->featured_image))) {
+        $roomImages->prepend([
+            'url' => asset('storage/images/units/' . $unitModel->featured_image),
+            'caption' => $unitModel->name . ' - Featured',
+        ]);
+    }
+    if ($roomImages->isEmpty()) {
+        $roomImages->push([
+            'url' => asset('assets/img/tour/tour_3_1.jpg'),
+            'caption' => $unitModel->name,
+        ]);
+    }
+
+    return view('frontend.unit-details', [
+        'property' => $propertyModel,
+        'unit' => $unitModel,
+        'roomImages' => $roomImages,
+    ]);
 }
 
 /**
@@ -730,6 +806,9 @@ public function storeBooking(Request $request)
     }
     $totalAmount = $baseTotal + $extrasTotal;
 
+    $commissionRate = 10;
+    $commissionAmount = round($totalAmount * ($commissionRate / 100), 2);
+
     // Generate reference number
     $referenceNumber = 'BK' . strtoupper(uniqid());
 
@@ -749,6 +828,8 @@ public function storeBooking(Request $request)
         'guest_phone' => $request->guest_phone,
         'special_requests' => $request->special_requests,
         'total_amount' => $totalAmount,
+        'commission_rate' => $commissionRate,
+        'commission_amount' => $commissionAmount,
         'reference_number' => $referenceNumber,
         'payment_status' => 'pending',
         'booking_status' => 'availability_requested',
@@ -765,14 +846,22 @@ public function storeBooking(Request $request)
     }
 
     // Load relationships for email
-    $booking->load(['property', 'unit', 'bookingExtras']);
+    $booking->load(['property', 'unit', 'property.owner', 'bookingExtras']);
 
-    // Send email notification to StayNets team
+    // Send email notification to StayNets and to property owner (if any)
+    $notificationRecipients = array_filter([config('mail.admin_email')]);
+    if ($booking->property && $booking->property->owner && $booking->property->owner->email) {
+        $ownerEmail = $booking->property->owner->email;
+        if (!in_array($ownerEmail, $notificationRecipients)) {
+            $notificationRecipients[] = $ownerEmail;
+        }
+    }
     try {
-        Mail::to(config('mail.admin_email'))->send(new BookingNotification($booking));
+        foreach ($notificationRecipients as $email) {
+            Mail::to($email)->send(new BookingNotification($booking));
+        }
     } catch (\Exception $e) {
-        // Log error but don't fail the booking
-        \Log::error('Failed to send admin booking notification: ' . $e->getMessage());
+        \Log::error('Failed to send booking notification: ' . $e->getMessage());
     }
 
     // Send confirmation email to client (availability request received)
@@ -1189,6 +1278,11 @@ public function bookNow(Request $request)
             } catch (\Exception $e) {
                 \Log::error('Failed to send reservation submitted email: ' . $e->getMessage());
             }
+            try {
+                Mail::to(config('mail.admin_email'))->send(new ReservationAdminNotification($booking));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation admin notification: ' . $e->getMessage());
+            }
             $successMessages = [
                 'enquiry' => "✅ Your enquiry has been received! We'll contact you soon.",
                 'hotel_booking' => "✅ Your hotel booking request has been received! We'll contact you soon to confirm availability.",
@@ -1326,6 +1420,11 @@ public function bookNow(Request $request)
             } catch (\Exception $e) {
                 \Log::error('Failed to send reservation submitted email: ' . $e->getMessage());
             }
+            try {
+                Mail::to(config('mail.admin_email'))->send(new ReservationAdminNotification($reservation));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation admin notification: ' . $e->getMessage());
+            }
             return redirect()->back()->with('success', '✅ Your reservation inquiry has been received! We\'ll contact you soon to confirm your booking.');
         } else {
             return redirect()->back()->with('error', '❌ Sorry, your inquiry could not be submitted. Please try again.');
@@ -1381,6 +1480,11 @@ public function bookNow(Request $request)
                 Mail::to($reservation->email)->send(new ReservationSubmitted($reservation));
             } catch (\Exception $e) {
                 \Log::error('Failed to send reservation submitted email: ' . $e->getMessage());
+            }
+            try {
+                Mail::to(config('mail.admin_email'))->send(new ReservationAdminNotification($reservation));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reservation admin notification: ' . $e->getMessage());
             }
             return redirect()->back()->with('success', '✅ Your trip request has been received! We will send you a plan and quote.');
         }

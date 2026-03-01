@@ -352,7 +352,7 @@
                         @endforeach
                     </div>
 
-                    <!-- Submit Buttons -->
+                    <!-- Submit Buttons (main property form) -->
                     <div class="row">
                         <div class="col-12">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 border-top pt-3">
@@ -364,6 +364,118 @@
                         </div>
                     </div>
                 </form>
+
+                    <!-- Property Gallery (separate form - must be outside main form to submit correctly) -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3 border-bottom pb-2">Property Gallery</h5>
+                            <p class="text-muted mb-3">Images displayed on the property page. Add multiple images to showcase your property.</p>
+                            
+                            <!-- Upload New Images -->
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Images</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form action="{{ route('admin.properties.images.store', $property->id) }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="mb-3">
+                                                <label for="property_images" class="form-label">Select Images (Multiple)</label>
+                                                <input type="file" name="images[]" class="form-control @error('images') is-invalid @enderror" 
+                                                       id="property_images" accept="image/*" multiple>
+                                                <small class="text-muted">You can select multiple images at once (Ctrl/Cmd + Click)</small>
+                                                @error('images')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                @error('images.*')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="property_image_caption" class="form-label">Caption (Optional)</label>
+                                                <input type="text" name="caption" class="form-control" id="property_image_caption" placeholder="Caption for all images">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="is_primary" id="property_set_primary" value="1">
+                                                    <label class="form-check-label" for="property_set_primary">
+                                                        Set first image as primary
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-upload me-2"></i>Upload Images
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Existing Gallery Images -->
+                            <div class="card">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-images me-2"></i>Gallery Images ({{ $property->images->count() }})</h6>
+                                </div>
+                                <div class="card-body">
+                                    @if($property->images->count() > 0)
+                                        <div class="row">
+                                            @foreach($property->images as $image)
+                                                <div class="col-md-3 mb-3">
+                                                    <div class="card h-100">
+                                                        <div class="position-relative">
+                                                            <img src="{{ asset('storage/images/properties/' . $image->image_path) }}" 
+                                                                 alt="{{ $image->caption ?? 'Property Image' }}" 
+                                                                 class="card-img-top" 
+                                                                 style="height: 200px; object-fit: cover;">
+                                                            @if($image->is_primary)
+                                                                <span class="badge bg-success position-absolute top-0 start-0 m-2">
+                                                                    <i class="fas fa-star me-1"></i>Primary
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="card-body p-2">
+                                                            <div class="mb-2">
+                                                                <input type="text" 
+                                                                       class="form-control form-control-sm property-image-caption" 
+                                                                       data-image-id="{{ $image->id }}"
+                                                                       data-route="{{ route('admin.properties.images.update', $image->id) }}"
+                                                                       value="{{ $image->caption ?? '' }}" 
+                                                                       placeholder="Image caption...">
+                                                                <small class="text-muted d-block mt-1">
+                                                                    <i class="fas fa-info-circle"></i> Press Enter to save
+                                                                </small>
+                                                            </div>
+                                                            <div class="btn-group w-100" role="group">
+                                                                @if(!$image->is_primary)
+                                                                    <a href="{{ route('admin.properties.images.primary', $image->id) }}" 
+                                                                       class="btn btn-sm btn-info" 
+                                                                       title="Set as Primary">
+                                                                        <i class="fas fa-star"></i>
+                                                                    </a>
+                                                                @endif
+                                                                <a href="{{ route('admin.properties.images.destroy', $image->id) }}" 
+                                                                   class="btn btn-sm btn-danger" 
+                                                                   onclick="return confirm('Are you sure you want to delete this image?')"
+                                                                   title="Delete">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">No images in gallery yet. Upload images above to get started.</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
@@ -422,6 +534,39 @@
 
     <script>
         $(document).ready(function() {
+            // Property image caption inline edit
+            $('.property-image-caption').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    var $input = $(this);
+                    var route = $input.data('route');
+                    var caption = $input.val();
+                    var originalValue = $input.data('original-value') || $input.val();
+                    $input.prop('disabled', true);
+                    $.ajax({
+                        url: route,
+                        method: 'PUT',
+                        data: { _token: '{{ csrf_token() }}', caption: caption },
+                        success: function() {
+                            $input.data('original-value', caption);
+                            $input.prop('disabled', false);
+                            var $msg = $('<small class="text-success d-block mt-1"><i class="fas fa-check"></i> Saved</small>');
+                            $input.siblings('small.text-muted').replaceWith($msg);
+                            setTimeout(function() { $msg.replaceWith('<small class="text-muted d-block mt-1"><i class="fas fa-info-circle"></i> Press Enter to save</small>'); }, 2000);
+                        },
+                        error: function(xhr) {
+                            $input.prop('disabled', false);
+                            $input.val(originalValue);
+                            var err = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error saving';
+                            var $err = $('<small class="text-danger d-block mt-1"><i class="fas fa-exclamation-circle"></i> ' + err + '</small>');
+                            $input.siblings('small.text-muted, small.text-success').replaceWith($err);
+                            setTimeout(function() { $err.replaceWith('<small class="text-muted d-block mt-1"><i class="fas fa-info-circle"></i> Press Enter to save</small>'); }, 3000);
+                        }
+                    });
+                }
+            });
+            $('.property-image-caption').on('focus', function() { $(this).data('original-value', $(this).val()); });
+
             $('#propertyDescription').summernote({
                 placeholder: 'Property Description',
                 tabsize: 2,

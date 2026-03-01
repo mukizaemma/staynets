@@ -103,6 +103,10 @@
         <div class="info-box">
             <strong>Important:</strong> Please keep this reference number for your records. You will need it for any inquiries about your booking.
         </div>
+
+        <div class="info-box" style="background-color: #f0f9f0; border-left-color: #28a745;">
+            <strong>Payment:</strong> Payment is due on arrival. No advance payment is required to confirm your reservation.
+        </div>
         
         <div class="booking-details">
             <h3>Booking Summary</h3>
@@ -161,18 +165,33 @@
         
         <div class="info-box">
             <p><strong>What's Next?</strong></p>
-            <p>Our team will review your booking and contact you within 24 hours to confirm availability and provide payment instructions. You will receive a follow-up communication once your reservation is confirmed.</p>
+            <p>Our team will review your booking and contact you within 24 hours to confirm availability. You will receive a follow-up communication once your reservation is confirmed. <strong>Payment is on arrival</strong>—no advance payment is required.</p>
         </div>
         
         <p>If you have any questions or need to make changes to your booking, please contact us using your booking reference number.</p>
         
         <p>Thank you for choosing us!</p>
         <p>Best regards,<br>The Accommodation Team</p>
+
+        @php
+            $setting = \App\Models\Setting::first();
+            $companyEmail = $setting->email ?? config('mail.from.address');
+            $companyPhone = $setting->phone ?? $setting->phone1 ?? '';
+            $companyPhoneDigits = preg_replace('/\D/', '', $companyPhone);
+            $whatsappUrl = $companyPhoneDigits ? 'https://wa.me/' . $companyPhoneDigits : '';
+        @endphp
+        <div class="info-box" style="background-color: #f8f9fa; border-left-color: #6c757d;">
+            <strong>Follow-up contacts</strong>
+            <p class="mb-1 mt-2">Email: <a href="mailto:{{ $companyEmail }}">{{ $companyEmail }}</a></p>
+            @if($companyPhone)
+                <p class="mb-0">Phone / WhatsApp: <a href="{{ $whatsappUrl ?: 'tel:' . $companyPhone }}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px;">{{ $companyPhone }} <img src="https://static.whatsapp.net/rsrc.php/v3/yP/r/2xyb0_DNcZR.png" alt="WhatsApp" width="20" height="20" style="vertical-align: middle;"></a></p>
+            @endif
+        </div>
     </div>
     
     <div class="footer">
         <p>This is an automated confirmation email. Please do not reply to this email.</p>
-        <p>For inquiries, please contact: {{ config('mail.from.address') }}</p>
+        <p>For inquiries, please contact: {{ $companyEmail }}</p>
     </div>
 </body>
 </html>
