@@ -7,6 +7,9 @@ use App\Models\Order;
 use App\Models\Setting;
 use App\Models\Subscriber;
 use App\Models\Hotel;
+use App\Models\Property;
+use App\Models\Unit;
+use App\Models\HotelBooking;
 use Illuminate\Http\Request;
 use App\Models\Articlecomment;
 use Illuminate\Support\Facades\DB;
@@ -22,18 +25,32 @@ class AdminController extends Controller
     {
         $users = User::all();
 
-        // $blogCommets = BlogComment::latest()->get();
-        // $blogCommetsCount = $blogCommets->count();
         $data = Setting::first();
-        $rooms = Hotel::count();
+
+        // Dashboard stats: properties, units/rooms, reservations (excl. cancelled), sales, commission
+        $totalProperties = Property::count();
+        $totalRooms = Unit::count();
+        $reservationsQuery = HotelBooking::query()->where('booking_status', '!=', 'cancelled');
+        $totalReservations = (clone $reservationsQuery)->count();
+        $totalSales = (clone $reservationsQuery)->sum('total_amount');
+        $totalCommission = (clone $reservationsQuery)->sum('commission_amount');
+
+        $latestReservations = HotelBooking::with(['property', 'unit'])
+            ->latest()
+            ->take(10)
+            ->get();
 
         $setting = Setting::first();
-        return view('admin.dashboard',[
-            // 'blogCommetsCount' =>$blogCommetsCount,
-            'users'=>$users,
-            'data'=>$data,
-            'setting'=>$setting,
-            'rooms'=>$rooms,
+        return view('admin.dashboard', [
+            'users' => $users,
+            'data' => $data,
+            'setting' => $setting,
+            'totalProperties' => $totalProperties,
+            'totalRooms' => $totalRooms,
+            'totalReservations' => $totalReservations,
+            'totalSales' => $totalSales,
+            'totalCommission' => $totalCommission,
+            'latestReservations' => $latestReservations,
         ]);
     }
 
