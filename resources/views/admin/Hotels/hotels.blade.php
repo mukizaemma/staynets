@@ -91,7 +91,7 @@
 
                                     <td>{{ $rs->phone ?? '—' }}</td>
 
-                                    <td>{!! Str::limit($rs->description, 80) !!}</td>
+                                    <td>{{ \Illuminate\Support\Str::limit(strip_tags($rs->description), 80) }}</td>
 
                                     <td>
                                         <a href="{{ route('editHotel', $rs->id) }}">
@@ -346,8 +346,25 @@
                     row.style.display = text.includes(filter) ? '' : 'none';
                 });
             });
+
         </script>
 
 
         @include('admin.includes.footer')
- @endsection
+@push('scripts')
+<script>
+$(function () {
+    $('#slideImage').on('shown.bs.modal', function () {
+        var $t = $('#hotelDescription');
+        if (!$t.length || $t.next('.note-editor').length) return;
+        $t.summernote({
+            placeholder: 'Hotel Description',
+            tabsize: 2,
+            height: 220,
+            toolbar: window._summernoteToolbar || []
+        });
+    });
+});
+</script>
+@endpush
+@endsection

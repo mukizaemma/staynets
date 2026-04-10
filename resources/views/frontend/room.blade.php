@@ -1,6 +1,10 @@
 @extends('layouts.frontbase')
 @section('content')
-
+<style>
+    .rich-html-content { line-height: 1.65; }
+    .rich-html-content p:last-child { margin-bottom: 0; }
+    .rich-html-content ul, .rich-html-content ol { margin: 0.75rem 0; padding-left: 1.25rem; }
+</style>
 
 <div class="breadcumb-wrapper" data-bg-src="{{ asset('storage/images/rooms/' .$room->image) }}" style="height: 550px; width: 70%; margin: 20px auto; background-image: url('{{ asset('storage/images/trips/' .$room->image) }}'); background-size: cover; background-position: center;">
     <div class="container">
@@ -44,7 +48,13 @@ Tour Area
 
                         <div class="page-content mb-4">
                             <h3 class="box-title mb-3">About this room</h3>
-                            <p class="box-text">{!! $room->description ?? 'No description available.' !!}</p>
+                            <div class="box-text rich-html-content">
+                                @if(filled($room->description))
+                                    {!! $room->description !!}
+                                @else
+                                    <p class="text-muted mb-0">No description available.</p>
+                                @endif
+                            </div>
                         </div>
 
                         @if($amenities->isNotEmpty())

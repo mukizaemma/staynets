@@ -121,7 +121,7 @@ class ReviewController extends Controller
      */
     public function storePropertyReview(Request $request, $propertySlugOrId)
     {
-        $property = \App\Models\Property::where('status', 'Active')
+        $property = \App\Models\Property::publishedForGuests()
             ->where(function ($q) use ($propertySlugOrId) {
                 if (is_numeric($propertySlugOrId)) {
                     $q->where('id', $propertySlugOrId);

@@ -35,6 +35,20 @@
                     </div>
                 @endif
 
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <ul class="mb-0 ps-3">@foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach</ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
                 <!-- User Information Card -->
                 <div class="row mb-4">
                     <div class="col-md-12">
@@ -64,31 +78,64 @@
                                         </p>
                                     </div>
                                     <div class="col-md-6">
-                                        <p><strong>Role:</strong> 
-                                            @if($user->role == 1)
-                                                <span class="badge bg-primary">Admin</span>
-                                            @else
-                                                <span class="badge bg-secondary">User</span>
-                                            @endif
-                                        </p>
                                         <p><strong>Registered:</strong> {{ $user->created_at->format('F d, Y h:i A') }}</p>
                                         <p><strong>Total Properties:</strong> <span class="badge bg-info">{{ $user->properties->count() }}</span></p>
-                                        <p><strong>Total Bookings:</strong> <span class="badge bg-primary">{{ $user->hotelBookings->count() }}</span></p>
+                                        <p><strong>Total Bookings (as guest):</strong> <span class="badge bg-primary">{{ $user->hotelBookings->count() }}</span></p>
+                                        <p><strong>Account status:</strong>
+                                            @if(($user->status ?? 'Active') === 'Active')
+                                                <span class="badge bg-success">Active</span>
+                                            @else
+                                                <span class="badge bg-danger">Suspended</span>
+                                            @endif
+                                        </p>
                                     </div>
                                 </div>
-                                <div class="mt-3">
-                                    @if($user->role != 1 && isset($isSuperAdmin) && $isSuperAdmin)
-                                        <a href="{{ route('makeAdmin', ['id' => $user->id]) }}" class="btn btn-info btn-sm">
-                                            <i class="fas fa-user-shield me-1"></i>Make Admin
-                                        </a>
-                                    @endif
-                                    @if(isset($isSuperAdmin) && $isSuperAdmin)
+                                @if(isset($isSuperAdmin) && $isSuperAdmin)
+                                <form action="{{ route('admin.users.update', $user->id) }}" method="POST" class="mt-4 p-3 border rounded bg-white text-start">
+                                    @csrf
+                                    <h6 class="mb-3 fw-semibold">Role &amp; access</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="edit_role" class="form-label">Role</label>
+                                            <select name="role" id="edit_role" class="form-select" required>
+                                                <option value="0" {{ (string) old('role', $user->role) === '0' || (int) old('role', $user->role) === 0 ? 'selected' : '' }}>User</option>
+                                                <option value="2" {{ (string) old('role', $user->role) === '2' || (int) old('role', $user->role) === 2 ? 'selected' : '' }}>Admin</option>
+                                                <option value="1" {{ (string) old('role', $user->role) === '1' || (int) old('role', $user->role) === 1 ? 'selected' : '' }}>Super Admin</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="edit_status" class="form-label">Account access</label>
+                                            <select name="status" id="edit_status" class="form-select" required>
+                                                <option value="Active" {{ old('status', $user->status ?? 'Active') === 'Active' ? 'selected' : '' }}>Active — can sign in</option>
+                                                <option value="Inactive" {{ old('status', $user->status ?? 'Active') === 'Inactive' ? 'selected' : '' }}>Suspended — cannot sign in</option>
+                                            </select>
+                                            <small class="text-muted d-block mt-1">Use suspend for harmful or policy violations. Verified users can still add listings when active.</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 d-flex flex-wrap gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-save me-1"></i>Save changes
+                                        </button>
+                                        @if((string) $user->role !== '1' && (int) $user->role !== 1)
+                                            <a href="{{ route('makeAdmin', ['id' => $user->id]) }}" class="btn btn-outline-info btn-sm"
+                                               onclick="return confirm('Grant this user Super Admin (role 1)? They will have full admin access. Continue?');">
+                                                <i class="fas fa-user-shield me-1"></i>Quick: Make Super Admin
+                                            </a>
+                                        @endif
                                         <a href="{{ route('deleteUser', ['id' => $user->id]) }}" class="btn btn-danger btn-sm" 
-                                           onclick="return confirm('Are you sure you want to delete this user?')">
+                                           onclick="return confirm('Are you sure you want to delete this user? This cannot be undone.')">
                                             <i class="fas fa-trash me-1"></i>Delete User
                                         </a>
-                                    @endif
-                                </div>
+                                    </div>
+                                </form>
+                                <form action="{{ route('admin.users.password-reset', $user->id) }}" method="POST" class="mt-2"
+                                      onsubmit="return confirm('Send a password reset link to {{ $user->email }}?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-key me-1"></i>Send password reset email
+                                    </button>
+                                </form>
+                                @endif
                             </div>
                         </div>
                     </div>

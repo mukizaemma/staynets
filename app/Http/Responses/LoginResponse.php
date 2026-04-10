@@ -17,6 +17,12 @@ class LoginResponse implements LoginResponseContract
     {
         $user = $request->user();
 
+        if (($user->status ?? 'Active') === 'Inactive') {
+            auth()->logout();
+            return redirect()->route('login')
+                ->with('error', 'Your account has been suspended. Please contact support if you believe this is a mistake.');
+        }
+
         // Check if email is verified
         if (!$user->hasVerifiedEmail()) {
             // Don't logout - keep user logged in but redirect to verification notice

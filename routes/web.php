@@ -11,6 +11,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Users Management Routes - Only accessible to admins (role == 1)
     Route::get('/Users', [App\Http\Controllers\AdminController::class, 'users'])->name('users');
     Route::get('/Users/{id}/show', [App\Http\Controllers\AdminController::class, 'showUser'])->name('admin.users.show');
+    Route::post('/Users/{id}/update', [App\Http\Controllers\AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::post('/Users/{id}/password-reset', [App\Http\Controllers\AdminController::class, 'sendUserPasswordReset'])->name('admin.users.password-reset');
     Route::get('/Users/{id}/verify', [App\Http\Controllers\AdminController::class, 'verifyUserEmail'])->name('admin.users.verify');
     Route::get('/Users/{id}/makeAdmin', [App\Http\Controllers\AdminController::class, 'makeAdmin'])->name('makeAdmin');
     Route::get('/deleteUser/{id}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('deleteUser');
@@ -137,6 +139,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::put('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update');
     Route::post('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update.post'); // Fallback for forms without @method
     Route::get('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'show'])->name('admin.properties.show'); // Generic show route (must be last)
+
+    Route::get('/admin/booking-calendar', [App\Http\Controllers\Admin\AdminBookingCalendarController::class, 'index'])->name('admin.booking-calendar.index');
     
     // Property Images
     Route::post('/admin/properties/{propertyId}/images', [App\Http\Controllers\Admin\PropertyImagesController::class, 'store'])->name('admin.properties.images.store');
@@ -325,6 +329,7 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::post('car-rental/request', [App\Http\Controllers\CarRentalRequestController::class, 'store'])->name('carRentalRequest.store');
     Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
     Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
+    Route::post('/hotels/{hotelSlug}/rooms/{roomSlug}/booking-request', [App\Http\Controllers\HomeController::class, 'storeHotelRoomBookingRequest'])->name('hotel.room.booking.request');
     Route::post('/trips/request-multiple', [App\Http\Controllers\HomeController::class, 'tripRequestMultiple'])->name('tripRequestMultiple');
 });
 
@@ -345,17 +350,18 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     // Rooms
     Route::get('/my-properties/hotels/{hotel}/rooms/create', [App\Http\Controllers\UserPropertyController::class, 'createRoom'])->name('my.properties.rooms.create');
     Route::post('/my-properties/hotels/{hotel}/rooms', [App\Http\Controllers\UserPropertyController::class, 'storeRoom'])->name('my.properties.rooms.store');
+    Route::get('/my-properties/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'showRoom'])->name('my.properties.rooms.show');
     Route::get('/my-properties/rooms/{room}/edit', [App\Http\Controllers\UserPropertyController::class, 'editRoom'])->name('my.properties.rooms.edit');
     Route::put('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'updateRoom'])->name('my.properties.rooms.update');
     Route::delete('/my-properties/rooms/{room}', [App\Http\Controllers\UserPropertyController::class, 'destroyRoom'])->name('my.properties.rooms.destroy');
     
     // Room Gallery Management (User)
     Route::post('/my-properties/rooms/{room}/images', [App\Http\Controllers\UserPropertyController::class, 'addRoomImage'])->name('my.properties.rooms.images.store');
-    Route::get('/my-properties/rooms/images/{id}/delete', [App\Http\Controllers\UserPropertyController::class, 'deleteRoomImage'])->name('my.properties.rooms.images.destroy');
+    Route::delete('/my-properties/rooms/images/{id}', [App\Http\Controllers\UserPropertyController::class, 'deleteRoomImage'])->name('my.properties.rooms.images.destroy');
     
     // Property Gallery Management (User)
     Route::post('/my-properties/hotels/{hotel}/images', [App\Http\Controllers\UserPropertyController::class, 'addPropertyImage'])->name('my.properties.hotels.images.store');
-    Route::get('/my-properties/hotels/images/{id}/delete', [App\Http\Controllers\UserPropertyController::class, 'deletePropertyImage'])->name('my.properties.hotels.images.destroy');
+    Route::delete('/my-properties/hotels/images/{id}', [App\Http\Controllers\UserPropertyController::class, 'deletePropertyImage'])->name('my.properties.hotels.images.destroy');
 });
 
 

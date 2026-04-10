@@ -1,6 +1,15 @@
 @extends('layouts.adminBase')
 
 @section('content')
+    <style>
+        .unit-form-page { max-width: 1140px; margin-left: auto; margin-right: auto; }
+        .unit-form-card { border: 1px solid rgba(0,0,0,.06); border-radius: 12px; overflow: hidden; }
+        .unit-file-drop {
+            border: 2px dashed #dee2e6; border-radius: 10px; padding: 1rem;
+            background: #fafafa; transition: border-color .2s, background .2s;
+        }
+        .unit-file-drop:hover { border-color: #0d6efd; background: #f8f9ff; }
+    </style>
     <!-- Sidebar Start -->
     @include('admin.includes.sidebar')
     <!-- Sidebar End -->
@@ -12,24 +21,27 @@
         <!-- Navbar End -->
 
         <div class="container-fluid pt-4 px-4">
-            <div class="bg-light text-center rounded p-4">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h6 class="mb-0">Edit Property</h6>
-                    <a href="{{ route('admin.properties.index') }}" class="btn btn-secondary">
-                        <i class="fa fa-arrow-left me-2"></i>Back to List
+            <div class="unit-form-page pb-5">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+                    <div>
+                        <h4 class="mb-1 fw-semibold text-dark">Edit Property</h4>
+                        <p class="text-muted small mb-0">{{ $property->name }}</p>
+                    </div>
+                    <a href="{{ route('admin.properties.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa fa-arrow-left me-2"></i>Back to list
                     </a>
                 </div>
 
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
                         <i class="fa fa-check-circle me-2"></i>{{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
                 @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <ul class="mb-0">
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+                        <ul class="mb-0 ps-3">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -42,11 +54,9 @@
                     @csrf
                     @method('PUT')
 
-                    <!-- Basic Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Basic Information</h5>
-                        </div>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                    <div class="row g-3">
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label">Property Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
@@ -75,6 +85,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if(!empty($isPropertySuperAdmin))
                         <div class="col-md-6 mb-3">
                             <label for="owner_id" class="form-label">Owner <span class="text-danger">*</span></label>
                             <select name="owner_id" class="form-select @error('owner_id') is-invalid @enderror" id="owner_id" required>
@@ -113,35 +124,38 @@
                                 <label class="form-check-label" for="is_verified">Verified</label>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Relationships -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Relationships</h5>
+                        <div class="col-12 mb-2">
+                            <label class="form-label d-block">Listing &amp; bookings</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_listing_visible" id="is_listing_visible" value="1"
+                                       {{ old('is_listing_visible', $property->is_listing_visible ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_listing_visible">Show on public site (search &amp; listings)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="accepts_bookings" id="accepts_bookings" value="1"
+                                       {{ old('accepts_bookings', $property->accepts_bookings ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="accepts_bookings">Accept new booking requests</label>
+                            </div>
+                            <small class="text-muted">Uncheck to hide a listing or pause bookings without deleting the property.</small>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="partner_id" class="form-label">Partner</label>
-                            <select name="partner_id" class="form-select @error('partner_id') is-invalid @enderror" id="partner_id">
-                                <option value="">Select Partner</option>
-                                @foreach($partners as $partner)
-                                    <option value="{{ $partner->id }}" {{ old('partner_id', $property->partner_id) == $partner->id ? 'selected' : '' }}>
-                                        {{ $partner->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('partner_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Location -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Location</h5>
-                        </div>
+                        @else
                         <div class="col-md-12 mb-3">
+                            <label class="form-label">Listing owner</label>
+                            <div class="form-control bg-light border-0 text-start">
+                                <strong>{{ $property->owner->name ?? 'You' }}</strong>
+                                <span class="text-muted">({{ $property->owner->email ?? '' }})</span>
+                            </div>
+                            <small class="text-muted">Status and verification are managed by an administrator.</small>
+                        </div>
+                        @endif
+                    </div>
+                        </div>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-4 mb-3">
                             <label for="address" class="form-label">Address</label>
                             <input type="text" name="address" class="form-control @error('address') is-invalid @enderror" 
                                    id="address" value="{{ old('address', $property->address) }}">
@@ -149,7 +163,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-12 col-md-4 mb-3">
                             <label for="city" class="form-label">City / Town</label>
                             <input type="text" name="city" class="form-control @error('city') is-invalid @enderror" 
                                    id="city" value="{{ old('city', $property->city) }}">
@@ -157,7 +171,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-12 col-md-4 mb-3">
                             <label for="location" class="form-label">Location (District)</label>
                             <select name="location" id="location" class="form-select @error('location') is-invalid @enderror" required>
                                 <option value="">Select District</option>
@@ -208,15 +222,13 @@
                             @enderror
                         </div>
                     </div>
-
-                    <!-- Map Embed Code -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Map Location</h5>
-                            <p class="text-muted mb-3">
-                                <small>Paste an embedded Google Maps iframe code to display the location on the property page.</small>
-                            </p>
                         </div>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <p class="text-muted small mb-3">Paste an embedded Google Maps iframe code to display the location on the property page.</p>
+                    <div class="row g-3">
                         <div class="col-12 mb-3">
                             <label for="map_embed_code" class="form-label">Google Maps Embed Code (Optional)</label>
                             <textarea name="map_embed_code" class="form-control @error('map_embed_code') is-invalid @enderror" 
@@ -228,14 +240,26 @@
                             @enderror
                         </div>
                     </div>
+                        </div>
+                    </div>
 
-                    <!-- Contact Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Contact Information</h5>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-semibold mb-3">Contact person <span class="text-muted fw-normal">(shown to guests)</span></h6>
+                    <div class="row g-3">
+                        @php
+                            $contactName = old('contact_person_name', data_get($property->meta_data, 'contact_person_name'));
+                        @endphp
+                        <div class="col-md-4 mb-3">
+                            <label for="contact_person_name" class="form-label">Contact person name</label>
+                            <input type="text" name="contact_person_name" class="form-control @error('contact_person_name') is-invalid @enderror" 
+                                   id="contact_person_name" value="{{ $contactName }}" placeholder="e.g. Front desk / Manager">
+                            @error('contact_person_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="phone" class="form-label">Phone</label>
+                            <label for="phone" class="form-label">Contact phone</label>
                             <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
                                    id="phone" value="{{ old('phone', $property->phone) }}">
                             @error('phone')
@@ -243,14 +267,14 @@
                             @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">Contact email</label>
                             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
                                    id="email" value="{{ old('email', $property->email) }}">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="website" class="form-label">Website</label>
                             <input type="url" name="website" class="form-control @error('website') is-invalid @enderror" 
                                    id="website" value="{{ old('website', $property->website) }}">
@@ -259,50 +283,45 @@
                             @enderror
                         </div>
                     </div>
-
-                    <!-- Description -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Description</h5>
                         </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="propertyDescription" class="form-label">Property Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
-                                      id="propertyDescription" rows="6">{{ old('description', $property->description) }}</textarea>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                        <div class="col-lg-8 mb-3">
+                            <label for="propertyDescription" class="form-label fw-medium">Property <span class="text-muted">(rich text)</span></label>
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror"
+                                      id="propertyDescription" rows="6">{!! old('description', $property->description) !!}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                    </div>
-
-                    <!-- Featured Image -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Featured Image</h5>
-                            <p class="text-muted mb-3">Main featured image for the property (displayed as the primary image).</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="featured_image" class="form-label">Upload Featured Image</label>
+                        <div class="col-lg-4 mb-3">
+                            <label for="featured_image" class="form-label fw-medium">Featured image</label>
+                            <p class="text-muted small">Main image on listings. Leave file empty to keep current.</p>
                             @if($property->featured_image)
                                 <div class="mb-2">
-                                    <img src="{{ asset('storage/images/properties/' . $property->featured_image) }}" alt="Current featured image" class="img-thumbnail" style="max-width: 100%; height: auto; max-height: 300px;">
+                                    <img src="{{ asset('storage/images/properties/' . $property->featured_image) }}" alt="Current featured image" class="img-thumbnail rounded-3" style="max-width: 100%; height: auto; max-height: 220px;">
                                 </div>
                             @endif
-                            <input type="file" name="featured_image" class="form-control @error('featured_image') is-invalid @enderror" 
+                            <div class="unit-file-drop">
+                            <input type="file" name="featured_image" class="form-control border-0 bg-transparent p-0 @error('featured_image') is-invalid @enderror"
                                    id="featured_image" accept="image/*">
-                            <small class="text-muted">Leave empty to keep current image</small>
+                            <small class="text-muted d-block mt-2">JPG, PNG or WebP</small>
+                            </div>
                             @error('featured_image')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
+                        </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Facilities/Amenities -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Facilities/Amenities</h5>
-                            <p class="text-muted mb-3">Select amenities for this property, grouped by category:</p>
-                        </div>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <p class="text-muted small mb-3">Select amenities for this property, grouped by category.</p>
+                    <div class="row g-3">
                         @php
                             $selectedFacilities = old('facilities', $property->facilities->pluck('id')->toArray());
                         @endphp
@@ -351,25 +370,22 @@
                             @endif
                         @endforeach
                     </div>
-
-                    <!-- Submit Buttons (main property form) -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 border-top pt-3">
-                                <a href="{{ route('admin.properties.index') }}" class="btn btn-secondary">Cancel</a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-save me-2"></i>Update Property
-                                </button>
-                            </div>
                         </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-end pt-2 pb-3">
+                        <a href="{{ route('admin.properties.index') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            <i class="fa fa-save me-2"></i>Update property
+                        </button>
                     </div>
                 </form>
 
                     <!-- Property Gallery (separate form - must be outside main form to submit correctly) -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Property Gallery</h5>
-                            <p class="text-muted mb-3">Images displayed on the property page. Add multiple images to showcase your property.</p>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="fw-semibold mb-2">Property gallery</h5>
+                            <p class="text-muted small mb-4">Images displayed on the property page. Add multiple images to showcase your property.</p>
                             
                             <!-- Upload New Images -->
                             <div class="mb-4">
@@ -532,6 +548,7 @@
         </div>
     </div>
 
+    @push('scripts')
     <script>
         $(document).ready(function() {
             // Property image caption inline edit
@@ -566,21 +583,6 @@
                 }
             });
             $('.property-image-caption').on('focus', function() { $(this).data('original-value', $(this).val()); });
-
-            $('#propertyDescription').summernote({
-                placeholder: 'Property Description',
-                tabsize: 2,
-                height: 200,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
 
             // Handle modal open - set category
             $('#addAmenityModal').on('show.bs.modal', function (event) {
@@ -729,4 +731,5 @@
             });
         });
     </script>
+    @endpush
 @endsection

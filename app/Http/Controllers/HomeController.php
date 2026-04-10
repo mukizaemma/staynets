@@ -52,27 +52,27 @@ class HomeController extends Controller
         $rooms = HotelRoom::oldest()->get();
         $articles = Blog::latest()->paginate(3);
         $trips = Trip::with('images')->oldest()->take(3)->get();
-        $locations = Hotel::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
+        $locations = Hotel::whereNotNull('location')->where('status', 'Active')->where('is_listing_visible', true)->distinct()->pluck('location');
         if ($locations->isEmpty()) {
-            $locations = Property::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
+            $locations = Property::whereNotNull('location')->publishedForGuests()->distinct()->pluck('location');
         }
 
         // Get destinations (categories) with hotel/property counts
         $destinations = Category::where('status', 'Active')
             ->withCount([
                 'hotels' => function($query) {
-                    $query->where('status', 'Active');
+                    $query->where('status', 'Active')->where('is_listing_visible', true);
                 },
                 'properties' => function($query) {
-                    $query->where('status', 'Active')
+                    $query->publishedForGuests()
                           ->where('property_type', 'hotel');
                 }
             ])
             ->where(function($query) {
                 $query->whereHas('hotels', function($q) {
-                    $q->where('status', 'Active');
+                    $q->where('status', 'Active')->where('is_listing_visible', true);
                 })->orWhereHas('properties', function($q) {
-                    $q->where('status', 'Active')
+                    $q->publishedForGuests()
                       ->where('property_type', 'hotel');
                 });
             })
@@ -80,7 +80,7 @@ class HomeController extends Controller
             ->get();
 
         // Get latest 3 properties (prefer Property model, fallback to Hotel)
-        $latestProperties = Property::where('status', 'Active')
+        $latestProperties = Property::publishedForGuests()
             ->with(['units' => function($q) {
                 $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
             }, 'reviews'])
@@ -91,7 +91,7 @@ class HomeController extends Controller
             ->get();
 
         if ($latestProperties->isEmpty()) {
-            $latestProperties = Hotel::where('status', 'Active')
+            $latestProperties = Hotel::where('status', 'Active')->where('is_listing_visible', true)
                 ->with(['rooms' => function($q) {
                     $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
                 }, 'reviews'])
@@ -152,7 +152,7 @@ public function hotelsSearch(Request $request)
     $orderby = $request->input('orderby');
 
     $query = Property::query()
-        ->where('status', 'Active')
+        ->publishedForGuests()
         ->with(['units' => function($q) {
             $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
         }])
@@ -272,7 +272,7 @@ public function hotelsSearch(Request $request)
     $rooms = $query->paginate(12)->appends($request->query());
 
     // Filter data for sidebar
-    $locations = Property::where('status', 'Active')->whereNotNull('location')->distinct()->pluck('location');
+    $locations = Property::publishedForGuests()->whereNotNull('location')->distinct()->pluck('location');
     $propertyTypes = ['hotel' => 'Hotel', 'apartment' => 'Apartment', 'villa' => 'Villa', 'guest_house' => 'Guest House', 'lodge' => 'Lodge'];
     $amenities = \App\Models\Amenity::active()->orderBy('sort_order')->orderBy('title')->get();
 
@@ -555,7 +555,7 @@ public function accommodations(Request $request)
     $orderby = $request->input('orderby');
 
     // base query: only active hotels (optional)
-    $query = \App\Models\Hotel::query()->where('status', 'Active');
+    $query = \App\Models\Hotel::query()->where('status', 'Active')->where('is_listing_visible', true);
 
     // search by name or location or city
     if (!empty($q)) {
@@ -628,7 +628,7 @@ public function showAccommodation(Request $request, $slug)
                 $q->where('slug', $slug);
             }
         })
-        ->where('status', 'Active')
+        ->publishedForGuests()
         ->firstOrFail();
 
         // Sort property images in PHP (handles DBs where is_primary/sort_order may be missing)
@@ -644,7 +644,7 @@ public function showAccommodation(Request $request, $slug)
         // Related properties: same type or same category, exclude current
         $relatedProperties = Property::with(['images', 'units'])
             ->where('id', '!=', $hotel->id)
-            ->where('status', 'Active')
+            ->publishedForGuests()
             ->where(function($q) use ($hotel) {
                 $q->where('property_type', $hotel->property_type)
                     ->orWhere('category_id', $hotel->category_id);
@@ -701,7 +701,7 @@ public function showUnit($property, $unit)
                 $q->where('slug', $property);
             }
         })
-        ->where('status', 'Active')
+        ->publishedForGuests()
         ->firstOrFail();
 
     $unitModel = \App\Models\Unit::with(['images', 'facilities', 'unitType', 'extraCharges'])
@@ -769,6 +769,17 @@ public function storeBooking(Request $request)
     // Get unit to calculate price
     $unit = \App\Models\Unit::with('extraCharges')->findOrFail($request->unit_id);
     $property = Property::findOrFail($request->property_id);
+
+    $maxGuests = max(1, (int) ($unit->max_occupancy ?? 1));
+    if ((int) $request->guests_count > $maxGuests) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['guests_count' => "This room accepts at most {$maxGuests} guest".($maxGuests === 1 ? '' : 's').'.']);
+    }
+
+    if (! ($property->accepts_bookings ?? true)) {
+        return redirect()->back()->with('error', 'This property is not accepting new booking requests at the moment.');
+    }
 
     // Verify unit belongs to property
     if ($unit->property_id != $property->id) {
@@ -881,6 +892,110 @@ public function storeBooking(Request $request)
     );
 }
 
+/**
+ * Guest booking request for a hotel room (Hotel + HotelRoom models).
+ */
+public function storeHotelRoomBookingRequest(Request $request, string $hotelSlug, string $roomSlug)
+{
+    $hotel = Hotel::where('slug', $hotelSlug)->firstOrFail();
+    $room = HotelRoom::where('hotel_id', $hotel->id)->where('slug', $roomSlug)->firstOrFail();
+
+    $validated = $request->validate([
+        'check_in' => 'required|date|after_or_equal:today',
+        'check_out' => 'required|date|after:check_in',
+        'guests_count' => 'required|integer|min:1',
+        'guest_name' => 'required|string|max:255',
+        'guest_email' => 'required|email|max:255',
+        'guest_phone' => 'nullable|string|max:100',
+        'special_requests' => 'nullable|string|max:2000',
+    ]);
+
+    $maxGuests = max(1, (int) ($room->max_occupancy ?? 1));
+    if ((int) $validated['guests_count'] > $maxGuests) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['guests_count' => "Maximum {$maxGuests} guests for this room."]);
+    }
+
+    if (! ($hotel->accepts_bookings ?? true)) {
+        return redirect()->back()->with('error', 'This property is not accepting new bookings.');
+    }
+    if (! ($room->accepts_room_bookings ?? true)) {
+        return redirect()->back()->with('error', 'This room is not open for booking (marked fully booked).');
+    }
+    if ((int) ($room->available_rooms ?? 0) < 1) {
+        return redirect()->back()->with('error', 'There is no availability left for this room type.');
+    }
+
+    $checkIn = \Carbon\Carbon::parse($validated['check_in'])->startOfDay();
+    $checkOut = \Carbon\Carbon::parse($validated['check_out'])->startOfDay();
+
+    $overlap = HotelBooking::where('room_id', $room->id)
+        ->where('booking_status', '!=', 'cancelled')
+        ->whereDate('check_in', '<', $checkOut->toDateString())
+        ->whereDate('check_out', '>', $checkIn->toDateString())
+        ->count();
+
+    $capacity = max(1, (int) ($room->available_rooms ?? 1));
+    if ($overlap >= $capacity) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'No availability for these dates. Please choose different dates.');
+    }
+
+    $nights = max(0, $checkIn->diffInDays($checkOut));
+    $nightPrice = (float) ($room->price_per_night ?? 0);
+    $totalAmount = $nights * $nightPrice;
+    $commissionRate = 10;
+    $commissionAmount = round($totalAmount * ($commissionRate / 100), 2);
+    $referenceNumber = 'BK' . strtoupper(uniqid());
+
+    $booking = HotelBooking::create([
+        'user_id' => Auth::id(),
+        'hotel_id' => $hotel->id,
+        'property_id' => null,
+        'room_id' => $room->id,
+        'unit_id' => null,
+        'check_in' => $checkIn->toDateString(),
+        'check_out' => $checkOut->toDateString(),
+        'guests_count' => (int) $validated['guests_count'],
+        'guest_name' => $validated['guest_name'],
+        'guest_email' => $validated['guest_email'],
+        'guest_phone' => $validated['guest_phone'] ?? null,
+        'special_requests' => $validated['special_requests'] ?? null,
+        'total_amount' => $totalAmount,
+        'commission_rate' => $commissionRate,
+        'commission_amount' => $commissionAmount,
+        'reference_number' => $referenceNumber,
+        'payment_status' => 'pending',
+        'booking_status' => 'availability_requested',
+    ]);
+
+    $booking->load(['hotel.owner', 'room']);
+
+    $notificationRecipients = array_filter([config('mail.admin_email')]);
+    if ($booking->hotel && $booking->hotel->owner && $booking->hotel->owner->email) {
+        $notificationRecipients[] = $booking->hotel->owner->email;
+    }
+    try {
+        foreach (array_unique($notificationRecipients) as $email) {
+            Mail::to($email)->send(new BookingNotification($booking));
+        }
+    } catch (\Exception $e) {
+        \Log::error('Hotel room booking notification: ' . $e->getMessage());
+    }
+    try {
+        if (! empty($validated['guest_email'])) {
+            Mail::to($validated['guest_email'])->send(new BookingConfirmation($booking));
+        }
+    } catch (\Exception $e) {
+        \Log::error('Hotel room booking confirmation: ' . $e->getMessage());
+    }
+
+    return redirect()->route('roomDetails', ['hotel' => $hotel->slug, 'room' => $room->slug])
+        ->with('success', 'Your request has been received. Reference: ' . $referenceNumber . '. We will confirm availability shortly.');
+}
+
 
     public function destinations()
     {
@@ -950,7 +1065,7 @@ public function storeBooking(Request $request)
 
 public function hotelRooms($hotelSlug)
 {
-    $hotel = Hotel::where('slug', $hotelSlug)->firstOrFail();
+    $hotel = Hotel::with(['amenities.category'])->where('slug', $hotelSlug)->firstOrFail();
 
     $rooms = $hotel->rooms()
         ->where('status', 'Available')
@@ -968,9 +1083,9 @@ public function hotelRooms($hotelSlug)
 
 public function roomDetails($hotelSlug, $roomSlug)
 {
-    $hotel = Hotel::with(['images', 'rooms.images'])->where('slug', $hotelSlug)->firstOrFail();
+    $hotel = Hotel::with(['images', 'rooms.images', 'amenities.category'])->where('slug', $hotelSlug)->firstOrFail();
 
-    $room = HotelRoom::with('images')->where('hotel_id', $hotel->id)
+    $room = HotelRoom::with(['images', 'roomAmenities.category'])->where('hotel_id', $hotel->id)
         ->where('slug', $roomSlug)
         ->firstOrFail();
 
@@ -1041,34 +1156,16 @@ public function roomDetails($hotelSlug, $roomSlug)
     
     $images = $allImages;
 
-    $amenities = collect();
-
-    if (!empty($room->amenities)) {
-        if (is_array($room->amenities)) {
-            $raw = $room->amenities;
-        } else {
-            $raw = json_decode($room->amenities, true) ?? [];
-        }
-
-        if (!empty($raw) && array_is_list($raw) && is_numeric($raw[0] ?? null)) {
-            if (class_exists(\App\Models\Amenity::class)) {
-                $amenities = \App\Models\Amenity::whereIn('id', $raw)->get()->map(function($a){ return $a->title ?? (string)$a; });
-            } else {
-                $amenities = collect(array_map(function($id){ return 'Amenity '.$id; }, $raw));
-            }
-        } elseif (!empty($raw) && is_array($raw) && isset($raw[0]) && (is_array($raw[0]) || is_object($raw[0]))) {
-            $amenities = collect($raw)->map(function($a){
-                if (is_array($a)) return (object)$a;
-                return $a;
-            });
-        } elseif (!empty($raw) && is_array($raw)) {
-            $amenities = collect($raw);
-        } else {
-            $amenities = collect();
+    // Room amenities: prefer pivot (owner dashboard); legacy JSON column is fallback only.
+    if ($room->roomAmenities->isEmpty() && ! empty($room->amenities)) {
+        $raw = is_array($room->amenities) ? $room->amenities : (json_decode($room->amenities, true) ?? []);
+        if (! empty($raw) && array_is_list($raw) && is_numeric($raw[0] ?? null)) {
+            $legacy = \App\Models\Amenity::whereIn('id', $raw)->get();
+            $room->setRelation('roomAmenities', $legacy);
         }
     }
 
-    $relatedRooms = HotelRoom::where('hotel_id', $hotel->id)
+    $relatedRooms = HotelRoom::with('roomAmenities')->where('hotel_id', $hotel->id)
         ->where('id', '!=', $room->id)
         ->where('status', 'Available')
         ->orderBy('price_per_night', 'asc')
@@ -1081,7 +1178,6 @@ public function roomDetails($hotelSlug, $roomSlug)
         'hotel' => $hotel,
         'room' => $room,
         'images' => collect($images),
-        'amenities' => $amenities,
         'relatedRooms' => $relatedRooms,
         'trips' => $trips,
     ]);
@@ -1197,7 +1293,7 @@ public function gallery()
 
 
 public function terms(){
-    $properties = \App\Models\Property::where('status', 'Active')
+    $properties = \App\Models\Property::publishedForGuests()
         ->latest()
         ->take(10)
         ->get();

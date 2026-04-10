@@ -40,6 +40,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'country_origin_id',
         'country_work_id',
         'plan_id',
+        'role',
+        'status',
     ];
     
 
@@ -102,6 +104,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function properties()
     {
         return $this->hasMany(Property::class, 'owner_id');
+    }
+
+    /**
+     * Legacy Hotel model rows created by this user (separate from Property listings).
+     */
+    public function ownedHotels()
+    {
+        return $this->hasMany(Hotel::class, 'added_by');
     }
 
     /**

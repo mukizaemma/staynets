@@ -29,8 +29,21 @@ class Hotel extends Model
         'latitude',
         'longitude',
         'description',
+        'website',
         'status',
+        'is_listing_visible',
+        'accepts_bookings',
     ];
+
+    protected $casts = [
+        'is_listing_visible' => 'boolean',
+        'accepts_bookings' => 'boolean',
+    ];
+
+    public function scopePublishedForGuests($query)
+    {
+        return $query->where('status', 'Active')->where('is_listing_visible', true);
+    }
 
     public function hotelRooms()
     {

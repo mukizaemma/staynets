@@ -89,6 +89,25 @@
 
             <div class="col-xxl-4 col-lg-5">
                 <aside class="sidebar-area">
+                    @if($hotel->amenities->isNotEmpty())
+                        <div class="widget">
+                            <h3 class="widget_title">Property amenities</h3>
+                            <p class="text-muted small mb-2">Available to all guests at this property.</p>
+                            <ul class="list-unstyled mb-0">
+                                @foreach($hotel->amenities as $amen)
+                                    <li class="d-flex align-items-start gap-2 py-1 border-bottom border-light">
+                                        @if(!empty($amen->icon))
+                                            <i class="{{ $amen->icon }} text-primary mt-1" style="width:1.25rem;"></i>
+                                        @else
+                                            <i class="fa-solid fa-check text-success mt-1" style="width:1.25rem;"></i>
+                                        @endif
+                                        <span>{{ $amen->title }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <div class="widget widget_search">
                         <form class="search-form">
                             <input type="text" placeholder="Search">

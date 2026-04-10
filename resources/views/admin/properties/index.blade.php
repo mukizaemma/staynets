@@ -78,7 +78,7 @@
                                 <th scope="col">Owner</th>
                                 <th scope="col">Location</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Units</th>
+                                <th scope="col">Rooms by type</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
@@ -117,6 +117,7 @@
                                                 <span class="badge bg-danger">Inactive</span>
                                             @endif
                                             
+                                            @if(!empty($isPropertySuperAdmin))
                                             <!-- Status Dropdown -->
                                             <div class="dropdown">
                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="statusDropdown{{ $property->id }}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -149,12 +150,19 @@
                                                     </li>
                                                 </ul>
                                             </div>
+                                            @endif
                                         </div>
                                     </td>
-                                    <td>
-                                        <a href="{{ route('admin.units.index', ['property_id' => $property->id]) }}">
-                                            {{ $property->units->count() }} Units
-                                        </a>
+                                    <td class="text-start">
+                                        <strong>{{ $property->total_room_inventory ?? 0 }}</strong> rooms total
+                                        @if(empty($property->is_hotel_model))
+                                            <br><a href="{{ route('admin.units.index', ['property_id' => $property->id]) }}" class="small">Manage units / types</a>
+                                        @endif
+                                        @if(!empty($property->room_type_summary))
+                                            <br><small class="text-muted">{{ $property->room_type_summary }}</small>
+                                        @elseif(($property->total_room_inventory ?? 0) === 0)
+                                            <br><small class="text-muted">Add units with quantities per room type</small>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">

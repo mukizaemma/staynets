@@ -25,42 +25,68 @@
                 @endif
 
                 <!-- Filters -->
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        <form method="GET" action="{{ route('admin.bookings.index') }}" class="row g-3">
-                            <div class="col-md-3">
-                                <select name="property_id" class="form-select">
-                                    <option value="">All Properties</option>
-                                    @foreach($properties as $property)
-                                        <option value="{{ $property->id }}" {{ request('property_id') == $property->id ? 'selected' : '' }}>
-                                            {{ $property->name }}
-                                        </option>
-                                    @endforeach
+                <div class="row mb-3 text-start">
+                    <div class="col-12">
+                        <form method="GET" action="{{ route('admin.bookings.index') }}" class="row g-2 align-items-end">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label small mb-0 text-muted">Property / hotel</label>
+                                <select name="listing" class="form-select form-select-sm">
+                                    <option value="">All listings</option>
+                                    @if(isset($hotelsForFilter) && $hotelsForFilter->isNotEmpty())
+                                        <optgroup label="Hotels (owner listings)">
+                                            @foreach($hotelsForFilter as $h)
+                                                <option value="hotel:{{ $h->id }}" {{ request('listing') === 'hotel:'.$h->id ? 'selected' : '' }}>{{ $h->name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                    @if(isset($properties) && $properties->isNotEmpty())
+                                        <optgroup label="Properties (admin)">
+                                            @foreach($properties as $property)
+                                                <option value="property:{{ $property->id }}" {{ request('listing') === 'property:'.$property->id ? 'selected' : '' }}>{{ $property->name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
                                 </select>
                             </div>
-                            <div class="col-md-2">
-                                <select name="status" class="form-select">
-                                    <option value="">All Status</option>
+                            <div class="col-lg-2 col-md-6">
+                                <label class="form-label small mb-0 text-muted">Stay from</label>
+                                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <label class="form-label small mb-0 text-muted">Stay through</label>
+                                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
+                            </div>
+                            <div class="col-lg-1 col-md-4">
+                                <label class="form-label small mb-0 text-muted">Status</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">All</option>
                                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                    <option value="availability_requested" {{ request('status') == 'availability_requested' ? 'selected' : '' }}>Requested</option>
                                     <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
-                                <select name="payment_status" class="form-select">
-                                    <option value="">All Payment</option>
+                            <div class="col-lg-1 col-md-4">
+                                <label class="form-label small mb-0 text-muted">Payment</label>
+                                <select name="payment_status" class="form-select form-select-sm">
+                                    <option value="">All</option>
                                     <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
                                     <option value="refunded" {{ request('payment_status') == 'refunded' ? 'selected' : '' }}>Refunded</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <input type="text" name="search" class="form-control" placeholder="Search by reference or customer..." value="{{ request('search') }}">
+                            <div class="col-lg-2 col-md-6">
+                                <label class="form-label small mb-0 text-muted">Search</label>
+                                <input type="text" name="search" class="form-control form-control-sm" placeholder="Reference, guest…" value="{{ request('search') }}">
                             </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                            <div class="col-lg-1 col-md-4">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+                            </div>
+                            <div class="col-12">
+                                <a href="{{ route('admin.bookings.index') }}" class="small">Clear filters</a>
                             </div>
                         </form>
+                        <p class="text-muted small mt-2 mb-0 text-start">Date range: bookings that overlap the selected stay window (check-in before end date and check-out after start date).</p>
                     </div>
                 </div>
 
@@ -88,14 +114,17 @@
                                         <strong>{{ $booking->reference_number ?? 'N/A' }}</strong>
                                     </td>
                                     <td>
-                                        {{ $booking->user->name ?? 'N/A' }}
-                                        <br><small class="text-muted">{{ $booking->user->email ?? 'N/A' }}</small>
+                                        {{ $booking->guest_name ?? optional($booking->user)->name ?? 'N/A' }}
+                                        <br><small class="text-muted">{{ $booking->guest_email ?? optional($booking->user)->email ?? '—' }}</small>
                                     </td>
                                     <td>
                                         @if($booking->property)
                                             <a href="{{ route('admin.properties.show', $booking->property_id) }}">
                                                 {{ $booking->property->name }}
                                             </a>
+                                        @elseif($booking->hotel)
+                                            <a href="{{ route('admin.properties.show', $booking->hotel_id) }}">{{ $booking->hotel->name }}</a>
+                                            <span class="badge bg-secondary ms-1">Hotel</span>
                                         @else
                                             <span class="text-muted">N/A</span>
                                         @endif
@@ -105,17 +134,19 @@
                                             <a href="{{ route('admin.units.edit', $booking->unit_id) }}">
                                                 {{ $booking->unit->name ?? 'Unit #' . $booking->unit_id }}
                                             </a>
+                                        @elseif($booking->room)
+                                            <span>{{ $booking->room->room_type ?? 'Room #'.$booking->room_id }}</span>
                                         @else
                                             <span class="text-muted">N/A</span>
                                         @endif
                                     </td>
                                     <td>
-                                        {{ $booking->check_in_date ? \Carbon\Carbon::parse($booking->check_in_date)->format('M d, Y') : 'N/A' }}
+                                        {{ $booking->check_in ? \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') : 'N/A' }}
                                     </td>
                                     <td>
-                                        {{ $booking->check_out_date ? \Carbon\Carbon::parse($booking->check_out_date)->format('M d, Y') : 'N/A' }}
+                                        {{ $booking->check_out ? \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') : 'N/A' }}
                                     </td>
-                                    <td>{{ $booking->number_of_guests ?? 'N/A' }}</td>
+                                    <td>{{ $booking->guests_count ?? 'N/A' }}</td>
                                     <td>
                                         @if($booking->total_amount)
                                             <strong>${{ number_format($booking->total_amount, 2) }}</strong>
@@ -128,8 +159,10 @@
                                             <span class="badge bg-success">Confirmed</span>
                                         @elseif($booking->booking_status == 'cancelled')
                                             <span class="badge bg-danger">Cancelled</span>
+                                        @elseif($booking->booking_status == 'availability_requested')
+                                            <span class="badge bg-info text-dark">Requested</span>
                                         @else
-                                            <span class="badge bg-warning">Pending</span>
+                                            <span class="badge bg-warning text-dark">Pending</span>
                                         @endif
                                     </td>
                                     <td>

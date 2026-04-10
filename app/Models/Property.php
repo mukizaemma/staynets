@@ -33,12 +33,16 @@ class Property extends Model
         'status',
         'is_featured',
         'is_verified',
+        'is_listing_visible',
+        'accepts_bookings',
         'meta_data',
     ];
 
     protected $casts = [
         'is_featured' => 'boolean',
         'is_verified' => 'boolean',
+        'is_listing_visible' => 'boolean',
+        'accepts_bookings' => 'boolean',
         'meta_data' => 'array',
         'latitude' => 'float',
         'longitude' => 'float',
@@ -172,6 +176,14 @@ class Property extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
+    }
+
+    /**
+     * Listed on the public site (active + not hidden by admin).
+     */
+    public function scopePublishedForGuests($query)
+    {
+        return $query->where('status', 'Active')->where('is_listing_visible', true);
     }
 
     /**

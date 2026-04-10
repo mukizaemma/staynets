@@ -1,6 +1,15 @@
 @extends('layouts.adminBase')
 
 @section('content')
+    <style>
+        .unit-form-page { max-width: 1140px; margin-left: auto; margin-right: auto; }
+        .unit-form-card { border: 1px solid rgba(0,0,0,.06); border-radius: 12px; overflow: hidden; }
+        .unit-file-drop {
+            border: 2px dashed #dee2e6; border-radius: 10px; padding: 1rem;
+            background: #fafafa; transition: border-color .2s, background .2s;
+        }
+        .unit-file-drop:hover { border-color: #0d6efd; background: #f8f9ff; }
+    </style>
     <!-- Sidebar Start -->
     @include('admin.includes.sidebar')
     <!-- Sidebar End -->
@@ -12,17 +21,20 @@
         <!-- Navbar End -->
 
         <div class="container-fluid pt-4 px-4">
-            <div class="bg-light text-center rounded p-4">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h6 class="mb-0">Create New Property</h6>
-                    <a href="{{ route('admin.properties.index') }}" class="btn btn-secondary">
-                        <i class="fa fa-arrow-left me-2"></i>Back to List
+            <div class="unit-form-page pb-5">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+                    <div>
+                        <h4 class="mb-1 fw-semibold text-dark">Create New Property</h4>
+                        <p class="text-muted small mb-0">Add listing details, location, media, and amenities.</p>
+                    </div>
+                    <a href="{{ route('admin.properties.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa fa-arrow-left me-2"></i>Back to list
                     </a>
                 </div>
 
                 @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <ul class="mb-0">
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 border-0 shadow-sm" role="alert">
+                        <ul class="mb-0 ps-3">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -34,11 +46,9 @@
                 <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    <!-- Basic Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Basic Information</h5>
-                        </div>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                    <div class="row g-3">
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label">Property Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
@@ -67,6 +77,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @if(!empty($isPropertySuperAdmin))
                         <div class="col-md-6 mb-3">
                             <label for="owner_id" class="form-label">Owner <span class="text-danger">*</span></label>
                             <select name="owner_id" class="form-select @error('owner_id') is-invalid @enderror" id="owner_id" required>
@@ -106,16 +117,24 @@
                                 <label class="form-check-label" for="is_verified">Verified</label>
                             </div>
                         </div>
+                        @else
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Listing owner</label>
+                            <div class="form-control bg-light border-0 text-start">
+                                <strong>{{ auth()->user()->name }}</strong>
+                                <span class="text-muted">({{ auth()->user()->email }})</span>
+                            </div>
+                            <small class="text-muted">This property is created under your account. An administrator will review status and verification.</small>
+                        </div>
+                        @endif
+                    </div>
+                        </div>
                     </div>
 
-
-
-                    <!-- Location -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Location</h5>
-                        </div>
-                        <div class="col-md-4 mb-3">
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-4 mb-3">
                             <label for="address" class="form-label">Address</label>
                             <input type="text" name="address" class="form-control @error('address') is-invalid @enderror" 
                                    id="address" value="{{ old('address') }}">
@@ -123,7 +142,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-12 col-md-4 mb-3">
                             <label for="city" class="form-label">City / Town</label>
                             <input type="text" name="city" class="form-control @error('city') is-invalid @enderror" 
                                    id="city" value="{{ old('city') }}">
@@ -131,7 +150,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-12 col-md-4 mb-3">
                             <label for="location" class="form-label">Location (District)</label>
                             <select name="location" id="location" class="form-select @error('location') is-invalid @enderror" required>
                                 <option value="">Select District</option>
@@ -181,15 +200,13 @@
                             @enderror
                         </div>
                     </div>
-
-                    <!-- Map Embed Code -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Map Location</h5>
-                            <p class="text-muted mb-3">
-                                <small>Paste an embedded Google Maps iframe code to display the location on the property page.</small>
-                            </p>
                         </div>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <p class="text-muted small mb-3">Paste an embedded Google Maps iframe code to display the location on the property page.</p>
+                    <div class="row g-3">
                         <div class="col-12 mb-3">
                             <label for="map_embed_code" class="form-label">Google Maps Embed Code (Optional)</label>
                             <textarea name="map_embed_code" class="form-control @error('map_embed_code') is-invalid @enderror" 
@@ -201,14 +218,23 @@
                             @enderror
                         </div>
                     </div>
+                        </div>
+                    </div>
 
-                    <!-- Contact Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Contact Information</h5>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-semibold mb-3">Contact person <span class="text-muted fw-normal">(shown to guests)</span></h6>
+                    <div class="row g-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="contact_person_name" class="form-label">Contact person name</label>
+                            <input type="text" name="contact_person_name" class="form-control @error('contact_person_name') is-invalid @enderror" 
+                                   id="contact_person_name" value="{{ old('contact_person_name') }}" placeholder="e.g. Front desk / Manager">
+                            @error('contact_person_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
+                            <label for="phone" class="form-label">Contact phone</label>
                             <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
                                    id="phone" value="{{ old('phone') }}">
                             @error('phone')
@@ -216,14 +242,14 @@
                             @enderror
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="email" class="form-label">Contact email</label>
                             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
                                    id="email" value="{{ old('email') }}">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="website" class="form-label">Website</label>
                             <input type="url" name="website" class="form-control @error('website') is-invalid @enderror" 
                                    id="website" value="{{ old('website') }}">
@@ -232,57 +258,39 @@
                             @enderror
                         </div>
                     </div>
-
-                    <!-- Description & Image -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Description & Image</h5>
                         </div>
-                        <div class="col-md-8 mb-3">
-                            <label for="propertyDescription" class="form-label">Property Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
-                                      id="propertyDescription" rows="6">{{ old('description') }}</textarea>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                        <div class="col-lg-8 mb-3">
+                            <label for="propertyDescription" class="form-label fw-medium">Property <span class="text-muted">(rich text)</span></label>
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror"
+                                      id="propertyDescription" rows="6">{!! old('description') !!}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="featured_image" class="form-label">Featured Image</label>
-                            <input type="file" name="featured_image" class="form-control @error('featured_image') is-invalid @enderror" 
+                        <div class="col-lg-4 mb-3">
+                            <label for="featured_image" class="form-label fw-medium">Featured image</label>
+                            <div class="unit-file-drop">
+                            <input type="file" name="featured_image" class="form-control border-0 bg-transparent p-0 @error('featured_image') is-invalid @enderror"
                                    id="featured_image" accept="image/*">
+                            <small class="text-muted d-block mt-2">JPG, PNG or WebP — recommended wide hero</small>
+                            </div>
                             @error('featured_image')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
+                        </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Relationships -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Relationships</h5>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="partner_id" class="form-label">Partner</label>
-                            <select name="partner_id" class="form-select @error('partner_id') is-invalid @enderror" id="partner_id">
-                                <option value="">Select Partner</option>
-                                @foreach($partners as $partner)
-                                    <option value="{{ $partner->id }}" {{ old('partner_id') == $partner->id ? 'selected' : '' }}>
-                                        {{ $partner->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('partner_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Facilities/Amenities -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Facilities/Amenities</h5>
-                            <p class="text-muted mb-3">Select amenities for this property, grouped by category:</p>
-                        </div>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <p class="text-muted small mb-3">Select amenities for this property, grouped by category.</p>
+                    <div class="row g-3">
                         @php
                             $selectedFacilities = old('facilities', []);
                         @endphp
@@ -331,17 +339,14 @@
                             @endif
                         @endforeach
                     </div>
-
-                    <!-- Submit Buttons -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 border-top pt-3">
-                                <a href="{{ route('admin.properties.index') }}" class="btn btn-secondary">Cancel</a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-save me-2"></i>Create Property
-                                </button>
-                            </div>
                         </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-end pt-2 pb-4">
+                        <a href="{{ route('admin.properties.index') }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            <i class="fa fa-save me-2"></i>Create property
+                        </button>
                     </div>
                 </form>
             </div>
@@ -400,23 +405,9 @@
         </div>
     </div>
 
+    @push('scripts')
     <script>
         $(document).ready(function() {
-            $('#propertyDescription').summernote({
-                placeholder: 'Property Description',
-                tabsize: 2,
-                height: 200,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
-
             // Handle modal open - set category
             $('#addAmenityModal').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);
@@ -564,4 +555,5 @@
             });
         });
     </script>
+    @endpush
 @endsection

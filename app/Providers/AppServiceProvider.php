@@ -70,9 +70,9 @@ public function boot(): void
 
     View::share('searchLocations', cache()->remember('shared_search_locations', 60 * 60, function () {
         try {
-            $loc = \App\Models\Property::where('status', 'Active')->whereNotNull('location')->distinct()->pluck('location');
+            $loc = \App\Models\Property::publishedForGuests()->whereNotNull('location')->distinct()->pluck('location');
             if ($loc->isEmpty()) {
-                $loc = \App\Models\Hotel::whereNotNull('location')->where('status', 'Active')->distinct()->pluck('location');
+                $loc = \App\Models\Hotel::whereNotNull('location')->where('status', 'Active')->where('is_listing_visible', true)->distinct()->pluck('location');
             }
             return $loc;
         } catch (\Throwable $e) {

@@ -2,6 +2,10 @@
 
 @section('content')
 <style>
+    .property-description { line-height: 1.65; color: #333; }
+    .property-description p:last-child { margin-bottom: 0; }
+    .property-description ul, .property-description ol { margin: 0.75rem 0; padding-left: 1.25rem; }
+    .property-description h1, .property-description h2, .property-description h3 { margin-top: 1rem; margin-bottom: 0.5rem; font-size: 1.15rem; }
     /* Booking.com Style Layout */
     .property-header-section {
         margin-bottom: 16px;
@@ -868,7 +872,8 @@
                         <div class="reserve-form-group">
                             <label for="guests_count">Number of guests</label>
                             <select name="guests_count" id="guests_count" class="form-control" required>
-                                @for($i = 1; $i <= 10; $i++)
+                                @php $firstMax = max(1, (int)(optional($rooms->first())->max_occupancy ?? 10)); @endphp
+                                @for($i = 1; $i <= $firstMax; $i++)
                                     <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'guest' : 'guests' }}</option>
                                 @endfor
                             </select>
@@ -1092,6 +1097,26 @@
 
     // Unit extras: unitId => [{ id, name, price }]
     const unitsExtras = @json($rooms->keyBy('id')->map(function($u) { return $u->extraCharges->map(function($e) { return ['id' => $e->id, 'name' => $e->extraChargeType->name ?? 'Extra', 'price' => (float)$e->price]; })->values()->toArray(); })->toArray());
+
+    const unitsMaxGuests = @json($rooms->keyBy('id')->map(function ($u) {
+        return max(1, (int) ($u->max_occupancy ?? 10));
+    })->toArray());
+
+    function rebuildGuestSelect(maxG) {
+        maxG = parseInt(maxG, 10) || 10;
+        const sel = document.getElementById('guests_count');
+        if (!sel) return;
+        const prev = parseInt(sel.value, 10) || 1;
+        const cur = Math.min(Math.max(1, prev), maxG);
+        sel.innerHTML = '';
+        for (let i = 1; i <= maxG; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i + (i === 1 ? ' guest' : ' guests');
+            if (i === cur) opt.selected = true;
+            sel.appendChild(opt);
+        }
+    }
     
     // Gallery images array
     const galleryImages = @json($allImages->map(function($img) { return $img['url']; })->values());
@@ -1177,6 +1202,8 @@
         document.getElementById('totalAmount').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('totalAmount').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
         document.getElementById('btnReserve').disabled = false;
+
+        rebuildGuestSelect(unitsMaxGuests[unitId] || 10);
         
         // Populate Add Extras for this unit
         var extrasList = document.getElementById('extrasList');
@@ -1213,6 +1240,13 @@
         
         calculateTotal();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var uid = document.getElementById('bookingUnitId') && document.getElementById('bookingUnitId').value;
+        if (uid && unitsMaxGuests[uid]) {
+            rebuildGuestSelect(unitsMaxGuests[uid]);
+        }
+    });
     
     function calculateTotal() {
         const checkIn = document.getElementById('check_in').value;

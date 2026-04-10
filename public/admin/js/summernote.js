@@ -1,33 +1,35 @@
+window._summernoteToolbar = [
+  ['style', ['style']],
+  ['font', ['bold', 'underline', 'clear']],
+  ['color', ['color']],
+  ['para', ['ul', 'ol', 'paragraph']],
+  ['table', ['table']],
+  ['insert', ['link', 'picture', 'video']],
+  ['view', ['fullscreen', 'codeview', 'help']]
+];
+
 $(document).ready(function() {
-  $('#Blogs').summernote({
+  $('#Blogs').each(function () {
+    var $t = $(this);
+    if ($t.closest('.modal').length || $t.next('.note-editor').length) return;
+    $t.summernote({
       placeholder: 'Description',
       tabsize: 2,
-      height: 150,
-      toolbar: [
-        ['style', ['style']],
-        ['font', ['bold', 'underline', 'clear']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['table', ['table']],
-        ['insert', ['link', 'picture', 'video']],
-        ['view', ['fullscreen', 'codeview', 'help']]
-      ]
+      height: 200,
+      toolbar: _summernoteToolbar
+    });
   });
 });
 $(document).ready(function() {
-  $('#hotelDescription').summernote({
+  $('#hotelDescription').each(function () {
+    var $t = $(this);
+    if ($t.closest('.modal').length || $t.next('.note-editor').length) return;
+    $t.summernote({
       placeholder: 'Hotel Description',
       tabsize: 2,
-      height: 150,
-      toolbar: [
-        ['style', ['style']],
-        ['font', ['bold', 'underline', 'clear']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['table', ['table']],
-        ['insert', ['link', 'picture', 'video']],
-        ['view', ['fullscreen', 'codeview', 'help']]
-      ]
+      height: 200,
+      toolbar: _summernoteToolbar
+    });
   });
 });
 $(document).ready(function() {
@@ -63,19 +65,39 @@ $(document).ready(function() {
   });
 });
 $(document).ready(function() {
-  $('#roomDescription').summernote({
+  $('#roomDescription').each(function () {
+    var $t = $(this);
+    if ($t.closest('.modal').length || $t.next('.note-editor').length) return;
+    $t.summernote({
       placeholder: 'Room Description',
       tabsize: 2,
-      height: 150,
-      toolbar: [
-        ['style', ['style']],
-        ['font', ['bold', 'underline', 'clear']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph']],
-        ['table', ['table']],
-        ['insert', ['link', 'picture', 'video']],
-        ['view', ['fullscreen', 'codeview', 'help']]
-      ]
+      height: 200,
+      toolbar: _summernoteToolbar
+    });
+  });
+});
+$(document).ready(function() {
+  $('#propertyDescription').each(function () {
+    var $t = $(this);
+    if ($t.closest('.modal').length || $t.next('.note-editor').length) return;
+    $t.summernote({
+      placeholder: 'Property Description',
+      tabsize: 2,
+      height: 220,
+      toolbar: _summernoteToolbar
+    });
+  });
+});
+$(document).ready(function() {
+  $('#unitDescription').each(function () {
+    var $t = $(this);
+    if ($t.closest('.modal').length || $t.next('.note-editor').length) return;
+    $t.summernote({
+      placeholder: 'Unit Description',
+      tabsize: 2,
+      height: 220,
+      toolbar: _summernoteToolbar
+    });
   });
 });
 $(document).ready(function() {
@@ -259,22 +281,17 @@ $(document).ready(function() {
     });
 
 $(document).ready(function() {
-    $('#description').summernote({
+    $('#description').each(function () {
+      var $t = $(this);
+      if ($t.closest('.modal').length || $t.next('.note-editor').length) return;
+      $t.summernote({
         placeholder: 'Description',
         tabsize: 2,
-        height: 150,
-        toolbar: [
-          ['style', ['style']],
-          ['font', ['bold', 'underline', 'clear']],
-          ['color', ['color']],
-          ['para', ['ul', 'ol', 'paragraph']],
-          ['table', ['table']],
-          ['insert', ['link', 'picture', 'video']],
-          ['view', ['fullscreen', 'codeview', 'help']]
-        ]
+        height: 200,
+        toolbar: _summernoteToolbar
       });
-
     });
+});
 
 $(document).ready(function() {
     $('#postDescription').summernote({

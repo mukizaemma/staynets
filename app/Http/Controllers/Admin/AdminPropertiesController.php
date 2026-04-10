@@ -7,17 +7,72 @@ use App\Models\Property;
 use App\Models\Hotel;
 use App\Models\Category;
 use App\Models\Program;
-use App\Models\Partner;
 use App\Models\Amenity;
 use App\Models\FacilityCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Collection;
 
 class AdminPropertiesController extends Controller
 {
+    /**
+     * Full admin (super admin): can assign owners, change status/verified/featured.
+     * Role 2 and others: manage only their own listings without admin-only fields.
+     */
+    protected function isPropertySuperAdmin(): bool
+    {
+        $user = Auth::user();
+
+        return $user && ($user->role == '1' || $user->role === 1);
+    }
+
+    /**
+     * Property managers must verify email before managing listings (super admin exempt).
+     */
+    protected function ensureVerifiedForPropertyManagers(): ?\Illuminate\Http\RedirectResponse
+    {
+        if ($this->isPropertySuperAdmin()) {
+            return null;
+        }
+        $user = Auth::user();
+        if ($user && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('error', 'Please verify your email address before managing properties and rooms.');
+        }
+
+        return null;
+    }
+
+    protected function formatPropertyRoomTypeSummary(Property $property): string
+    {
+        if ($property->units->isEmpty()) {
+            return '';
+        }
+
+        return $property->units->groupBy('unit_type_id')->map(function ($units) {
+            $label = optional($units->first()->unitType)->name ?? __('Room');
+            $n = (int) $units->sum('total_units');
+
+            return $label . ': ' . $n;
+        })->implode(' · ');
+    }
+
+    protected function formatHotelRoomTypeSummary(Hotel $hotel): string
+    {
+        if (!$hotel->relationLoaded('rooms') || $hotel->rooms->isEmpty()) {
+            return '';
+        }
+
+        return $hotel->rooms->groupBy('room_type')->map(function ($rooms, $type) {
+            $label = $type ?: __('Standard');
+            $n = (int) $rooms->sum('total_rooms');
+
+            return $label . ': ' . $n;
+        })->implode(' · ');
+    }
+
     /**
      * Display a listing of properties.
      * Shows both admin-created properties (Property model) and user-created properties (Hotel model).
@@ -25,10 +80,15 @@ class AdminPropertiesController extends Controller
     public function index(Request $request)
     {
         // Query admin-created properties (Property model)
-        $propertyQuery = Property::with(['owner', 'category', 'program', 'partner']);
+        $propertyQuery = Property::with(['owner', 'category', 'program', 'units.unitType']);
 
         // Query user-created properties (Hotel model)
-        $hotelQuery = Hotel::with(['owner']);
+        $hotelQuery = Hotel::with(['owner', 'rooms']);
+
+        if (!$this->isPropertySuperAdmin()) {
+            $propertyQuery->where('owner_id', Auth::id());
+            $hotelQuery->where('added_by', Auth::id());
+        }
 
         // Filter by type
         if ($request->has('type') && $request->type) {
@@ -69,8 +129,8 @@ class AdminPropertiesController extends Controller
         $hotels = $hotelQuery->latest()->get();
 
         // Transform hotels to match property structure for unified display
-        $allProperties = $properties->map(function($property) {
-            return (object)[
+        $allProperties = $properties->map(function ($property) {
+            return (object) [
                 'id' => $property->id,
                 'name' => $property->name,
                 'type' => $property->property_type ?? 'hotel',
@@ -83,6 +143,8 @@ class AdminPropertiesController extends Controller
                 'is_featured' => $property->is_featured ?? false,
                 'is_verified' => $property->is_verified ?? false,
                 'units' => $property->units ?? collect(),
+                'room_type_summary' => $this->formatPropertyRoomTypeSummary($property),
+                'total_room_inventory' => (int) $property->units->sum('total_units'),
                 'image' => $property->featured_image ?? null,
                 'phone' => $property->phone,
                 'email' => $property->email,
@@ -90,8 +152,8 @@ class AdminPropertiesController extends Controller
             ];
         });
 
-        $allHotels = $hotels->map(function($hotel) {
-            return (object)[
+        $allHotels = $hotels->map(function ($hotel) {
+            return (object) [
                 'id' => $hotel->id,
                 'name' => $hotel->name,
                 'type' => $hotel->type ?? 'hotel',
@@ -104,6 +166,8 @@ class AdminPropertiesController extends Controller
                 'is_featured' => false,
                 'is_verified' => false,
                 'units' => $hotel->rooms ?? collect(),
+                'room_type_summary' => $this->formatHotelRoomTypeSummary($hotel),
+                'total_room_inventory' => (int) $hotel->rooms->sum('total_rooms'),
                 'image' => $hotel->image,
                 'phone' => $hotel->phone,
                 'email' => $hotel->email,
@@ -135,23 +199,32 @@ class AdminPropertiesController extends Controller
 
         $categories = Category::all();
         $programs = Program::all();
-        $partners = Partner::all();
         $setting = \App\Models\Setting::first();
         
         // Get counts for status badges (include both Property and Hotel models)
-        $pendingCount = Property::where('status', 'Pending')->count() + Hotel::where('status', 'Pending')->count();
-        $activeCount = Property::where('status', 'Active')->count() + Hotel::where('status', 'Active')->count();
-        $inactiveCount = Property::where('status', 'Inactive')->count() + Hotel::where('status', 'Inactive')->count();
+        if ($this->isPropertySuperAdmin()) {
+            $pendingCount = Property::where('status', 'Pending')->count() + Hotel::where('status', 'Pending')->count();
+            $activeCount = Property::where('status', 'Active')->count() + Hotel::where('status', 'Active')->count();
+            $inactiveCount = Property::where('status', 'Inactive')->count() + Hotel::where('status', 'Inactive')->count();
+        } else {
+            $uid = Auth::id();
+            $pendingCount = Property::where('owner_id', $uid)->where('status', 'Pending')->count()
+                + Hotel::where('added_by', $uid)->where('status', 'Pending')->count();
+            $activeCount = Property::where('owner_id', $uid)->where('status', 'Active')->count()
+                + Hotel::where('added_by', $uid)->where('status', 'Active')->count();
+            $inactiveCount = Property::where('owner_id', $uid)->where('status', 'Inactive')->count()
+                + Hotel::where('added_by', $uid)->where('status', 'Inactive')->count();
+        }
 
         return view('admin.properties.index', [
             'properties' => $properties,
             'categories' => $categories,
             'programs' => $programs,
-            'partners' => $partners,
             'setting' => $setting,
             'pendingCount' => $pendingCount,
             'activeCount' => $activeCount,
             'inactiveCount' => $inactiveCount,
+            'isPropertySuperAdmin' => $this->isPropertySuperAdmin(),
         ]);
     }
 
@@ -160,10 +233,13 @@ class AdminPropertiesController extends Controller
      */
     public function create()
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $categories = Category::all();
         $programs = Program::all();
-        $partners = Partner::all();
-        $users = User::all();
+        $users = $this->isPropertySuperAdmin() ? User::orderBy('name')->get() : collect();
         $amenities = Amenity::with('category')->orderBy('title')->get();
         $facilityCategories = FacilityCategory::with(['facilities' => function($query) {
             $query->active()->orderBy('title');
@@ -173,11 +249,11 @@ class AdminPropertiesController extends Controller
         return view('admin.properties.create', [
             'categories' => $categories,
             'programs' => $programs,
-            'partners' => $partners,
             'users' => $users,
             'amenities' => $amenities,
             'facilityCategories' => $facilityCategories,
             'setting' => $setting,
+            'isPropertySuperAdmin' => $this->isPropertySuperAdmin(),
         ]);
     }
 
@@ -186,12 +262,16 @@ class AdminPropertiesController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
+        $super = $this->isPropertySuperAdmin();
+
+        $rules = [
             'name' => 'required|string|max:255',
             'property_type' => 'required|in:hotel,apartment,guesthouse,lodge',
-            'owner_id' => 'required|exists:users,id',
             'category_id' => 'nullable|exists:categories,id',
-            'partner_id' => 'nullable|exists:partners,id',
             'stars' => 'nullable|string|max:10',
             'description' => 'nullable|string',
             'address' => 'nullable|string|max:255',
@@ -202,14 +282,21 @@ class AdminPropertiesController extends Controller
             'map_embed_code' => 'nullable|string',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
+            'contact_person_name' => 'nullable|string|max:255',
             'website' => 'nullable|string|max:255',
             'featured_image' => 'nullable|image|max:4096',
-            'status' => 'nullable|in:Active,Inactive,Pending', // Status will default to Pending if not provided
-            'is_featured' => 'nullable|boolean',
-            'is_verified' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*' => 'exists:amenities,id',
-        ]);
+        ];
+
+        if ($super) {
+            $rules['owner_id'] = 'required|exists:users,id';
+            $rules['status'] = 'nullable|in:Active,Inactive,Pending';
+            $rules['is_featured'] = 'nullable|boolean';
+            $rules['is_verified'] = 'nullable|boolean';
+        }
+
+        $request->validate($rules);
 
         $slug = Str::slug($request->name);
         $originalSlug = $slug;
@@ -228,11 +315,18 @@ class AdminPropertiesController extends Controller
 
         $defaultProgramId = Program::where('title', 'Hotel & Apartment Booking Support')->value('id');
 
+        $ownerId = $super ? (int) $request->owner_id : Auth::id();
+
+        $meta = [];
+        if ($request->filled('contact_person_name')) {
+            $meta['contact_person_name'] = $request->input('contact_person_name');
+        }
+
         $property = Property::create([
-            'owner_id' => $request->owner_id,
+            'owner_id' => $ownerId,
             'category_id' => $request->category_id,
             'program_id' => $defaultProgramId,
-            'partner_id' => $request->partner_id,
+            'partner_id' => null,
             'name' => $request->name,
             'slug' => $slug,
             'property_type' => $request->property_type,
@@ -248,9 +342,12 @@ class AdminPropertiesController extends Controller
             'email' => $request->email,
             'website' => $request->website,
             'featured_image' => $fileName,
-            'status' => $request->status ?? 'Pending', // Use provided status or default to Pending
-            'is_featured' => $request->has('is_featured'),
-            'is_verified' => $request->has('is_verified'),
+            'status' => $super ? ($request->input('status') ?? 'Pending') : 'Active',
+            'is_featured' => $super && $request->has('is_featured'),
+            'is_verified' => $super && $request->has('is_verified'),
+            'is_listing_visible' => true,
+            'accepts_bookings' => true,
+            'meta_data' => !empty($meta) ? $meta : null,
         ]);
 
         // Attach facilities
@@ -269,15 +366,25 @@ class AdminPropertiesController extends Controller
     public function show($id)
     {
         // Try Property model first
-        $property = Property::with(['owner', 'category', 'program', 'partner', 'units', 'images', 'facilities'])->find($id);
+        $property = Property::with(['owner', 'category', 'program', 'units.unitType', 'images', 'facilities'])->find($id);
         $isHotelModel = false;
-        
+        $roomInventory = collect();
+
         // If not found, try Hotel model
         if (!$property) {
             $hotel = Hotel::with(['owner', 'rooms'])->findOrFail($id);
+            if (!$this->isPropertySuperAdmin() && (int) $hotel->added_by !== (int) Auth::id()) {
+                abort(403);
+            }
             $isHotelModel = true;
+            $roomInventory = $hotel->rooms->groupBy('room_type')->map(function ($rooms, $type) {
+                return [
+                    'type_name' => $type ?: __('Standard'),
+                    'count' => (int) $rooms->sum('total_rooms'),
+                ];
+            })->values();
             // Transform hotel to match property structure for view compatibility
-            $property = (object)[
+            $property = (object) [
                 'id' => $hotel->id,
                 'name' => $hotel->name,
                 'property_type' => $hotel->type ?? 'hotel',
@@ -297,15 +404,28 @@ class AdminPropertiesController extends Controller
                 'facilities' => collect(),
                 'is_hotel_model' => true,
                 'hotel' => $hotel, // Keep reference to original hotel model
+                'meta_data' => [],
             ];
+        } else {
+            if (!$this->isPropertySuperAdmin() && (int) $property->owner_id !== (int) Auth::id()) {
+                abort(403);
+            }
+            $roomInventory = $property->units->groupBy('unit_type_id')->map(function ($units) {
+                return [
+                    'type_name' => optional($units->first()->unitType)->name ?? __('Unclassified'),
+                    'count' => (int) $units->sum('total_units'),
+                ];
+            })->values();
         }
-        
+
         $setting = \App\Models\Setting::first();
 
         return view('admin.properties.show', [
             'property' => $property,
             'setting' => $setting,
             'isHotelModel' => $isHotelModel,
+            'roomInventory' => $roomInventory,
+            'isPropertySuperAdmin' => $this->isPropertySuperAdmin(),
         ]);
     }
 
@@ -314,13 +434,21 @@ class AdminPropertiesController extends Controller
      */
     public function edit($id)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $property = Property::with(['facilities', 'images' => function($query) {
             $query->orderBy('is_primary', 'desc')->orderBy('sort_order');
         }])->findOrFail($id);
+
+        if (!$this->isPropertySuperAdmin() && (int) $property->owner_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
         $categories = Category::all();
         $programs = Program::all();
-        $partners = Partner::all();
-        $users = User::all();
+        $users = $this->isPropertySuperAdmin() ? User::orderBy('name')->get() : collect();
         $amenities = Amenity::with('category')->active()->orderBy('title')->get();
         $facilityCategories = FacilityCategory::with(['facilities' => function($query) {
             $query->active()->orderBy('title');
@@ -331,11 +459,11 @@ class AdminPropertiesController extends Controller
             'property' => $property,
             'categories' => $categories,
             'programs' => $programs,
-            'partners' => $partners,
             'users' => $users,
             'amenities' => $amenities,
             'facilityCategories' => $facilityCategories,
             'setting' => $setting,
+            'isPropertySuperAdmin' => $this->isPropertySuperAdmin(),
         ]);
     }
 
@@ -344,75 +472,108 @@ class AdminPropertiesController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         try {
             $property = Property::findOrFail($id);
 
-            $request->validate([
-            'name' => 'required|string|max:255',
-            'property_type' => 'required|in:hotel,apartment,guesthouse,lodge',
-            'owner_id' => 'required|exists:users,id',
-            'category_id' => 'nullable|exists:categories,id',
-            'partner_id' => 'nullable|exists:partners,id',
-            'stars' => 'nullable|string|max:10',
-            'description' => 'nullable|string',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'location' => 'required|string|max:255',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'map_embed_code' => 'nullable|string',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'website' => 'nullable|string|max:255',
-            'featured_image' => 'nullable|image|max:4096',
-            'status' => 'required|in:Active,Inactive,Pending',
-            'is_featured' => 'nullable|boolean',
-            'is_verified' => 'nullable|boolean',
-            'facilities' => 'nullable|array',
-            'facilities.*' => 'exists:amenities,id',
-        ]);
-
-        $slug = Str::slug($request->name);
-        if ($slug !== $property->slug) {
-            $originalSlug = $slug;
-            $counter = 1;
-            while (Property::where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                $slug = $originalSlug . '-' . $counter;
-                $counter++;
+            if (!$this->isPropertySuperAdmin() && (int) $property->owner_id !== (int) Auth::id()) {
+                abort(403);
             }
-        }
 
-        if ($request->hasFile('featured_image')) {
-            if ($property->featured_image && Storage::exists('public/images/properties/' . $property->featured_image)) {
-                Storage::delete('public/images/properties/' . $property->featured_image);
+            $super = $this->isPropertySuperAdmin();
+
+            $rules = [
+                'name' => 'required|string|max:255',
+                'property_type' => 'required|in:hotel,apartment,guesthouse,lodge',
+                'category_id' => 'nullable|exists:categories,id',
+                'stars' => 'nullable|string|max:10',
+                'description' => 'nullable|string',
+                'address' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
+                'location' => 'required|string|max:255',
+                'latitude' => 'nullable|numeric',
+                'longitude' => 'nullable|numeric',
+                'map_embed_code' => 'nullable|string',
+                'phone' => 'nullable|string|max:50',
+                'email' => 'nullable|email|max:255',
+                'contact_person_name' => 'nullable|string|max:255',
+                'website' => 'nullable|string|max:255',
+                'featured_image' => 'nullable|image|max:4096',
+                'facilities' => 'nullable|array',
+                'facilities.*' => 'exists:amenities,id',
+            ];
+
+            if ($super) {
+                $rules['owner_id'] = 'required|exists:users,id';
+                $rules['status'] = 'required|in:Active,Inactive,Pending';
+                $rules['is_featured'] = 'nullable|boolean';
+                $rules['is_verified'] = 'nullable|boolean';
             }
-            $file = $request->file('featured_image');
-            $path = $file->store('public/images/properties');
-            $property->featured_image = basename($path);
-        }
 
-        $property->update([
-            'owner_id' => $request->owner_id,
-            'category_id' => $request->category_id,
-            'partner_id' => $request->partner_id,
-            'name' => $request->name,
-            'slug' => $slug,
-            'property_type' => $request->property_type,
-            'stars' => $request->stars,
-            'description' => $request->description,
-            'address' => $request->address,
-            'city' => $request->city,
-            'location' => $request->location,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'map_embed_code' => $request->map_embed_code,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'website' => $request->website,
-            'status' => $request->status,
-            'is_featured' => $request->has('is_featured'),
-            'is_verified' => $request->has('is_verified'),
-        ]);
+            $request->validate($rules);
+
+            $slug = Str::slug($request->name);
+            if ($slug !== $property->slug) {
+                $originalSlug = $slug;
+                $counter = 1;
+                while (Property::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+                    $slug = $originalSlug . '-' . $counter;
+                    $counter++;
+                }
+            }
+
+            $newFeaturedFileName = null;
+            if ($request->hasFile('featured_image')) {
+                if ($property->featured_image && Storage::exists('public/images/properties/' . $property->featured_image)) {
+                    Storage::delete('public/images/properties/' . $property->featured_image);
+                }
+                $file = $request->file('featured_image');
+                $path = $file->store('public/images/properties');
+                $newFeaturedFileName = basename($path);
+            }
+
+            $meta = $property->meta_data ?? [];
+            if ($request->has('contact_person_name')) {
+                $meta['contact_person_name'] = $request->input('contact_person_name');
+            }
+
+            $updatePayload = [
+                'category_id' => $request->category_id,
+                'name' => $request->name,
+                'slug' => $slug,
+                'property_type' => $request->property_type,
+                'stars' => $request->stars,
+                'description' => $request->description,
+                'address' => $request->address,
+                'city' => $request->city,
+                'location' => $request->location,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'map_embed_code' => $request->map_embed_code,
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'website' => $request->website,
+                'meta_data' => $meta,
+                'partner_id' => null,
+            ];
+
+            if ($newFeaturedFileName !== null) {
+                $updatePayload['featured_image'] = $newFeaturedFileName;
+            }
+
+            if ($super) {
+                $updatePayload['owner_id'] = $request->owner_id;
+                $updatePayload['status'] = $request->status;
+                $updatePayload['is_featured'] = $request->has('is_featured');
+                $updatePayload['is_verified'] = $request->has('is_verified');
+                $updatePayload['is_listing_visible'] = $request->has('is_listing_visible');
+                $updatePayload['accepts_bookings'] = $request->has('accepts_bookings');
+            }
+
+            $property->update($updatePayload);
 
             // Sync facilities
             if ($request->has('facilities')) {
@@ -441,6 +602,16 @@ class AdminPropertiesController extends Controller
      */
     public function updateStatus(Request $request, $id, $status = null)
     {
+        if (!$this->isPropertySuperAdmin()) {
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson() || $request->header('X-Requested-With') == 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+            abort(403);
+        }
+
         try {
             // Get status from URL parameter (GET request) or request body (POST request)
             $newStatus = $status ?? $request->input('status');
@@ -520,7 +691,16 @@ class AdminPropertiesController extends Controller
      */
     public function destroy($id)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $property = Property::findOrFail($id);
+
+        if (!$this->isPropertySuperAdmin() && (int) $property->owner_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
         $property->delete();
 
         return redirect()->route('admin.properties.index')

@@ -16,6 +16,11 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <h6 class="mb-0">Property Details: {{ $property->name }}</h6>
                     <div>
+                        @if(!empty($isHotelModel))
+                            <a href="{{ route('admin.booking-calendar.index', ['hotel_id' => $property->id, 'year' => date('Y')]) }}" class="btn btn-success">
+                                <i class="fa fa-calendar-alt me-2"></i>Booking calendar
+                            </a>
+                        @endif
                         <a href="{{ route('admin.properties.edit', $property->id) }}" class="btn btn-info">
                             <i class="fa fa-edit me-2"></i>Edit
                         </a>
@@ -115,9 +120,15 @@
                         <!-- Contact Information -->
                         <div class="card mb-3">
                             <div class="card-header bg-success text-white">
-                                <h6 class="mb-0">Contact Information</h6>
+                                <h6 class="mb-0">Contact person (guest-facing)</h6>
                             </div>
                             <div class="card-body">
+                                @if(empty($isHotelModel) && data_get($property->meta_data, 'contact_person_name'))
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><strong>Contact name:</strong></div>
+                                    <div class="col-md-8">{{ data_get($property->meta_data, 'contact_person_name') }}</div>
+                                </div>
+                                @endif
                                 <div class="row mb-2">
                                     <div class="col-md-4"><strong>Phone:</strong></div>
                                     <div class="col-md-8">{{ $property->phone ?? 'N/A' }}</div>
@@ -139,6 +150,40 @@
                             </div>
                         </div>
 
+                        @if(isset($roomInventory) && $roomInventory->count() > 0)
+                        <div class="card mb-3">
+                            <div class="card-header bg-dark text-white">
+                                <h6 class="mb-0">Room inventory by type</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ps-3">Room type</th>
+                                                <th class="text-end pe-3">Rooms</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($roomInventory as $row)
+                                                <tr>
+                                                    <td class="ps-3">{{ $row['type_name'] }}</td>
+                                                    <td class="text-end pe-3">{{ $row['count'] }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="table-light fw-semibold">
+                                                <td class="ps-3">Total</td>
+                                                <td class="text-end pe-3">{{ $roomInventory->sum('count') }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Relationships -->
                         <div class="card mb-3">
                             <div class="card-header bg-warning text-dark">
@@ -152,10 +197,6 @@
                                 <div class="row mb-2">
                                     <div class="col-md-4"><strong>Program:</strong></div>
                                     <div class="col-md-8">{{ $property->program->name ?? 'N/A' }}</div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-md-4"><strong>Partner:</strong></div>
-                                    <div class="col-md-8">{{ $property->partner->name ?? 'N/A' }}</div>
                                 </div>
                             </div>
                         </div>

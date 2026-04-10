@@ -91,7 +91,7 @@ class RoomsController extends Controller
         $room->save();
 
         if ($request->has('amenities')) {
-        $room->amenities()->sync($request->input('amenities'));
+        $room->roomAmenities()->sync($request->input('amenities'));
     }
     
         return redirect()->route('getRooms')->with('success', 'New Room has been saved successfully');
@@ -100,7 +100,7 @@ class RoomsController extends Controller
     
 public function edit($id)
 {
-    $room = HotelRoom::with(['images', 'hotel', 'hotel.owner', 'amenities'])->findOrFail($id);
+    $room = HotelRoom::with(['images', 'hotel', 'hotel.owner', 'roomAmenities'])->findOrFail($id);
     $user = auth()->user();
     $isAdmin = $user && $user->role == 1;
     
@@ -112,7 +112,7 @@ public function edit($id)
     $hotels = Hotel::latest()->get();
 
     // Selected amenities from pivot relation
-    $selectedAmenities = $room->amenities()->pluck('amenities.id')->toArray();
+    $selectedAmenities = $room->roomAmenities->pluck('id')->toArray();
 
     $images = $room->images ?? collect();
     $totalImages = $images->count();
@@ -195,9 +195,9 @@ public function update(Request $request, $id)
 
         // Sync pivot table for amenities relationship
         if ($request->has('amenities')) {
-            $room->amenities()->sync($request->amenities);
+            $room->roomAmenities()->sync($request->amenities);
         } else {
-            $room->amenities()->detach();
+            $room->roomAmenities()->detach();
         }
 
         return redirect()->route('getRooms')->with('success', 'Room updated successfully');

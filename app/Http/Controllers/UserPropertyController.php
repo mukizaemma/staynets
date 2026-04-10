@@ -15,9 +15,24 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AdminNotification;
+use App\Models\FacilityCategory;
+use App\Services\RoomBookingCalendarService;
 
 class UserPropertyController extends Controller
 {
+    /**
+     * Facility categories with amenities (same structure as admin room editor).
+     */
+    protected function facilityCategoriesForRooms()
+    {
+        return FacilityCategory::with(['facilities' => function ($query) {
+            $query->where('is_active', true)->orderBy('title');
+        }])
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+    }
+
 public function index()
 {
     $hotels = collect();
@@ -26,6 +41,9 @@ public function index()
     $upcomingBookings = collect();
     $bookingsHistory = collect();
     $bookingCalendarData = [];
+    $bookingCalendarPayload = null;
+    $calendarYearUrls = [];
+    $selectedCalendarHotelId = null;
 
     if (auth()->check()) {
         $userId = auth()->id();
@@ -74,28 +92,38 @@ public function index()
             ->limit(20)
             ->get();
 
-        // Bookings history (past bookings)
+        // Bookings history: most recent activity (upcoming + current + past)
         $bookingsHistory = (clone $bookingsQuery)
-            ->where('check_out', '<', now()->toDateString())
-            ->orderBy('check_out', 'desc')
+            ->orderByDesc('created_at')
             ->limit(50)
             ->get();
 
-        // Calendar data (bookings for calendar view)
-        $bookingCalendarData = (clone $bookingsQuery)
-            ->where('check_in', '>=', now()->subMonths(1)->toDateString())
-            ->get()
-            ->map(function ($b) {
-                $propName = $b->hotel->name ?? $b->property->name ?? 'Booking';
-                return [
-                    'id' => $b->id,
-                    'title' => $propName . ' - ' . ($b->guest_name ?? 'Guest'),
-                    'start' => $b->check_in,
-                    'end' => $b->check_out,
-                    'status' => $b->booking_status,
-                ];
-            })
-            ->toArray();
+        // Room / date grid calendar (hotel room bookings)
+        $calYear = (int) request('cal_year', now()->year);
+        $calYear = max(2020, min(2035, $calYear));
+        $calHotelId = request('cal_hotel');
+        if ($hotels->isNotEmpty()) {
+            $selectedCalHotel = $calHotelId
+                ? $hotels->firstWhere('id', (int) $calHotelId)
+                : $hotels->first();
+            if (! $selectedCalHotel) {
+                $selectedCalHotel = $hotels->first();
+            }
+            $selectedCalendarHotelId = $selectedCalHotel->id;
+            $bookingCalendarPayload = RoomBookingCalendarService::buildForHotel($selectedCalHotel, $calYear);
+            foreach ([$calYear - 1, $calYear, $calYear + 1] as $y) {
+                if ($y < 2020 || $y > 2035) {
+                    continue;
+                }
+                // Use Laravel route() query merge + absolute URL so <base href> in layout cannot break navigation
+                $calendarYearUrls[$y] = route('myProperties', array_filter([
+                    'cal_year' => $y,
+                    'cal_hotel' => $selectedCalendarHotelId,
+                ], static function ($v) {
+                    return $v !== null && $v !== '';
+                }), true).'#calendar';
+            }
+        }
     }
 
     return view('frontend.myProperties', [
@@ -105,6 +133,9 @@ public function index()
         'upcomingBookings' => $upcomingBookings,
         'bookingsHistory' => $bookingsHistory,
         'bookingCalendarData' => $bookingCalendarData,
+        'bookingCalendarPayload' => $bookingCalendarPayload,
+        'calendarYearUrls' => $calendarYearUrls,
+        'selectedCalendarHotelId' => $selectedCalendarHotelId,
     ]);
 }
 
@@ -167,6 +198,7 @@ try {
             'type' => $request->type,
             'stars' => $request->stars,
             'location' => $request->location,
+            'address' => $request->address,
             'email' => $request->email,
             'phone' => $request->phone,
             'city' => $request->city,
@@ -256,7 +288,32 @@ try {
     public function editHotel(Hotel $hotel)
     {
         $this->authorizeOwner($hotel);
-        return view('frontend.myProperties', compact('hotel'));
+        $hotel->load(['amenities', 'images']);
+
+        $hotelCategories = FacilityCategory::where('property_type', 'hotel')
+            ->where('is_active', true)
+            ->with(['facilities' => function ($query) {
+                $query->where('is_active', true)->orderBy('sort_order');
+            }])
+            ->orderBy('sort_order')
+            ->get();
+
+        $apartmentCategories = FacilityCategory::where('property_type', 'apartment')
+            ->where('is_active', true)
+            ->with(['facilities' => function ($query) {
+                $query->where('is_active', true)->orderBy('sort_order');
+            }])
+            ->orderBy('sort_order')
+            ->get();
+
+        $selectedAmenities = $hotel->amenities->pluck('id')->toArray();
+
+        return view('frontend.owner.hotel-edit', [
+            'hotel' => $hotel,
+            'hotelCategories' => $hotelCategories,
+            'apartmentCategories' => $apartmentCategories,
+            'selectedAmenities' => $selectedAmenities,
+        ]);
     }
 
     public function updateHotel(Request $request, Hotel $hotel)
@@ -265,18 +322,23 @@ try {
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => ['nullable','string','max:255', Rule::unique('hotels','slug')->ignore($hotel->id)],
+            'slug' => ['nullable', 'string', 'max:255', Rule::unique('hotels', 'slug')->ignore($hotel->id)],
             'type' => 'nullable|string|max:100',
             'stars' => 'nullable|string|max:10',
             'location' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'city' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:4096',
             'category_id' => 'nullable|integer',
             'program_id' => 'nullable|integer',
-            // Note: 'status' is intentionally NOT included - only admins can change status
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'integer|exists:amenities,id',
         ]);
 
         if ($request->hasFile('image')) {
@@ -287,24 +349,53 @@ try {
             $data['image'] = basename($path);
         }
 
+        unset($data['amenities']);
+
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']) . '-' . Str::random(5);
 
         $hotel->update($data);
 
-        return redirect()->route('myProperties')->with('success', 'Hotel updated.');
+        if ($request->has('amenities')) {
+            $hotel->amenities()->sync($request->amenities);
+        } else {
+            $hotel->amenities()->detach();
+        }
+
+        return redirect()->route('my.properties.hotels.edit', $hotel)->with('success', 'Property updated successfully.');
     }
 
     public function showHotel(Hotel $hotel)
     {
         $this->authorizeOwner($hotel);
-        $rooms = $hotel->rooms()->latest()->get();
-        return view('frontend.myProperties', compact('hotel','rooms'));
+
+        return redirect()->route('my.properties.hotels.edit', $hotel);
     }
 
     public function createRoom(Hotel $hotel)
     {
         $this->authorizeOwner($hotel);
-        return view('frontend.myProperties', compact('hotel'));
+        $facilityCategories = $this->facilityCategoriesForRooms();
+
+        return view('frontend.owner.room-form', [
+            'hotel' => $hotel,
+            'room' => null,
+            'facilityCategories' => $facilityCategories,
+            'selectedAmenities' => [],
+        ]);
+    }
+
+    public function showRoom(Hotel $hotel, HotelRoom $room)
+    {
+        if ((int) $room->hotel_id !== (int) $hotel->id) {
+            abort(404);
+        }
+        $this->authorizeOwner($hotel);
+        $room->load(['images', 'roomAmenities', 'hotel']);
+
+        return view('frontend.owner.room-show', [
+            'hotel' => $hotel,
+            'room' => $room,
+        ]);
     }
 
     public function storeRoom(Request $request, Hotel $hotel)
@@ -324,10 +415,19 @@ try {
             'available_rooms' => 'nullable|integer',
             'description' => 'nullable|string',
             'amenities' => 'nullable|array',
+            'amenities.*' => 'integer|exists:amenities,id',
+            'status' => ['nullable', Rule::in(['Available', 'Unavailable'])],
+            'accepts_room_bookings' => 'nullable|boolean',
         ]);
+
+        $amenityIds = $data['amenities'] ?? [];
+        unset($data['amenities']);
+
+        $data['accepts_room_bookings'] = $request->has('accepts_room_bookings');
 
         $data['hotel_id'] = $hotel->id;
         $data['added_by'] = auth()->id();
+        $data['status'] = $data['status'] ?? 'Available';
         $data['slug'] = $data['slug'] ?? Str::slug($data['room_type']) . '-' . Str::random(5);
 
         if ($request->hasFile('image')) {
@@ -335,22 +435,31 @@ try {
             $data['image'] = basename($path);
         }
 
-        if (!empty($data['amenities'])) {
-            $data['amenities'] = json_encode(array_values(array_filter($data['amenities'])));
+        $room = HotelRoom::create($data);
+
+        if (! empty($amenityIds)) {
+            $room->roomAmenities()->sync($amenityIds);
         }
 
-        HotelRoom::create($data);
-
-        return redirect()->route('myProperties')->with('success', 'Room added.');
+        return redirect()
+            ->route('my.properties.rooms.show', [$hotel, $room])
+            ->with('success', 'Room added. You can upload more images below.');
     }
 
     public function editRoom(HotelRoom $room)
     {
         $hotel = $room->hotel;
         $this->authorizeOwner($hotel);
-        $room->load('images');
-        $amenities = \App\Models\Amenity::orderBy('title')->get();
-        return view('frontend.myProperties', compact('room','hotel', 'amenities'));
+        $room->load(['images', 'roomAmenities']);
+        $facilityCategories = $this->facilityCategoriesForRooms();
+        $selectedAmenities = $room->roomAmenities->pluck('id')->toArray();
+
+        return view('frontend.owner.room-form', [
+            'hotel' => $hotel,
+            'room' => $room,
+            'facilityCategories' => $facilityCategories,
+            'selectedAmenities' => $selectedAmenities,
+        ]);
     }
 
     public function updateRoom(Request $request, HotelRoom $room)
@@ -360,7 +469,7 @@ try {
 
         $data = $request->validate([
             'room_type' => 'required|string|max:255',
-            'slug' => ['nullable','string','max:255', Rule::unique('hotel_rooms','slug')->ignore($room->id)],
+            'slug' => ['nullable', 'string', 'max:255', Rule::unique('hotel_rooms', 'slug')->ignore($room->id)],
             'image' => 'nullable|image|max:4096',
             'max_occupancy' => 'nullable|integer',
             'price_per_night' => 'required|numeric',
@@ -371,8 +480,14 @@ try {
             'available_rooms' => 'nullable|integer',
             'description' => 'nullable|string',
             'amenities' => 'nullable|array',
-            'status' => ['nullable', Rule::in(['Available','Unavailable'])],
+            'amenities.*' => 'integer|exists:amenities,id',
+            'status' => ['nullable', Rule::in(['Available', 'Unavailable'])],
+            'accepts_room_bookings' => 'nullable|boolean',
         ]);
+
+        unset($data['amenities']);
+
+        $data['accepts_room_bookings'] = $request->has('accepts_room_bookings');
 
         if ($request->hasFile('image')) {
             if ($room->image && Storage::exists('public/images/rooms/'.$room->image)) {
@@ -382,54 +497,47 @@ try {
             $data['image'] = basename($path);
         }
 
-        if (!empty($data['amenities'])) $data['amenities'] = json_encode(array_values(array_filter($data['amenities'])));
-
         $room->update($data);
 
-        return redirect()->route('myProperties')->with('success', 'Room updated.');
+        if ($request->has('amenities')) {
+            $room->roomAmenities()->sync($request->input('amenities', []));
+        } else {
+            $room->roomAmenities()->detach();
+        }
+
+        return redirect()
+            ->route('my.properties.rooms.show', [$hotel, $room])
+            ->with('success', 'Room updated successfully.');
     }
 
     /**
-     * Delete a property owned by the logged-in user (and its rooms).
+     * Soft-delete a property and its rooms (files kept for possible admin restore).
      */
     public function destroyHotel(Hotel $hotel)
     {
         $this->authorizeOwner($hotel);
 
-        // Delete related rooms first to keep things clean
-        foreach ($hotel->rooms as $room) {
-            if ($room->image && Storage::exists('public/images/rooms/'.$room->image)) {
-                Storage::delete('public/images/rooms/'.$room->image);
-            }
-            $room->delete();
-        }
-
-        // Delete hotel cover image
-        if ($hotel->image && Storage::exists('public/images/hotels/' . $hotel->image)) {
-            Storage::delete('public/images/hotels/' . $hotel->image);
-        }
-
+        $hotel->rooms()->delete();
         $hotel->delete();
 
-        return redirect()->route('myProperties')->with('success', 'Property has been removed successfully.');
+        return redirect()
+            ->route('myProperties')
+            ->with('success', 'Property removed from your dashboard. Records are archived and may be restored by an administrator.');
     }
 
     /**
-     * Delete a room owned by the logged-in user.
+     * Soft-delete a room (files kept for possible restore).
      */
     public function destroyRoom(HotelRoom $room)
     {
         $hotel = $room->hotel;
         $this->authorizeOwner($hotel);
 
-        // Delete room image
-        if ($room->image && Storage::exists('public/images/rooms/'.$room->image)) {
-            Storage::delete('public/images/rooms/'.$room->image);
-        }
-
         $room->delete();
 
-        return redirect()->route('myProperties')->with('success', 'Room has been removed successfully.');
+        return redirect()
+            ->route('my.properties.hotels.edit', $hotel)
+            ->with('success', 'Room removed from your listing. It can be restored by an administrator if needed.');
     }
 
     /**

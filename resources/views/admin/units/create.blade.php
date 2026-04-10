@@ -1,6 +1,16 @@
 @extends('layouts.adminBase')
 
 @section('content')
+    <style>
+        .unit-form-page { max-width: 1140px; margin-left: auto; margin-right: auto; }
+        .unit-form-card { border: 1px solid rgba(0,0,0,.06); border-radius: 12px; overflow: hidden; }
+        .unit-stat-input .form-control { text-align: center; font-weight: 500; }
+        .unit-file-drop {
+            border: 2px dashed #dee2e6; border-radius: 10px; padding: 1rem;
+            background: #fafafa; transition: border-color .2s, background .2s;
+        }
+        .unit-file-drop:hover { border-color: #0d6efd; background: #f8f9ff; }
+    </style>
     <!-- Sidebar Start -->
     @include('admin.includes.sidebar')
     <!-- Sidebar End -->
@@ -12,17 +22,21 @@
         <!-- Navbar End -->
 
         <div class="container-fluid pt-4 px-4">
-            <div class="bg-light text-center rounded p-4">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h6 class="mb-0">Create New Unit</h6>
-                    <a href="{{ route('admin.units.index', request()->query()) }}" class="btn btn-secondary">
-                        <i class="fa fa-arrow-left me-2"></i>Back to List
+            <div class="unit-form-page pb-5">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+                    <div>
+                        <h4 class="mb-1 fw-semibold text-dark">Create New Unit</h4>
+                        <p class="text-muted small mb-0">Define capacity, pricing, and details for a room or unit under a property.</p>
+                    </div>
+                    <a href="{{ route('admin.units.index', request()->query()) }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa fa-arrow-left me-2"></i>Back to list
                     </a>
                 </div>
 
                 @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <ul class="mb-0">
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 border-0 shadow-sm" role="alert">
+                        <strong class="d-block mb-2"><i class="fa fa-exclamation-circle me-1"></i> Please fix the following:</strong>
+                        <ul class="mb-0 ps-3">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -35,200 +49,209 @@
                     @csrf
 
                     <!-- Basic Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Basic Information</h5>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="property_id" class="form-label">Property <span class="text-danger">*</span></label>
-                            <select name="property_id" class="form-select @error('property_id') is-invalid @enderror" id="property_id" required>
-                                <option value="">Select Property</option>
-                                @foreach($properties as $property)
-                                    <option value="{{ $property->id }}" {{ (old('property_id', $propertyId) == $property->id) ? 'selected' : '' }}>
-                                        {{ $property->name }} ({{ ucfirst($property->property_type) }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('property_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="unit_type_id" class="form-label">Unit Type</label>
-                            <select name="unit_type_id" class="form-select @error('unit_type_id') is-invalid @enderror" id="unit_type_id">
-                                <option value="">Select Type (Optional)</option>
-                                @foreach($unitTypes as $type)
-                                    <option value="{{ $type->id }}" {{ old('unit_type_id') == $type->id ? 'selected' : '' }}>
-                                        {{ $type->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('unit_type_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="name" class="form-label">Unit Name</label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                                   id="name" value="{{ old('name') }}" placeholder="e.g., Deluxe Room">
-                            <small class="text-muted">Optional - auto-generated if empty</small>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="property_id" class="form-label fw-medium">Property <span class="text-danger">*</span></label>
+                                    <select name="property_id" class="form-select form-select-lg @error('property_id') is-invalid @enderror" id="property_id" required>
+                                        <option value="">Select property</option>
+                                        @foreach($properties as $property)
+                                            <option value="{{ $property->id }}" {{ (old('property_id', $propertyId) == $property->id) ? 'selected' : '' }}>
+                                                {{ $property->name }} ({{ ucfirst($property->property_type) }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('property_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="unit_type_id" class="form-label fw-medium">Unit type</label>
+                                    <select name="unit_type_id" class="form-select @error('unit_type_id') is-invalid @enderror" id="unit_type_id">
+                                        <option value="">Optional</option>
+                                        @foreach($unitTypes as $type)
+                                            <option value="{{ $type->id }}" {{ old('unit_type_id') == $type->id ? 'selected' : '' }}>
+                                                {{ $type->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('unit_type_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="name" class="form-label fw-medium">Unit name</label>
+                                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                                           id="name" value="{{ old('name') }}" placeholder="e.g. Deluxe Room">
+                                    <small class="text-muted">Optional — auto-generated if empty</small>
+                                    @error('name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Capacity & Features -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <h5 class="mb-2 border-bottom pb-2">Capacity & Features</h5>
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label for="max_occupancy" class="form-label">Max Occupancy <span class="text-danger">*</span></label>
-                            <input type="number" name="max_occupancy" class="form-control @error('max_occupancy') is-invalid @enderror" 
-                                   id="max_occupancy" value="{{ old('max_occupancy', 2) }}" min="1" required>
-                            @error('max_occupancy')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label for="bedrooms" class="form-label">Bedrooms</label>
-                            <input type="number" name="bedrooms" class="form-control @error('bedrooms') is-invalid @enderror" 
-                                   id="bedrooms" value="{{ old('bedrooms', 0) }}" min="0">
-                            @error('bedrooms')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label for="bathrooms" class="form-label">Bathrooms <span class="text-danger">*</span></label>
-                            <input type="number" name="bathrooms" class="form-control @error('bathrooms') is-invalid @enderror" 
-                                   id="bathrooms" value="{{ old('bathrooms', 1) }}" min="1" required>
-                            @error('bathrooms')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label for="beds" class="form-label">Beds</label>
-                            <input type="number" name="beds" class="form-control @error('beds') is-invalid @enderror" 
-                                   id="beds" value="{{ old('beds', 1) }}" min="1">
-                            @error('beds')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label for="size_sqm" class="form-label">Size (sqm)</label>
-                            <input type="number" name="size_sqm" class="form-control @error('size_sqm') is-invalid @enderror" 
-                                   id="size_sqm" value="{{ old('size_sqm') }}" min="0" step="0.01">
-                            @error('size_sqm')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4 col-xl-2 unit-stat-input">
+                                    <label for="max_occupancy" class="form-label small text-muted mb-1">Max guests <span class="text-danger">*</span></label>
+                                    <input type="number" name="max_occupancy" class="form-control @error('max_occupancy') is-invalid @enderror"
+                                           id="max_occupancy" value="{{ old('max_occupancy', 2) }}" min="1" required>
+                                    @error('max_occupancy')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-2 unit-stat-input">
+                                    <label for="bedrooms" class="form-label small text-muted mb-1">Bedrooms</label>
+                                    <input type="number" name="bedrooms" class="form-control @error('bedrooms') is-invalid @enderror"
+                                           id="bedrooms" value="{{ old('bedrooms', 0) }}" min="0">
+                                    @error('bedrooms')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-2 unit-stat-input">
+                                    <label for="bathrooms" class="form-label small text-muted mb-1">Bathrooms <span class="text-danger">*</span></label>
+                                    <input type="number" name="bathrooms" class="form-control @error('bathrooms') is-invalid @enderror"
+                                           id="bathrooms" value="{{ old('bathrooms', 1) }}" min="1" required>
+                                    @error('bathrooms')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-2 unit-stat-input">
+                                    <label for="beds" class="form-label small text-muted mb-1">Beds</label>
+                                    <input type="number" name="beds" class="form-control @error('beds') is-invalid @enderror"
+                                           id="beds" value="{{ old('beds', 1) }}" min="1">
+                                    @error('beds')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-2 unit-stat-input">
+                                    <label for="size_sqm" class="form-label small text-muted mb-1">Size (m²)</label>
+                                    <input type="number" name="size_sqm" class="form-control @error('size_sqm') is-invalid @enderror"
+                                           id="size_sqm" value="{{ old('size_sqm') }}" min="0" step="0.01" placeholder="—">
+                                    @error('size_sqm')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Inventory & Pricing (one row) -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <h5 class="mb-2 border-bottom pb-2">Inventory &amp; Pricing</h5>
-                        </div>
-                        <div class="col-6 col-md-2 mb-2">
-                            <label for="total_units" class="form-label">Total Units <span class="text-danger">*</span></label>
-                            <input type="number" name="total_units" class="form-control @error('total_units') is-invalid @enderror" id="total_units" value="{{ old('total_units', 1) }}" min="1" required>
-                            @error('total_units')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-6 col-md-2 mb-2">
-                            <label for="available_units" class="form-label">Available Units <span class="text-danger">*</span></label>
-                            <input type="number" name="available_units" class="form-control @error('available_units') is-invalid @enderror" id="available_units" value="{{ old('available_units', 1) }}" min="0" required>
-                            @error('available_units')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-6 col-md-2 mb-2">
-                            <label for="currency" class="form-label">Currency</label>
-                            <select name="currency" class="form-select @error('currency') is-invalid @enderror" id="currency">
-                                <option value="USD" {{ old('currency', 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
-                                <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
-                                <option value="GBP" {{ old('currency') == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
-                                <option value="RWF" {{ old('currency') == 'RWF' ? 'selected' : '' }}>RWF (Fr)</option>
-                                <option value="KES" {{ old('currency') == 'KES' ? 'selected' : '' }}>KES (KSh)</option>
-                                <option value="UGX" {{ old('currency') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
-                                <option value="TZS" {{ old('currency') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
-                            </select>
-                            @error('currency')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-6 col-md-2 mb-2">
-                            <label for="price_display_type" class="form-label">Price is</label>
-                            <select name="price_display_type" class="form-select @error('price_display_type') is-invalid @enderror" id="price_display_type">
-                                <option value="per_night" {{ old('price_display_type', 'per_night') == 'per_night' ? 'selected' : '' }}>Per night</option>
-                                <option value="per_month" {{ old('price_display_type') == 'per_month' ? 'selected' : '' }}>Per month</option>
-                                <option value="both" {{ old('price_display_type') == 'both' ? 'selected' : '' }}>Both (night &amp; month)</option>
-                            </select>
-                            @error('price_display_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-6 col-md-2 mb-2">
-                            <label for="base_price_per_night" class="form-label">Price per night</label>
-                            <input type="number" name="base_price_per_night" class="form-control @error('base_price_per_night') is-invalid @enderror" id="base_price_per_night" value="{{ old('base_price_per_night') }}" min="0" step="0.01">
-                            @error('base_price_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-6 col-md-1 mb-2">
-                            <label for="base_price_per_month" class="form-label">Per month</label>
-                            <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" id="base_price_per_month" value="{{ old('base_price_per_month') }}" min="0" step="0.01">
-                            @error('base_price_per_month')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-6 col-md-1 mb-2">
-                            <label for="status" class="form-label">Status</label>
-                            <select name="status" class="form-select @error('status') is-invalid @enderror" id="status">
-                                <option value="Available" {{ old('status', 'Available') == 'Available' ? 'selected' : '' }}>Available</option>
-                                <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
-                                <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                            </select>
-                            @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <!-- Inventory & Pricing -->
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-3 mb-2">
+                                <div class="col-6 col-md-4 col-xl-2">
+                                    <label for="total_units" class="form-label fw-medium">Total units <span class="text-danger">*</span></label>
+                                    <input type="number" name="total_units" class="form-control @error('total_units') is-invalid @enderror" id="total_units" value="{{ old('total_units', 1) }}" min="1" required>
+                                    @error('total_units')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-2">
+                                    <label for="available_units" class="form-label fw-medium">Available <span class="text-danger">*</span></label>
+                                    <input type="number" name="available_units" class="form-control @error('available_units') is-invalid @enderror" id="available_units" value="{{ old('available_units', 1) }}" min="0" required>
+                                    @error('available_units')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-2">
+                                    <label for="currency" class="form-label fw-medium">Currency</label>
+                                    <select name="currency" class="form-select @error('currency') is-invalid @enderror" id="currency">
+                                        <option value="USD" {{ old('currency', 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                                        <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                                        <option value="GBP" {{ old('currency') == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                                        <option value="RWF" {{ old('currency') == 'RWF' ? 'selected' : '' }}>RWF (Fr)</option>
+                                        <option value="KES" {{ old('currency') == 'KES' ? 'selected' : '' }}>KES (KSh)</option>
+                                        <option value="UGX" {{ old('currency') == 'UGX' ? 'selected' : '' }}>UGX (USh)</option>
+                                        <option value="TZS" {{ old('currency') == 'TZS' ? 'selected' : '' }}>TZS (TSh)</option>
+                                    </select>
+                                    @error('currency')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-3">
+                                    <label for="price_display_type" class="form-label fw-medium">Price is</label>
+                                    <select name="price_display_type" class="form-select @error('price_display_type') is-invalid @enderror" id="price_display_type">
+                                        <option value="per_night" {{ old('price_display_type', 'per_night') == 'per_night' ? 'selected' : '' }}>Per night</option>
+                                        <option value="per_month" {{ old('price_display_type') == 'per_month' ? 'selected' : '' }}>Per month</option>
+                                        <option value="both" {{ old('price_display_type') == 'both' ? 'selected' : '' }}>Both (night &amp; month)</option>
+                                    </select>
+                                    @error('price_display_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-6 col-md-4 col-xl-3">
+                                    <label for="status" class="form-label fw-medium">Listing status</label>
+                                    <select name="status" class="form-select @error('status') is-invalid @enderror" id="status">
+                                        <option value="Available" {{ old('status', 'Available') == 'Available' ? 'selected' : '' }}>Available</option>
+                                        <option value="Unavailable" {{ old('status') == 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+                                        <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                    </select>
+                                    @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="row g-3 pt-2 border-top mt-1">
+                                <div class="col-md-6">
+                                    <label for="base_price_per_night" class="form-label fw-medium">Price per night</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fa fa-moon text-muted"></i></span>
+                                        <input type="number" name="base_price_per_night" class="form-control @error('base_price_per_night') is-invalid @enderror" id="base_price_per_night" value="{{ old('base_price_per_night') }}" min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                    @error('base_price_per_night')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="base_price_per_month" class="form-label fw-medium">Price per month</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fa fa-calendar-alt text-muted"></i></span>
+                                        <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" id="base_price_per_month" value="{{ old('base_price_per_month') }}" min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                    @error('base_price_per_month')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Description & Image -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Description & Image</h5>
-                        </div>
-                        <div class="col-md-8 mb-3">
-                            <label for="unitDescription" class="form-label">Unit Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
-                                      id="unitDescription" rows="6">{{ old('description') }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="featured_image" class="form-label">Featured Image</label>
-                            <input type="file" name="featured_image" class="form-control @error('featured_image') is-invalid @enderror" 
-                                   id="featured_image" accept="image/*">
-                            @error('featured_image')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-lg-8">
+                                    <label for="unitDescription" class="form-label fw-medium">Unit description</label>
+                                    <textarea name="description" class="form-control @error('description') is-invalid @enderror"
+                                              id="unitDescription" rows="6">{!! old('description') !!}</textarea>
+                                    @error('description')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="featured_image" class="form-label fw-medium">Featured image</label>
+                                    <div class="unit-file-drop">
+                                        <input type="file" name="featured_image" class="form-control border-0 bg-transparent p-0 @error('featured_image') is-invalid @enderror"
+                                               id="featured_image" accept="image/*">
+                                        <small class="text-muted d-block mt-2">JPG, PNG or WebP — recommended 1200×800 or wider</small>
+                                    </div>
+                                    @error('featured_image')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Settings -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Settings</h5>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label d-block">Settings</label>
-                            <div class="form-check form-check-inline mt-2">
-                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" 
-                                       {{ old('is_active', true) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_active">
-                                    Active
-                                </label>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="rounded-3 bg-light p-3 border border-light">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1"
+                                           {{ old('is_active', true) ? 'checked' : '' }} role="switch">
+                                    <label class="form-check-label fw-medium" for="is_active">Unit is active and bookable</label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Facilities/Amenities -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-3 border-bottom pb-2">Facilities/Amenities</h5>
-                            <p class="text-muted mb-3">Select amenities for this unit, grouped by category:</p>
-                        </div>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                    <div class="row">
                         @php
                             $selectedFacilities = old('facilities', []);
                         @endphp
@@ -277,13 +300,13 @@
                             @endif
                         @endforeach
                     </div>
+                        </div>
+                    </div>
 
                     <!-- Additional Charges (Extras) -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="mb-2 border-bottom pb-2">Additional Charges (Extras)</h5>
-                            <p class="text-muted small mb-3">Set a price for each extra to offer during booking. Leave 0 or empty to not offer that extra for this unit.</p>
-                        </div>
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                    <div class="row g-3">
                         @foreach($extraChargeTypes as $chargeType)
                             <div class="col-md-6 col-lg-4 mb-2">
                                 <label for="extra_charge_{{ $chargeType->id }}" class="form-label">{{ $chargeType->name }}</label>
@@ -303,17 +326,15 @@
                             </div>
                         @endif
                     </div>
+                        </div>
+                    </div>
 
                     <!-- Submit Buttons -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 border-top pt-3">
-                                <a href="{{ route('admin.units.index', request()->query()) }}" class="btn btn-secondary">Cancel</a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-save me-2"></i>Create Unit
-                                </button>
-                            </div>
-                        </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-end pt-2 pb-4">
+                        <a href="{{ route('admin.units.index', request()->query()) }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            <i class="fa fa-save me-2"></i>Create unit
+                        </button>
                     </div>
                 </form>
             </div>
@@ -372,23 +393,9 @@
         </div>
     </div>
 
+    @push('scripts')
     <script>
         $(document).ready(function() {
-            $('#unitDescription').summernote({
-                placeholder: 'Unit Description',
-                tabsize: 2,
-                height: 200,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
-
             // Handle modal open - set category
             $('#addAmenityModal').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);
@@ -536,4 +543,5 @@
             });
         });
     </script>
+    @endpush
 @endsection

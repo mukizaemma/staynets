@@ -39,6 +39,12 @@
 
                 <x-validation-errors class="mb-4" />
 
+                @if (session('error'))
+                    <div class="mb-4 font-medium text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 @if (session('status'))
                     <div class="mb-4 font-medium text-sm text-green-600">
                         {{ session('status') }}

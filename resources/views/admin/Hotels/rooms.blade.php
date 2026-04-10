@@ -233,7 +233,7 @@
                             <div class="row">
                                 <div class="col-lg-12">
                                     <label class="form-label">Room Description</label>
-                                    <textarea id="description" rows="5" class="form-control" 
+                                    <textarea id="roomDescriptionModal" rows="5" class="form-control"
                                         name="description"></textarea>
                                 </div>
                             </div>
@@ -310,24 +310,24 @@
                 });
             });
 
-            $(document).ready(function() {
-                $('#description').summernote({
-                    placeholder: 'Room Description',
-                    tabsize: 2,
-                    height: 200,
-                    toolbar: [
-                        ['style', ['style']],
-                        ['font', ['bold', 'underline', 'clear']],
-                        ['color', ['color']],
-                        ['para', ['ul', 'ol', 'paragraph']],
-                        ['table', ['table']],
-                        ['insert', ['link', 'picture', 'video']],
-                        ['view', ['fullscreen', 'codeview', 'help']]
-                    ]
-                });
-            });
         </script>
 
 
         @include('admin.includes.footer')
+@push('scripts')
+<script>
+$(function () {
+    $('#NewProduct').on('shown.bs.modal', function () {
+        var $t = $('#roomDescriptionModal');
+        if (!$t.length || $t.next('.note-editor').length) return;
+        $t.summernote({
+            placeholder: 'Room Description',
+            tabsize: 2,
+            height: 220,
+            toolbar: window._summernoteToolbar || []
+        });
+    });
+});
+</script>
+@endpush
  @endsection

@@ -19,6 +19,9 @@
     @if (file_exists($viteManifest))
         {{-- If manifest exists use Vite (recommended for production/dev with vite running) --}}
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/fontawesome.min.css') }}">
     @else
         {{-- Fallback assets when manifest is not present (prebuilt theme assets) --}}
         <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
@@ -29,12 +32,16 @@
         {{-- Optionally include any other vendor CSS your theme needs here --}}
     @endif
 
+    @include('layouts.includes.site-footer-styles')
+
     @livewireStyles
 </head>
 <body class="antialiased">
     <div class="font-sans text-gray-900">
         {{ $slot }}
     </div>
+
+    @include('layouts.includes.site-footer')
 
     {{-- Always include Livewire scripts --}}
     @livewireScripts

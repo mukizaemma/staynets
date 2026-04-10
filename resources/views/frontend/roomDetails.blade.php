@@ -2,6 +2,10 @@
 
 @section('content')
 <style>
+    .rich-html-content { line-height: 1.65; }
+    .rich-html-content p:last-child { margin-bottom: 0; }
+    .rich-html-content ul, .rich-html-content ol { margin: 0.75rem 0; padding-left: 1.25rem; }
+    .rich-html-content h1, .rich-html-content h2, .rich-html-content h3 { margin-top: 1rem; margin-bottom: 0.5rem; font-size: 1.1rem; }
     /* Gallery Styles - Same as property view */
     .image-gallery-main {
         position: relative;
@@ -92,7 +96,6 @@ if($allImages->isNotEmpty() && !isset($allImages->first()['url'])) {
     });
 }
 $mainImage = $allImages->isNotEmpty() ? $allImages->first()['url'] : asset('assets/img/tour/tour_inner_2_1.jpg');
-$amenities = $amenities ?? collect();
 $relatedRooms = $relatedRooms ?? ($rooms ?? collect());
 $trips = $trips ?? collect();
 @endphp
@@ -153,7 +156,19 @@ $trips = $trips ?? collect();
 
                     <h2 class="box-title">{{ $room->room_type }}</h2>
 
-                    <p class="box-text mb-30">{!! nl2br(e($room->description ?? $hotel->description ?? 'No description available.')) !!}</p>
+                    <div class="box-text mb-30 rich-html-content">
+                        @php
+                            $__roomDesc = $room->description ?? null;
+                            $__hotelDesc = $hotel->description ?? null;
+                        @endphp
+                        @if(filled($__roomDesc))
+                            {!! $__roomDesc !!}
+                        @elseif(filled($__hotelDesc))
+                            {!! $__hotelDesc !!}
+                        @else
+                            <p class="text-muted mb-0">No description available.</p>
+                        @endif
+                    </div>
 
                     <div class="tour-snapshot mb-4">
                         <h4 class="box-title">Room Snapshot</h4>
@@ -209,14 +224,18 @@ $trips = $trips ?? collect();
                         </div>
                     </div>
 
-                    @if($amenities->isNotEmpty())
+                    @if($hotel->amenities->isNotEmpty())
                         <div class="tour-snapshot mb-4">
-                            <h4 class="box-title">Amenities</h4>
+                            <h4 class="box-title">At this property</h4>
+                            <p class="text-muted small mb-2">Shared facilities for all guests (e.g. pool, spa, meeting rooms).</p>
                             <div class="tour-snap-wrapp">
                                 <div class="row gx-2 gy-2" style="margin:0;">
-                                    @foreach($amenities as $amen)
+                                    @foreach($hotel->amenities as $amen)
                                         <div class="col-auto" style="padding:4px;">
-                                            <span class="badge" style="display:inline-block;padding:8px 12px;border-radius:8px;background:#f5f6fb;color:#222;">{{ is_object($amen) ? ($amen->title ?? json_encode($amen)) : $amen }}</span>
+                                            <span class="badge" style="display:inline-block;padding:8px 12px;border-radius:8px;background:#eef6ff;color:#0a3d62;">
+                                                @if(!empty($amen->icon))<i class="{{ $amen->icon }} me-1"></i>@endif
+                                                {{ $amen->title }}
+                                            </span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -224,44 +243,105 @@ $trips = $trips ?? collect();
                         </div>
                     @endif
 
+                    @if($room->roomAmenities->isNotEmpty())
+                        <div class="tour-snapshot mb-4">
+                            <h4 class="box-title">This room</h4>
+                            <div class="tour-snap-wrapp">
+                                <div class="row gx-2 gy-2" style="margin:0;">
+                                    @foreach($room->roomAmenities as $amen)
+                                        <div class="col-auto" style="padding:4px;">
+                                            <span class="badge" style="display:inline-block;padding:8px 12px;border-radius:8px;background:#f5f6fb;color:#222;">
+                                                @if(!empty($amen->icon))<i class="{{ $amen->icon }} me-1"></i>@endif
+                                                {{ $amen->title }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @php
+                        $maxGuestsRoom = max(1, (int) ($room->max_occupancy ?? 1));
+                        $roomBookable = ($room->accepts_room_bookings ?? true)
+                            && (int) ($room->available_rooms ?? 0) > 0
+                            && ($hotel->accepts_bookings ?? true);
+                    @endphp
+                    @if(session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0 small">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+                        </div>
+                    @endif
+
+                    @if(!$roomBookable)
+                        <div class="alert alert-warning border-0 mb-4" style="border-radius:10px;">
+                            <strong>Booking unavailable.</strong>
+                            @if(!($hotel->accepts_bookings ?? true))
+                                This property is not accepting new bookings.
+                            @elseif(!($room->accepts_room_bookings ?? true))
+                                This room is marked as fully booked (owner closed new requests).
+                            @else
+                                There are no available units left for this room type.
+                            @endif
+                        </div>
+                    @endif
+
                     <div class="th-comment-form mt-4">
                         <div class="row gx-4">
                             <div class="col-lg-8">
-                                <h3 class="blog-inner-title h4 mb-2">Make reservation</h3>
-                                <p class="mb-25">Your email address will not be published. Required fields are marked</p>
+                                <h3 class="blog-inner-title h4 mb-2">Request a stay</h3>
+                                <p class="mb-25 text-muted small">Check-in day is included; check-out is the day you leave (standard hotel nights). Max {{ $maxGuestsRoom }} guests for this room.</p>
 
-                                <form action="{{ route('connect') }}" method="POST" class="row">
+                                <form action="{{ route('hotel.room.booking.request', ['hotelSlug' => $hotel->slug, 'roomSlug' => $room->slug]) }}" method="POST" class="row">
                                     @csrf
-                                    <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                    <input type="hidden" name="hotel_id" value="{{ $hotel->id ?? null }}">
 
                                     <div class="col-md-6 form-group">
-                                        <input type="text" name="name" placeholder="Full Name*" class="form-control" required>
-                                        <i class="far fa-user"></i>
+                                        <label class="form-label">Full name *</label>
+                                        <input type="text" name="guest_name" value="{{ old('guest_name') }}" class="form-control" required maxlength="255">
                                     </div>
 
                                     <div class="col-md-6 form-group">
-                                        <input type="email" name="email" placeholder="Your Email*" class="form-control" required>
-                                        <i class="far fa-envelope"></i>
+                                        <label class="form-label">Email *</label>
+                                        <input type="email" name="guest_email" value="{{ old('guest_email') }}" class="form-control" required>
                                     </div>
 
                                     <div class="col-md-6 form-group">
-                                        <input type="tel" name="phone" placeholder="Phone*" class="form-control" required>
-                                        <i class="far fa-phone"></i>
+                                        <label class="form-label">Phone</label>
+                                        <input type="tel" name="guest_phone" value="{{ old('guest_phone') }}" class="form-control" maxlength="100">
                                     </div>
 
                                     <div class="col-md-6 form-group">
-                                        <input type="date" name="arrival_date" placeholder="Arrival date" class="form-control">
-                                        <i class="far fa-calendar"></i>
+                                        <label class="form-label">Guests *</label>
+                                        <select name="guests_count" class="form-control" required @if(!$roomBookable) disabled @endif>
+                                            @for($g = 1; $g <= $maxGuestsRoom; $g++)
+                                                <option value="{{ $g }}" @selected((int)old('guests_count', 1) === $g)>{{ $g }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 form-group">
+                                        <label class="form-label">Check-in *</label>
+                                        <input type="date" name="check_in" value="{{ old('check_in') }}" class="form-control" required min="{{ date('Y-m-d') }}" @if(!$roomBookable) disabled @endif>
+                                    </div>
+
+                                    <div class="col-md-6 form-group">
+                                        <label class="form-label">Check-out *</label>
+                                        <input type="date" name="check_out" value="{{ old('check_out') }}" class="form-control" required min="{{ date('Y-m-d', strtotime('+1 day')) }}" @if(!$roomBookable) disabled @endif>
                                     </div>
 
                                     <div class="col-12 form-group">
-                                        <textarea name="message" placeholder="Additional requests" class="form-control"></textarea>
-                                        <i class="far fa-pencil"></i>
+                                        <label class="form-label">Special requests</label>
+                                        <textarea name="special_requests" class="form-control" rows="3" placeholder="Optional">{{ old('special_requests') }}</textarea>
                                     </div>
 
                                     <div class="col-12 form-group mb-0">
-                                        <button class="th-btn" type="submit">Request Booking <img src="{{ asset('assets/img/icon/plane2.svg') }}" alt=""></button>
+                                        <button class="th-btn" type="submit" @if(!$roomBookable) disabled @endif>Request booking <img src="{{ asset('assets/img/icon/plane2.svg') }}" alt=""></button>
                                     </div>
                                 </form>
                             </div>
@@ -358,14 +438,17 @@ $trips = $trips ?? collect();
                                                 </p>
 
                                                 @if(!empty($r->description))
-                                                    <p class="small" style="margin:6px 0;">{!! \Illuminate\Support\Str::limit($r->description, 120) !!}</p>
+                                                    <p class="small text-muted" style="margin:6px 0;">{{ \Illuminate\Support\Str::limit(strip_tags($r->description), 120) }}</p>
                                                 @endif
 
-                                                @if(!empty($r->amenities) && is_array($r->amenities))
+                                                @if($r->roomAmenities->isNotEmpty())
                                                     <div class="room-amenities mt-2">
-                                                        @foreach($r->amenities as $amen)
-                                                            <span class="badge rounded-pill bg-light text-dark me-1 mb-1">{{ $amen }}</span>
+                                                        @foreach($r->roomAmenities->take(6) as $amen)
+                                                            <span class="badge rounded-pill bg-light text-dark me-1 mb-1">{{ $amen->title }}</span>
                                                         @endforeach
+                                                        @if($r->roomAmenities->count() > 6)
+                                                            <span class="badge rounded-pill bg-light text-muted me-1 mb-1">+{{ $r->roomAmenities->count() - 6 }} more</span>
+                                                        @endif
                                                     </div>
                                                 @endif
 

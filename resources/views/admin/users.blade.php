@@ -119,6 +119,7 @@
                                 <tr class="text-dark">
                                     <th scope="col">Name</th>
                                     <th scope="col">Email</th>
+                                    <th scope="col">Role</th>
                                     <th scope="col">Email Verified</th>
                                     <th scope="col">Properties</th>
                                     <th scope="col">Bookings</th>
@@ -127,9 +128,28 @@
                             </thead>
                             <tbody>
                                 @forelse($users as $user)
+                                @php
+                                    $roleVal = $user->role;
+                                    if ($roleVal == 1 || $roleVal === '1') {
+                                        $roleLabel = 'Super Admin';
+                                        $roleClass = 'bg-danger';
+                                    } elseif ($roleVal == 2 || $roleVal === '2') {
+                                        $roleLabel = 'Admin';
+                                        $roleClass = 'bg-primary';
+                                    } else {
+                                        $roleLabel = 'User';
+                                        $roleClass = 'bg-secondary';
+                                    }
+                                    $listingTotal = (int) ($user->properties_count ?? 0) + (int) ($user->owned_hotels_count ?? 0);
+                                    $guestBookings = (int) ($user->guest_bookings_count ?? 0);
+                                    $hostBookings = (int) ($user->host_bookings_count ?? 0);
+                                @endphp
                                 <tr>
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
+                                    <td>
+                                        <span class="badge {{ $roleClass }}">{{ $roleLabel }}</span>
+                                    </td>
                                     <td>
                                         @if($user->hasVerifiedEmail())
                                             <span class="badge bg-success">
@@ -141,11 +161,17 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ $user->properties_count ?? 0 }}</span>
+                                    <td class="text-start">
+                                        <span class="badge bg-info">{{ $listingTotal }}</span>
+                                        @if((int) ($user->owned_hotels_count ?? 0) > 0)
+                                            <br><small class="text-muted">Includes {{ (int) $user->owned_hotels_count }} legacy hotel{{ (int) $user->owned_hotels_count === 1 ? '' : 's' }}</small>
+                                        @endif
                                     </td>
-                                    <td>
-                                        <span class="badge bg-primary">{{ $user->hotel_bookings_count ?? 0 }}</span>
+                                    <td class="text-start">
+                                        <div class="d-flex flex-column gap-1 align-items-start">
+                                            <span class="badge bg-primary" title="Bookings this user made as a guest">Guest {{ $guestBookings }}</span>
+                                            <span class="badge bg-success" title="Bookings at listings they own (properties, units, or legacy hotels/rooms)">Host {{ $hostBookings }}</span>
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="button-group d-flex gap-1 flex-wrap">
@@ -161,7 +187,8 @@
                                                 @endif
                                             @endif
                                             @if($user->role != 1 && isset($isSuperAdmin) && $isSuperAdmin)
-                                                <a href="{{ route('makeAdmin', ['id' => $user->id]) }}" class="btn btn-info btn-sm" title="Make Admin">
+                                                <a href="{{ route('makeAdmin', ['id' => $user->id]) }}" class="btn btn-info btn-sm" title="Make Super Admin"
+                                                   onclick="return confirm('Grant this user Super Admin access? They will have full admin rights. Continue?');">
                                                     <i class="fa fa-user-shield"></i>
                                                 </a>
                                             @endif
@@ -176,7 +203,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">
+                                    <td colspan="7" class="text-center py-4">
                                         <div class="text-muted">
                                             <i class="fas fa-user-slash fa-3x mb-3"></i>
                                             <p class="mb-0">No users found</p>

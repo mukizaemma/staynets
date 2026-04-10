@@ -86,12 +86,12 @@
             
             <div class="detail-row">
                 <span class="detail-label">Guest Name:</span>
-                <span class="detail-value">{{ $booking->user->name }}</span>
+                <span class="detail-value">{{ $booking->guest_name ?? optional($booking->user)->name ?? '—' }}</span>
             </div>
             
             <div class="detail-row">
                 <span class="detail-label">Guest Email:</span>
-                <span class="detail-value">{{ $booking->user->email }}</span>
+                <span class="detail-value">{{ $booking->guest_email ?? optional($booking->user)->email ?? '—' }}</span>
             </div>
             
             @if($booking->property)
@@ -100,11 +100,25 @@
                 <span class="detail-value">{{ $booking->property->name }}</span>
             </div>
             @endif
+
+            @if($booking->hotel)
+            <div class="detail-row">
+                <span class="detail-label">Hotel:</span>
+                <span class="detail-value">{{ $booking->hotel->name }}</span>
+            </div>
+            @endif
             
             @if($booking->unit)
             <div class="detail-row">
                 <span class="detail-label">Room/Unit:</span>
                 <span class="detail-value">{{ $booking->unit->name }}</span>
+            </div>
+            @endif
+
+            @if($booking->room)
+            <div class="detail-row">
+                <span class="detail-label">Room type:</span>
+                <span class="detail-value">{{ $booking->room->room_type }}</span>
             </div>
             @endif
             

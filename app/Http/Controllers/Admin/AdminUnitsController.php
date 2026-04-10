@@ -13,9 +13,65 @@ use App\Models\UnitExtraCharge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class AdminUnitsController extends Controller
 {
+    protected function isPropertySuperAdmin(): bool
+    {
+        $user = Auth::user();
+
+        return $user && ($user->role == '1' || $user->role === 1);
+    }
+
+    /**
+     * Properties the current user may attach units to (all for super admin; own listings for owners).
+     */
+    protected function manageablePropertiesQuery(): Builder
+    {
+        $query = Property::query()->orderBy('name');
+        if (! $this->isPropertySuperAdmin()) {
+            $query->where('owner_id', Auth::id());
+        }
+
+        return $query;
+    }
+
+    protected function userMayAccessPropertyId(int $propertyId): bool
+    {
+        if ($this->isPropertySuperAdmin()) {
+            return Property::whereKey($propertyId)->exists();
+        }
+
+        return Property::whereKey($propertyId)->where('owner_id', Auth::id())->exists();
+    }
+
+    protected function authorizeUnitAccess(Unit $unit): void
+    {
+        if ($this->isPropertySuperAdmin()) {
+            return;
+        }
+        $unit->loadMissing('property');
+        if (! $unit->property || (int) $unit->property->owner_id !== (int) Auth::id()) {
+            abort(403);
+        }
+    }
+
+    protected function ensureVerifiedForPropertyManagers(): ?\Illuminate\Http\RedirectResponse
+    {
+        if ($this->isPropertySuperAdmin()) {
+            return null;
+        }
+        $user = Auth::user();
+        if ($user && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('error', 'Please verify your email address before managing properties and rooms.');
+        }
+
+        return null;
+    }
+
     /**
      * Display a listing of units.
      */
@@ -23,7 +79,16 @@ class AdminUnitsController extends Controller
     {
         $query = Unit::with(['property', 'unitType', 'addedBy']);
 
+        if (! $this->isPropertySuperAdmin()) {
+            $query->whereHas('property', function ($q) {
+                $q->where('owner_id', Auth::id());
+            });
+        }
+
         if ($request->has('property_id') && $request->property_id) {
+            if (! $this->userMayAccessPropertyId((int) $request->property_id)) {
+                abort(403);
+            }
             $query->where('property_id', $request->property_id);
         }
 
@@ -36,7 +101,7 @@ class AdminUnitsController extends Controller
         }
 
         $units = $query->latest()->paginate(15);
-        $properties = Property::active()->get();
+        $properties = $this->manageablePropertiesQuery()->get();
         $setting = \App\Models\Setting::first();
 
         return view('admin.units.index', [
@@ -51,8 +116,15 @@ class AdminUnitsController extends Controller
      */
     public function create(Request $request)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $propertyId = $request->get('property_id');
-        $properties = Property::active()->get();
+        if ($propertyId && ! $this->userMayAccessPropertyId((int) $propertyId)) {
+            abort(403);
+        }
+        $properties = $this->manageablePropertiesQuery()->get();
         $unitTypes = UnitType::where('is_active', true)->get();
         $amenities = Amenity::with('category')->active()->orderBy('title')->get();
         $facilityCategories = FacilityCategory::with(['facilities' => function($query) {
@@ -77,6 +149,10 @@ class AdminUnitsController extends Controller
      */
     public function store(Request $request)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $request->validate([
             'property_id' => 'required|exists:properties,id',
             'unit_type_id' => 'nullable|exists:unit_types,id',
@@ -101,6 +177,10 @@ class AdminUnitsController extends Controller
             'extra_charges' => 'nullable|array',
             'extra_charges.*' => 'nullable|numeric|min:0',
         ]);
+
+        if (! $this->userMayAccessPropertyId((int) $request->property_id)) {
+            abort(403);
+        }
 
         $name = $request->name ?: 'Unit ' . Str::random(6);
         $slug = Str::slug($name);
@@ -171,10 +251,17 @@ class AdminUnitsController extends Controller
      */
     public function edit($id)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $unit = Unit::with(['facilities', 'extraChargesAll', 'images' => function($query) {
             $query->orderBy('is_primary', 'desc')->orderBy('sort_order');
         }])->findOrFail($id);
-        $properties = Property::active()->get();
+
+        $this->authorizeUnitAccess($unit);
+
+        $properties = $this->manageablePropertiesQuery()->get();
         $unitTypes = UnitType::where('is_active', true)->get();
         $amenities = Amenity::with('category')->active()->orderBy('title')->get();
         $facilityCategories = FacilityCategory::with(['facilities' => function($query) {
@@ -199,7 +286,13 @@ class AdminUnitsController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $unit = Unit::findOrFail($id);
+
+        $this->authorizeUnitAccess($unit);
 
         $request->validate([
             'property_id' => 'required|exists:properties,id',
@@ -225,6 +318,10 @@ class AdminUnitsController extends Controller
             'extra_charges' => 'nullable|array',
             'extra_charges.*' => 'nullable|numeric|min:0',
         ]);
+
+        if (! $this->userMayAccessPropertyId((int) $request->property_id)) {
+            abort(403);
+        }
 
         if ($request->hasFile('featured_image')) {
             if ($unit->featured_image && Storage::exists('public/images/units/' . $unit->featured_image)) {
@@ -287,7 +384,14 @@ class AdminUnitsController extends Controller
      */
     public function destroy($id)
     {
+        if ($redirect = $this->ensureVerifiedForPropertyManagers()) {
+            return $redirect;
+        }
+
         $unit = Unit::findOrFail($id);
+
+        $this->authorizeUnitAccess($unit);
+
         $propertyId = $unit->property_id;
         $unit->delete();
 

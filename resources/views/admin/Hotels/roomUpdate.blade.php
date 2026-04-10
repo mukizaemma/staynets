@@ -126,8 +126,8 @@
                                 <div class="row mb-3">
                                     <div class="col-lg-12">
                                         <label class="form-label">Room Description</label>
-                                        <textarea rows="5" class="form-control" 
-                                                name="description" id="roomDescription">{{ $room->description }}</textarea>
+                                        <textarea rows="5" class="form-control"
+                                                name="description" id="roomDescription">{!! $room->description !!}</textarea>
                                     </div>
                                 </div>
 
@@ -248,25 +248,6 @@
         <!-- Content End -->
 
         @include('admin.includes.footer')
-
-        <script>
-            $(document).ready(function() {
-                $('#roomDescription').summernote({
-                    placeholder: 'Room Description',
-                    tabsize: 2,
-                    height: 200,
-                    toolbar: [
-                        ['style', ['style']],
-                        ['font', ['bold', 'underline', 'clear']],
-                        ['color', ['color']],
-                        ['para', ['ul', 'ol', 'paragraph']],
-                        ['table', ['table']],
-                        ['insert', ['link', 'picture', 'video']],
-                        ['view', ['fullscreen', 'codeview', 'help']]
-                    ]
-                });
-            });
-        </script>
 
         <!-- Add Image Modal -->
 <div class="modal fade" id="newImage">

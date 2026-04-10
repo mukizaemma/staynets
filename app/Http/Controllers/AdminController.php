@@ -15,6 +15,7 @@ use App\Models\Articlecomment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use App\Mail\CommentApprovalNotification;
 use App\Models\BlogComment;
 use App\Models\Message;
@@ -64,7 +65,30 @@ class AdminController extends Controller
             return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
         }
 
-        $query = User::withCount(['properties', 'hotelBookings']);
+        $query = User::query()
+            ->withCount([
+                'properties',
+                'ownedHotels',
+                'hotelBookings as guest_bookings_count',
+            ])
+            ->addSelect(DB::raw('(
+                SELECT COUNT(*) FROM hotel_bookings hb
+                WHERE hb.deleted_at IS NULL
+                AND (
+                    hb.property_id IN (SELECT id FROM properties WHERE owner_id = users.id AND deleted_at IS NULL)
+                    OR hb.hotel_id IN (SELECT id FROM hotels WHERE added_by = users.id AND deleted_at IS NULL)
+                    OR hb.unit_id IN (
+                        SELECT u.id FROM units u
+                        INNER JOIN properties p ON u.property_id = p.id
+                        WHERE p.owner_id = users.id AND u.deleted_at IS NULL AND p.deleted_at IS NULL
+                    )
+                    OR hb.room_id IN (
+                        SELECT r.id FROM hotel_rooms r
+                        INNER JOIN hotels h ON r.hotel_id = h.id
+                        WHERE h.added_by = users.id AND r.deleted_at IS NULL AND h.deleted_at IS NULL
+                    )
+                )
+            ) as host_bookings_count'));
         
         // Check if current user is super admin (email = admin@iremetech.com)
         // Note: role == 1 means admin, role != 1 or null means regular user
@@ -136,6 +160,59 @@ class AdminController extends Controller
             'setting' => $setting,
             'isSuperAdmin' => true
         ]);
+    }
+
+    /**
+     * Update role and account access (super admin only).
+     */
+    public function updateUser(Request $request, $id)
+    {
+        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        if (!$isSuperAdmin) {
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+        }
+
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'role' => 'required|in:0,1,2',
+            'status' => 'required|in:Active,Inactive',
+        ]);
+
+        if ((int) $user->id === (int) Auth::id() && $validated['status'] === 'Inactive') {
+            return redirect()->back()->with('error', 'You cannot suspend your own account.');
+        }
+
+        $user->role = $validated['role'];
+        $user->status = $validated['status'];
+        $user->save();
+
+        return redirect()->back()->with('success', 'User account updated successfully.');
+    }
+
+    /**
+     * Send a password reset link to the user's email (super admin only).
+     */
+    public function sendUserPasswordReset($id)
+    {
+        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        if (! $isSuperAdmin) {
+            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+        }
+
+        $user = User::findOrFail($id);
+
+        if ((int) $user->id === (int) Auth::id()) {
+            return redirect()->back()->with('info', 'Use your profile or the forgot-password page to change your own password.');
+        }
+
+        $status = Password::broker()->sendResetLink(['email' => $user->email]);
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return redirect()->back()->with('success', 'A password reset link has been sent to '.$user->email.'.');
+        }
+
+        return redirect()->back()->with('error', __($status));
     }
 
     public function verifyUserEmail($id){

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HotelBooking;
 use App\Models\BookingComment;
 use App\Models\BookingStayModification;
+use App\Models\Hotel;
 use App\Models\Property;
 use App\Models\Unit;
 use Illuminate\Http\Request;
@@ -16,14 +17,39 @@ class AdminBookingsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = HotelBooking::with(['user', 'property.owner', 'unit']);
+        $query = HotelBooking::with(['user', 'property.owner', 'unit', 'hotel', 'room']);
 
         $user = auth()->user();
         $isAdmin = $user && ($user->role == '1' || $user->role == 2);
-        if (!$isAdmin) {
-            $query->whereHas('property', function ($q) use ($user) {
-                $q->where('owner_id', $user->id);
+        if (! $isAdmin) {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('property', function ($q2) use ($user) {
+                    $q2->where('owner_id', $user->id);
+                })->orWhereHas('hotel', function ($q2) use ($user) {
+                    $q2->where('added_by', $user->id);
+                });
             });
+        }
+
+        if ($request->filled('listing')) {
+            $listing = $request->input('listing');
+            if (str_starts_with($listing, 'hotel:')) {
+                $query->where('hotel_id', (int) substr($listing, 6));
+            } elseif (str_starts_with($listing, 'property:')) {
+                $query->where('property_id', (int) substr($listing, 9));
+            }
+        } elseif ($request->filled('property_id')) {
+            $query->where('property_id', $request->property_id);
+        }
+
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $from = $request->date_from;
+            $to = $request->date_to;
+            $query->whereDate('check_in', '<=', $to)->whereDate('check_out', '>=', $from);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('check_out', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $query->whereDate('check_in', '<=', $request->date_to);
         }
 
         if ($request->has('status') && $request->status) {
@@ -34,30 +60,32 @@ class AdminBookingsController extends Controller
             $query->where('payment_status', $request->payment_status);
         }
 
-        if ($request->has('property_id') && $request->property_id) {
-            $query->where('property_id', $request->property_id);
-        }
-
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('reference_number', 'LIKE', "%$search%")
                   ->orWhere('guest_name', 'LIKE', "%$search%")
                   ->orWhere('guest_email', 'LIKE', "%$search%")
-                  ->orWhereHas('user', function($userQuery) use ($search) {
+                  ->orWhereHas('user', function ($userQuery) use ($search) {
                       $userQuery->where('name', 'LIKE', "%$search%")
                                 ->orWhere('email', 'LIKE', "%$search%");
                   });
             });
         }
 
-        $bookings = $query->latest()->paginate(20);
+        $bookings = $query->latest('created_at')->paginate(20)->withQueryString();
+
         $properties = $isAdmin ? Property::active()->get() : Property::where('owner_id', $user->id)->get();
+        $hotelsForFilter = $isAdmin
+            ? Hotel::query()->orderBy('name')->get(['id', 'name'])
+            : Hotel::query()->where('added_by', $user->id)->orderBy('name')->get(['id', 'name']);
+
         $setting = \App\Models\Setting::first();
 
         return view('admin.bookings.index', [
             'bookings' => $bookings,
             'properties' => $properties,
+            'hotelsForFilter' => $hotelsForFilter,
             'setting' => $setting,
         ]);
     }

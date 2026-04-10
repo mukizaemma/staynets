@@ -37,8 +37,11 @@
                 <i class="fas fa-clipboard-list me-2"></i>Trip Requests
             </a>
 
-            <a href="{{ route('admin.bookings.index') }}" class="nav-item nav-link"> 
+            <a href="{{ route('admin.bookings.index') }}" class="nav-item nav-link">
                 <i class="fas fa-calendar-check me-2"></i>Bookings
+            </a>
+            <a href="{{ route('admin.booking-calendar.index') }}" class="nav-item nav-link">
+                <i class="fas fa-border-all me-2"></i>Booking calendar
             </a>
             <a href="{{ route('admin.reports.revenue') }}" class="nav-item nav-link"> 
                 <i class="fas fa-chart-line me-2"></i>Revenue &amp; Commission Report

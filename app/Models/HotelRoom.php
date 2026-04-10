@@ -25,10 +25,12 @@ class HotelRoom extends Model
         'description',
         'amenities',
         'status',
+        'accepts_room_bookings',
     ];
 
     protected $casts = [
         'amenities' => 'array',
+        'accepts_room_bookings' => 'boolean',
         'price_per_night' => 'decimal:2',
         'price_per_month' => 'decimal:2',
     ];
@@ -43,9 +45,11 @@ class HotelRoom extends Model
         return $this->image ? asset('storage/images/rooms/' . $this->image) : asset('assets/img/tour/tour_3_1.jpg');
     }
 
-    public function amenities()
+    /**
+     * Pivot-linked Amenity models (must not be named "amenities" — JSON column uses that name).
+     */
+    public function roomAmenities()
     {
-       
         return $this->belongsToMany(Amenity::class, 'amenity_hotel_rooms', 'hotel_room_id', 'amenity_id');
     }
 

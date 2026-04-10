@@ -187,8 +187,8 @@
                         </div>
                         <div class="col-md-12 mb-3">
                             <label for="unitDescription" class="form-label">Unit Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
-                                      id="unitDescription" rows="6">{{ old('description', $unit->description) }}</textarea>
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror"
+                                      id="unitDescription" rows="6">{!! old('description', $unit->description) !!}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -467,23 +467,9 @@
 
     @include('admin.includes.footer')
 
+    @push('scripts')
     <script>
         $(document).ready(function() {
-            $('#unitDescription').summernote({
-                placeholder: 'Unit Description',
-                tabsize: 2,
-                height: 200,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
-
             // Handle inline image caption editing
             $('.image-caption-input').on('keypress', function(e) {
                 if (e.which === 13) { // Enter key
@@ -683,6 +669,7 @@
             });
         });
     </script>
+    @endpush
 
     <!-- Add Amenity Modal -->
     <div class="modal fade" id="addAmenityModal" tabindex="-1" aria-labelledby="addAmenityModalLabel" aria-hidden="true">
