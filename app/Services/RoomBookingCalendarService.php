@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Hotel;
 use App\Models\HotelBooking;
+use App\Models\Property;
 use Carbon\Carbon;
 
 class RoomBookingCalendarService
@@ -92,8 +93,108 @@ class RoomBookingCalendarService
 
         return [
             'year' => $year,
+            'source' => 'hotel',
             'hotel_id' => $hotel->id,
+            'property_id' => null,
             'hotel_name' => $hotel->name,
+            'months' => $months,
+        ];
+    }
+
+    /**
+     * Same grid as buildForHotel, but for Property model units (bookings on property_id + unit_id).
+     */
+    public static function buildForProperty(Property $property, int $year): array
+    {
+        $property->loadMissing(['units.unitType']);
+        $units = $property->units->sortBy(function ($unit) {
+            $type = $unit->unitType?->name ?? '';
+
+            return [$type, $unit->name ?? '', $unit->id];
+        })->values();
+
+        $yearStart = Carbon::createFromDate($year, 1, 1)->startOfDay();
+        $yearEnd = Carbon::createFromDate($year, 12, 31)->endOfDay();
+
+        $bookings = HotelBooking::query()
+            ->where('property_id', $property->id)
+            ->whereNotNull('unit_id')
+            ->where('booking_status', '!=', 'cancelled')
+            ->whereDate('check_in', '<=', $yearEnd->toDateString())
+            ->whereDate('check_out', '>', $yearStart->toDateString())
+            ->get(['unit_id', 'check_in', 'check_out']);
+
+        $months = [];
+
+        for ($month = 1; $month <= 12; $month++) {
+            $daysInMonth = (int) Carbon::createFromDate($year, $month, 1)->daysInMonth;
+            $monthStart = Carbon::createFromDate($year, $month, 1)->startOfDay();
+            $monthEnd = Carbon::createFromDate($year, $month, $daysInMonth)->endOfDay();
+
+            $roomRows = [];
+            $capacitySum = 0;
+
+            foreach ($units as $unit) {
+                $capacity = max(1, (int) ($unit->total_units ?? 1));
+                $capacitySum += $capacity;
+                $days = array_fill(1, $daysInMonth, 0);
+
+                foreach ($bookings as $b) {
+                    if ((int) $b->unit_id !== (int) $unit->id) {
+                        continue;
+                    }
+                    $checkIn = Carbon::parse($b->check_in)->startOfDay();
+                    $checkOut = Carbon::parse($b->check_out)->startOfDay();
+                    $lastNight = $checkOut->copy()->subDay();
+
+                    $cursor = $checkIn->copy()->max($monthStart);
+                    while ($cursor->lte($lastNight) && $cursor->lte($monthEnd)) {
+                        if ($cursor->month === $month && $cursor->year === $year) {
+                            $d = $cursor->day;
+                            if ($d >= 1 && $d <= $daysInMonth) {
+                                $days[$d]++;
+                            }
+                        }
+                        $cursor->addDay();
+                    }
+                }
+
+                $typeName = $unit->unitType?->name;
+                $label = $unit->name ?: ($typeName ? $typeName.' #'.$unit->id : 'Unit #'.$unit->id);
+
+                $roomRows[] = [
+                    'id' => $unit->id,
+                    'label' => $label,
+                    'total_rooms' => $capacity,
+                    'days' => $days,
+                ];
+            }
+
+            $occupancy = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $bookedUnits = 0;
+                foreach ($roomRows as $row) {
+                    $bookedUnits += min((int) ($row['days'][$d] ?? 0), (int) $row['total_rooms']);
+                }
+                $occupancy[$d] = $capacitySum > 0
+                    ? round(($bookedUnits / $capacitySum) * 100, 2)
+                    : 0.0;
+            }
+
+            $months[$month] = [
+                'name' => Carbon::createFromDate($year, $month, 1)->format('F'),
+                'days_in_month' => $daysInMonth,
+                'rooms' => $roomRows,
+                'occupancy' => $occupancy,
+            ];
+        }
+
+        return [
+            'year' => $year,
+            'source' => 'property',
+            'hotel_id' => null,
+            'property_id' => $property->id,
+            'hotel_name' => $property->name,
             'months' => $months,
         ];
     }

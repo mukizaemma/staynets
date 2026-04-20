@@ -16,11 +16,9 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <h6 class="mb-0">Property Details: {{ $property->name }}</h6>
                     <div>
-                        @if(!empty($isHotelModel))
-                            <a href="{{ route('admin.booking-calendar.index', ['hotel_id' => $property->id, 'year' => date('Y')]) }}" class="btn btn-success">
-                                <i class="fa fa-calendar-alt me-2"></i>Booking calendar
-                            </a>
-                        @endif
+                        <a href="{{ route('admin.booking-calendar.index', ['listing' => (!empty($isHotelModel) ? 'h-' : 'p-').$property->id, 'year' => date('Y')]) }}" class="btn btn-success">
+                            <i class="fa fa-calendar-alt me-2"></i>Booking calendar
+                        </a>
                         <a href="{{ route('admin.properties.edit', $property->id) }}" class="btn btn-info">
                             <i class="fa fa-edit me-2"></i>Edit
                         </a>

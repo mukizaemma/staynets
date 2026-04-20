@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AdminNotification;
 use App\Models\FacilityCategory;
+use App\Models\Property;
 use App\Services\RoomBookingCalendarService;
 
 class UserPropertyController extends Controller
@@ -44,11 +45,18 @@ public function index()
     $bookingCalendarPayload = null;
     $calendarYearUrls = [];
     $selectedCalendarHotelId = null;
+    $selectedCalendarListingKey = null;
+    $calendarListingOptions = collect();
 
     if (auth()->check()) {
         $userId = auth()->id();
         $hotels = \App\Models\Hotel::where('added_by', $userId)
             ->with(['rooms.images', 'images'])
+            ->latest()
+            ->get();
+
+        $ownedProperties = Property::where('owner_id', $userId)
+            ->with(['units.unitType'])
             ->latest()
             ->get();
 
@@ -98,27 +106,53 @@ public function index()
             ->limit(50)
             ->get();
 
-        // Room / date grid calendar (hotel room bookings)
+        // Room / date grid: hotels (Hotel model) + properties (Property model)
         $calYear = (int) request('cal_year', now()->year);
         $calYear = max(2020, min(2035, $calYear));
-        $calHotelId = request('cal_hotel');
-        if ($hotels->isNotEmpty()) {
-            $selectedCalHotel = $calHotelId
-                ? $hotels->firstWhere('id', (int) $calHotelId)
-                : $hotels->first();
-            if (! $selectedCalHotel) {
-                $selectedCalHotel = $hotels->first();
+
+        foreach ($hotels as $h) {
+            $calendarListingOptions->push(['key' => 'h-'.$h->id, 'label' => $h->name]);
+        }
+        foreach ($ownedProperties as $p) {
+            $calendarListingOptions->push(['key' => 'p-'.$p->id, 'label' => $p->name]);
+        }
+        $calendarListingOptions = $calendarListingOptions->sortBy('label', SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        $calListing = request('cal_listing');
+        $legacyCalHotel = request('cal_hotel');
+        if (($calListing === null || $calListing === '') && $legacyCalHotel !== null && $legacyCalHotel !== '') {
+            $calListing = 'h-'.(int) $legacyCalHotel;
+        }
+
+        if ($calendarListingOptions->isNotEmpty()) {
+            $validKeys = $calendarListingOptions->pluck('key')->all();
+            if (! $calListing || ! in_array($calListing, $validKeys, true)) {
+                $calListing = $calendarListingOptions->first()['key'];
             }
-            $selectedCalendarHotelId = $selectedCalHotel->id;
-            $bookingCalendarPayload = RoomBookingCalendarService::buildForHotel($selectedCalHotel, $calYear);
+            $selectedCalendarListingKey = $calListing;
+
+            if (str_starts_with($calListing, 'h-')) {
+                $hid = (int) substr($calListing, 2);
+                $selectedCalHotel = $hotels->firstWhere('id', $hid);
+                if ($selectedCalHotel) {
+                    $selectedCalendarHotelId = $selectedCalHotel->id;
+                    $bookingCalendarPayload = RoomBookingCalendarService::buildForHotel($selectedCalHotel, $calYear);
+                }
+            } elseif (str_starts_with($calListing, 'p-')) {
+                $pid = (int) substr($calListing, 2);
+                $selectedCalProperty = $ownedProperties->firstWhere('id', $pid);
+                if ($selectedCalProperty) {
+                    $bookingCalendarPayload = RoomBookingCalendarService::buildForProperty($selectedCalProperty, $calYear);
+                }
+            }
+
             foreach ([$calYear - 1, $calYear, $calYear + 1] as $y) {
                 if ($y < 2020 || $y > 2035) {
                     continue;
                 }
-                // Use Laravel route() query merge + absolute URL so <base href> in layout cannot break navigation
                 $calendarYearUrls[$y] = route('myProperties', array_filter([
                     'cal_year' => $y,
-                    'cal_hotel' => $selectedCalendarHotelId,
+                    'cal_listing' => $selectedCalendarListingKey,
                 ], static function ($v) {
                     return $v !== null && $v !== '';
                 }), true).'#calendar';
@@ -136,6 +170,8 @@ public function index()
         'bookingCalendarPayload' => $bookingCalendarPayload,
         'calendarYearUrls' => $calendarYearUrls,
         'selectedCalendarHotelId' => $selectedCalendarHotelId,
+        'calendarListingOptions' => $calendarListingOptions,
+        'selectedCalendarListingKey' => $selectedCalendarListingKey,
     ]);
 }
 

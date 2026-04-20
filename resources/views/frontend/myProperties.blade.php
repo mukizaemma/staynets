@@ -129,14 +129,14 @@
                     <h5 class="card-title mb-2 fw-bold">Room booking dashboard</h5>
                     <p class="text-muted small mb-3">Daily booking counts per room type (same view as admin). Use year chips to switch. Scroll horizontally on small screens.</p>
 
-                    @if(isset($hotels) && $hotels->isNotEmpty())
-                        @if($hotels->count() > 1)
+                    @if(isset($calendarListingOptions) && $calendarListingOptions->isNotEmpty())
+                        @if($calendarListingOptions->count() > 1)
                             <form method="get" action="{{ route('myProperties') }}" class="row g-2 align-items-end mb-4">
                                 <div class="col-auto">
-                                    <label class="form-label small mb-0">Property</label>
-                                    <select name="cal_hotel" class="form-select form-select-sm" style="min-width: 220px;" onchange="this.form.submit()">
-                                        @foreach($hotels as $h)
-                                            <option value="{{ $h->id }}" @selected(($selectedCalendarHotelId ?? null) == $h->id)>{{ $h->name }}</option>
+                                    <label class="form-label small mb-0">Listing</label>
+                                    <select name="cal_listing" class="form-select form-select-sm" style="min-width: 220px;" onchange="this.form.submit()">
+                                        @foreach($calendarListingOptions as $opt)
+                                            <option value="{{ $opt['key'] }}" @selected(($selectedCalendarListingKey ?? null) === $opt['key'])>{{ $opt['label'] }}</option>
                                         @endforeach
                                     </select>
                                 </div>
