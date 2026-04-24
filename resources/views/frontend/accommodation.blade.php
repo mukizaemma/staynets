@@ -529,6 +529,12 @@
                         <button class="nav-link active" id="tab-about" data-bs-toggle="tab" data-bs-target="#content-about" type="button" role="tab">About this property</button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-listing-terms" data-bs-toggle="tab" data-bs-target="#content-listing-terms" type="button" role="tab">Terms &amp; conditions</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-cancellation" data-bs-toggle="tab" data-bs-target="#content-cancellation" type="button" role="tab">Cancellation policy</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-amenities" data-bs-toggle="tab" data-bs-target="#content-amenities" type="button" role="tab">Amenities</button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -540,6 +546,12 @@
                         <div class="property-description">
                             {!! $hotel->description ?? '<p class="text-muted">No description available.</p>' !!}
                         </div>
+                    </div>
+                    <div class="tab-pane fade" id="content-listing-terms" role="tabpanel">
+                        @include('layouts.includes.property-listing-terms', ['listing' => $hotel])
+                    </div>
+                    <div class="tab-pane fade" id="content-cancellation" role="tabpanel">
+                        @include('layouts.includes.property-cancellation-policy', ['listing' => $hotel])
                     </div>
                     <div class="tab-pane fade" id="content-amenities" role="tabpanel">
                         @if($hotel->facilities->isNotEmpty())

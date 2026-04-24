@@ -22,6 +22,10 @@ class Hotel extends Model
         'phone',
         'email',
         'description',
+        'cancellation_free_period',
+        'cancellation_refund_conditions',
+        'cancellation_no_show_policy',
+        'listing_terms',
         'image',
         'city',
         'stars',
@@ -119,5 +123,10 @@ class Hotel extends Model
     {
         return $this->belongsToMany(Amenity::class, 'hotel_amenities', 'hotel_id', 'amenity_id')
                     ->withTimestamps();
+    }
+
+    public function listingAgreementSignature()
+    {
+        return $this->morphOne(\App\Models\ListingAgreementSignature::class, 'signable');
     }
 }

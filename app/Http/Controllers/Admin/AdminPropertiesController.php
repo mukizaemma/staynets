@@ -88,6 +88,9 @@ class AdminPropertiesController extends Controller
         if (!$this->isPropertySuperAdmin()) {
             $propertyQuery->where('owner_id', Auth::id());
             $hotelQuery->where('added_by', Auth::id());
+        } elseif ($request->boolean('mine')) {
+            $propertyQuery->where('owner_id', Auth::id());
+            $hotelQuery->where('added_by', Auth::id());
         }
 
         // Filter by type
@@ -225,6 +228,7 @@ class AdminPropertiesController extends Controller
             'activeCount' => $activeCount,
             'inactiveCount' => $inactiveCount,
             'isPropertySuperAdmin' => $this->isPropertySuperAdmin(),
+            'mineOnly' => $request->boolean('mine'),
         ]);
     }
 
@@ -287,6 +291,10 @@ class AdminPropertiesController extends Controller
             'featured_image' => 'nullable|image|max:4096',
             'facilities' => 'nullable|array',
             'facilities.*' => 'exists:amenities,id',
+            'cancellation_free_period' => 'nullable|string|max:10000',
+            'cancellation_refund_conditions' => 'nullable|string|max:10000',
+            'cancellation_no_show_policy' => 'nullable|string|max:10000',
+            'listing_terms' => 'nullable|string|max:65000',
         ];
 
         if ($super) {
@@ -332,6 +340,10 @@ class AdminPropertiesController extends Controller
             'property_type' => $request->property_type,
             'stars' => $request->stars,
             'description' => $request->description,
+            'cancellation_free_period' => $request->cancellation_free_period,
+            'cancellation_refund_conditions' => $request->cancellation_refund_conditions,
+            'cancellation_no_show_policy' => $request->cancellation_no_show_policy,
+            'listing_terms' => $request->listing_terms,
             'address' => $request->address,
             'city' => $request->city,
             'location' => $request->location,
@@ -504,6 +516,10 @@ class AdminPropertiesController extends Controller
                 'featured_image' => 'nullable|image|max:4096',
                 'facilities' => 'nullable|array',
                 'facilities.*' => 'exists:amenities,id',
+                'cancellation_free_period' => 'nullable|string|max:10000',
+                'cancellation_refund_conditions' => 'nullable|string|max:10000',
+                'cancellation_no_show_policy' => 'nullable|string|max:10000',
+                'listing_terms' => 'nullable|string|max:65000',
             ];
 
             if ($super) {
@@ -547,6 +563,10 @@ class AdminPropertiesController extends Controller
                 'property_type' => $request->property_type,
                 'stars' => $request->stars,
                 'description' => $request->description,
+                'cancellation_free_period' => $request->cancellation_free_period,
+                'cancellation_refund_conditions' => $request->cancellation_refund_conditions,
+                'cancellation_no_show_policy' => $request->cancellation_no_show_policy,
+                'listing_terms' => $request->listing_terms,
                 'address' => $request->address,
                 'city' => $request->city,
                 'location' => $request->location,

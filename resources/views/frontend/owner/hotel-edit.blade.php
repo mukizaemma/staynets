@@ -144,6 +144,28 @@
                 <textarea id="hotelDescription" rows="5" class="form-control" name="description">{!! old('description', $hotel->description ?? '') !!}</textarea>
             </div>
 
+            <h5 class="border-bottom pb-2 mb-3">Cancellation policy</h5>
+            <p class="text-muted small">Shown on your public listing. Describe free cancellation (if any), refunds, and no-shows.</p>
+            <div class="mb-3">
+                <label class="form-label">Free cancellation period</label>
+                <textarea name="cancellation_free_period" rows="3" class="form-control" placeholder="e.g. Free cancellation until 48 hours before check-in">{{ old('cancellation_free_period', $hotel->cancellation_free_period) }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Refund conditions</label>
+                <textarea name="cancellation_refund_conditions" rows="3" class="form-control" placeholder="e.g. Partial refund if cancelled within 48 hours">{{ old('cancellation_refund_conditions', $hotel->cancellation_refund_conditions) }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">No-show policy</label>
+                <textarea name="cancellation_no_show_policy" rows="3" class="form-control" placeholder="e.g. Full charge for no-show">{{ old('cancellation_no_show_policy', $hotel->cancellation_no_show_policy) }}</textarea>
+            </div>
+
+            <h5 class="border-bottom pb-2 mb-3">Listing terms &amp; conditions</h5>
+            <p class="text-muted small">Shown on your public property page.</p>
+            <div class="mb-3">
+                <label class="form-label">Terms &amp; conditions</label>
+                <textarea name="listing_terms" rows="6" class="form-control" placeholder="e.g. Quiet hours, smoking policy, check-in/out…">{{ old('listing_terms', $hotel->listing_terms) }}</textarea>
+            </div>
+
             <h5 class="border-bottom pb-2 mb-3">Facilities &amp; amenities</h5>
             <p class="text-muted small">Same categories as the admin panel. Choose based on property type.</p>
 
@@ -200,7 +222,7 @@
         </div>
     </form>
 
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="card border-0 shadow-sm mb-4" id="property-gallery">
         <div class="card-header bg-light"><strong>Property gallery</strong></div>
         <div class="card-body">
             <p class="text-muted small">Upload several images at once (same as admin workflow).</p>

@@ -289,6 +289,50 @@
 
                     <div class="card unit-form-card shadow-sm mb-4">
                         <div class="card-body p-4">
+                            <h5 class="fw-semibold mb-3">Cancellation policy <span class="text-muted small fw-normal">(shown to guests on this listing)</span></h5>
+                            <p class="text-muted small mb-3">Define how cancellations, refunds, and no-shows work for this property.</p>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="cancellation_free_period" class="form-label">Free cancellation period</label>
+                                    <textarea name="cancellation_free_period" class="form-control @error('cancellation_free_period') is-invalid @enderror" id="cancellation_free_period" rows="3" placeholder="e.g. Free cancellation until 48 hours before check-in">{{ old('cancellation_free_period') }}</textarea>
+                                    @error('cancellation_free_period')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-12">
+                                    <label for="cancellation_refund_conditions" class="form-label">Refund conditions</label>
+                                    <textarea name="cancellation_refund_conditions" class="form-control @error('cancellation_refund_conditions') is-invalid @enderror" id="cancellation_refund_conditions" rows="3" placeholder="e.g. Partial refund if cancelled within 48 hours">{{ old('cancellation_refund_conditions') }}</textarea>
+                                    @error('cancellation_refund_conditions')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-12">
+                                    <label for="cancellation_no_show_policy" class="form-label">No-show policy</label>
+                                    <textarea name="cancellation_no_show_policy" class="form-control @error('cancellation_no_show_policy') is-invalid @enderror" id="cancellation_no_show_policy" rows="3" placeholder="e.g. Full charge for no-show or late cancellation">{{ old('cancellation_no_show_policy') }}</textarea>
+                                    @error('cancellation_no_show_policy')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="fw-semibold mb-3">Terms &amp; conditions <span class="text-muted small fw-normal">(listing)</span></h5>
+                            <p class="text-muted small mb-3">House rules, check-in/out expectations, and other conditions for guests booking this property. Shown on the public property page.</p>
+                            <div class="col-12">
+                                <label for="listing_terms" class="form-label">Listing terms &amp; conditions</label>
+                                <textarea name="listing_terms" class="form-control @error('listing_terms') is-invalid @enderror" id="listing_terms" rows="8" placeholder="e.g. Quiet hours, smoking policy, extra guest fees…">{{ old('listing_terms') }}</textarea>
+                                @error('listing_terms')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card unit-form-card shadow-sm mb-4">
+                        <div class="card-body p-4">
                             <p class="text-muted small mb-3">Select amenities for this property, grouped by category.</p>
                     <div class="row g-3">
                         @php

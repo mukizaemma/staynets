@@ -18,7 +18,8 @@
         <div class="navbar-nav w-100">
             <a href="{{ route('admin.guide') }}" class="nav-item nav-link"><i class="fas fa-book me-2"></i>User Guide</a>
             <a href="{{ route('dashboard') }}" class="nav-item nav-link active"><i class="fas fa-grip-horizontal me-2"></i>Dashboard</a>
-             
+            {{-- <a href="{{ route('admin.properties.index', ['mine' => 1]) }}" class="nav-item nav-link"><i class="fas fa-user-check me-2"></i>My properties</a> --}}
+
             <a href="{{ route('getServices') }}" class="nav-item nav-link"> 
                 <i class="fas fa-concierge-bell me-2"></i>Services
             </a>
@@ -26,6 +27,7 @@
             <a href="{{ route('admin.properties.index') }}" class="nav-item nav-link"> 
                 <i class="fas fa-building me-2"></i>Properties
             </a>
+
             <a href="{{ route('admin.units.index') }}" class="nav-item nav-link"> 
                 <i class="fas fa-door-open me-2"></i>Units/Rooms
             </a>
@@ -35,6 +37,10 @@
             </a>
             <a href="{{ route('admin.tripRequests.index') }}" class="nav-item nav-link">
                 <i class="fas fa-clipboard-list me-2"></i>Trip Requests
+            </a>
+
+            <a href="{{ route('admin.listing-agreement.index') }}" class="nav-item nav-link">
+                <i class="fas fa-file-signature me-2"></i>Agreement
             </a>
 
             <a href="{{ route('admin.bookings.index') }}" class="nav-item nav-link">

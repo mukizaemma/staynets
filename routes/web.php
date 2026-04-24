@@ -140,6 +140,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update.post'); // Fallback for forms without @method
     Route::get('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'show'])->name('admin.properties.show'); // Generic show route (must be last)
 
+    Route::get('/admin/listing-agreement/edit', [App\Http\Controllers\Admin\ListingAgreementController::class, 'edit'])->name('admin.listing-agreement.edit');
+    Route::get('/admin/listing-agreement/signed/{signature}', [App\Http\Controllers\Admin\ListingAgreementController::class, 'showSigned'])->name('admin.listing-agreement.signed.show');
+    Route::put('/admin/listing-agreement', [App\Http\Controllers\Admin\ListingAgreementController::class, 'update'])->name('admin.listing-agreement.update');
+    Route::get('/admin/listing-agreement', [App\Http\Controllers\Admin\ListingAgreementController::class, 'index'])->name('admin.listing-agreement.index');
+
     Route::get('/admin/booking-calendar', [App\Http\Controllers\Admin\AdminBookingCalendarController::class, 'index'])->name('admin.booking-calendar.index');
     
     // Property Images
@@ -329,7 +334,9 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::post('car-rental/request', [App\Http\Controllers\CarRentalRequestController::class, 'store'])->name('carRentalRequest.store');
     Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');
     Route::get('/hotels/{hotel}/rooms/{room}', [App\Http\Controllers\HomeController::class, 'roomDetails'])->name('roomDetails');
+    Route::get('/hotels/{hotelSlug}/rooms/{roomSlug}/booking-availability', [App\Http\Controllers\HomeController::class, 'checkHotelRoomBookingAvailability'])->name('hotel.room.booking.availability');
     Route::post('/hotels/{hotelSlug}/rooms/{roomSlug}/booking-request', [App\Http\Controllers\HomeController::class, 'storeHotelRoomBookingRequest'])->name('hotel.room.booking.request');
+    Route::get('/accommodations/{property}/rooms/{unit}/booking-availability', [App\Http\Controllers\HomeController::class, 'checkUnitBookingAvailability'])->name('unit.booking.availability');
     Route::post('/trips/request-multiple', [App\Http\Controllers\HomeController::class, 'tripRequestMultiple'])->name('tripRequestMultiple');
 });
 
@@ -362,6 +369,14 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     // Property Gallery Management (User)
     Route::post('/my-properties/hotels/{hotel}/images', [App\Http\Controllers\UserPropertyController::class, 'addPropertyImage'])->name('my.properties.hotels.images.store');
     Route::delete('/my-properties/hotels/images/{id}', [App\Http\Controllers\UserPropertyController::class, 'deletePropertyImage'])->name('my.properties.hotels.images.destroy');
+
+    Route::get('/my-properties/hotels/{hotel}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'showHotelListingAgreement'])->name('my.properties.listing-agreement.show');
+    Route::post('/my-properties/hotels/{hotel}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'signHotelListingAgreement'])->name('my.properties.listing-agreement.sign');
+    Route::get('/my-properties/properties/{property}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'showPropertyListingAgreement'])->name('my.properties.property.listing-agreement.show');
+    Route::post('/my-properties/properties/{property}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'signPropertyListingAgreement'])->name('my.properties.property.listing-agreement.sign');
+
+    Route::get('/inventory-day-cap', [App\Http\Controllers\InventoryDayCapController::class, 'show'])->name('inventory-day-cap.show');
+    Route::post('/inventory-day-cap', [App\Http\Controllers\InventoryDayCapController::class, 'update'])->name('inventory-day-cap.update');
 });
 
 

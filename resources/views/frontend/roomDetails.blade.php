@@ -327,12 +327,16 @@ $trips = $trips ?? collect();
 
                                     <div class="col-md-6 form-group">
                                         <label class="form-label">Check-in *</label>
-                                        <input type="date" name="check_in" value="{{ old('check_in') }}" class="form-control" required min="{{ date('Y-m-d') }}" @if(!$roomBookable) disabled @endif>
+                                        <input type="date" name="check_in" id="hotelRoomCheckIn" value="{{ old('check_in') }}" class="form-control" required min="{{ date('Y-m-d') }}" @if(!$roomBookable) disabled @endif>
                                     </div>
 
                                     <div class="col-md-6 form-group">
                                         <label class="form-label">Check-out *</label>
-                                        <input type="date" name="check_out" value="{{ old('check_out') }}" class="form-control" required min="{{ date('Y-m-d', strtotime('+1 day')) }}" @if(!$roomBookable) disabled @endif>
+                                        <input type="date" name="check_out" id="hotelRoomCheckOut" value="{{ old('check_out') }}" class="form-control" required min="{{ date('Y-m-d', strtotime('+1 day')) }}" @if(!$roomBookable) disabled @endif>
+                                    </div>
+
+                                    <div class="col-12 form-group mb-0">
+                                        <div id="hotelRoomAvailabilityNote" class="alert alert-sm py-2 px-3 mb-0 d-none small" role="status"></div>
                                     </div>
 
                                     <div class="col-12 form-group">
@@ -595,6 +599,39 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+
+    (function () {
+        const ci = document.getElementById('hotelRoomCheckIn');
+        const co = document.getElementById('hotelRoomCheckOut');
+        const note = document.getElementById('hotelRoomAvailabilityNote');
+        const availUrl = @json(route('hotel.room.booking.availability', ['hotelSlug' => $hotel->slug, 'roomSlug' => $room->slug]));
+        if (!ci || !co || !note) return;
+        function checkAvail() {
+            if (!ci.value || !co.value || co.value <= ci.value) {
+                note.classList.add('d-none');
+                note.classList.remove('alert-success', 'alert-danger', 'alert-warning');
+                return;
+            }
+            note.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning');
+            note.textContent = 'Checking availability…';
+            fetch(availUrl + '?check_in=' + encodeURIComponent(ci.value) + '&check_out=' + encodeURIComponent(co.value), {
+                headers: { 'Accept': 'application/json' }
+            }).then(r => r.json()).then(function (j) {
+                if (j.available) {
+                    note.classList.add('alert-success');
+                    note.textContent = 'These dates look available for this room category (subject to confirmation).';
+                } else {
+                    note.classList.add('alert-danger');
+                    note.textContent = j.message || 'No remaining rooms for one or more nights in this range.';
+                }
+            }).catch(function () {
+                note.classList.add('alert-warning');
+                note.textContent = 'Could not verify availability right now. You may still submit your request.';
+            });
+        }
+        ci.addEventListener('change', checkAvail);
+        co.addEventListener('change', checkAvail);
+    })();
 </script>
 
 @endsection

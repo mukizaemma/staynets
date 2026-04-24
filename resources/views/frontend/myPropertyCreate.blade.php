@@ -151,6 +151,40 @@
         </div>
     </div>
 
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">Cancellation policy</h5>
+            <p class="text-muted small">Guests will see this on your listing. Describe free cancellation (if any), refunds, and no-shows.</p>
+        </div>
+        <div class="col-lg-12 mb-3">
+            <label class="form-label">Free cancellation period</label>
+            <textarea name="cancellation_free_period" rows="3" class="form-control" placeholder="e.g. Free cancellation until 48 hours before check-in">{{ old('cancellation_free_period') }}</textarea>
+            @error('cancellation_free_period') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-lg-12 mb-3">
+            <label class="form-label">Refund conditions</label>
+            <textarea name="cancellation_refund_conditions" rows="3" class="form-control" placeholder="e.g. Partial refund if cancelled within 48 hours">{{ old('cancellation_refund_conditions') }}</textarea>
+            @error('cancellation_refund_conditions') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-lg-12 mb-3">
+            <label class="form-label">No-show policy</label>
+            <textarea name="cancellation_no_show_policy" rows="3" class="form-control" placeholder="e.g. Full charge for no-show">{{ old('cancellation_no_show_policy') }}</textarea>
+            @error('cancellation_no_show_policy') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">Listing terms &amp; conditions</h5>
+            <p class="text-muted small">House rules and other conditions for guests. Shown on your public property page.</p>
+        </div>
+        <div class="col-lg-12 mb-3">
+            <label class="form-label">Terms &amp; conditions</label>
+            <textarea name="listing_terms" rows="6" class="form-control" placeholder="e.g. Quiet hours, smoking policy, check-in/out…">{{ old('listing_terms') }}</textarea>
+            @error('listing_terms') <div class="text-danger mt-1">{{ $message }}</div> @enderror
+        </div>
+    </div>
+
     <!-- Facilities/Amenities Section -->
     <div class="row mb-4">
         <div class="col-12">

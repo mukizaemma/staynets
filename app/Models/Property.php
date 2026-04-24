@@ -20,6 +20,10 @@ class Property extends Model
         'property_type',
         'stars',
         'description',
+        'cancellation_free_period',
+        'cancellation_refund_conditions',
+        'cancellation_no_show_policy',
+        'listing_terms',
         'address',
         'city',
         'location',
@@ -192,6 +196,11 @@ class Property extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+    public function listingAgreementSignature()
+    {
+        return $this->morphOne(\App\Models\ListingAgreementSignature::class, 'signable');
     }
 }
 

@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\AdminNotification;
 use App\Models\FacilityCategory;
 use App\Models\Property;
+use App\Models\ListingAgreementTemplate;
+use App\Models\ListingAgreementSignature;
 use App\Services\RoomBookingCalendarService;
+use App\Services\ListingCompletionService;
 
 class UserPropertyController extends Controller
 {
@@ -37,6 +40,9 @@ class UserPropertyController extends Controller
 public function index()
 {
     $hotels = collect();
+    $ownedProperties = collect();
+    $hotelCompletions = [];
+    $propertyCompletions = [];
     $amenities = collect();
     $earnings = 0;
     $upcomingBookings = collect();
@@ -47,18 +53,29 @@ public function index()
     $selectedCalendarHotelId = null;
     $selectedCalendarListingKey = null;
     $calendarListingOptions = collect();
+    $calCalendarView = \App\Services\RoomBookingCalendarService::VIEW_UPCOMING;
 
     if (auth()->check()) {
         $userId = auth()->id();
         $hotels = \App\Models\Hotel::where('added_by', $userId)
-            ->with(['rooms.images', 'images'])
+            ->with(['rooms.images', 'images', 'listingAgreementSignature'])
             ->latest()
             ->get();
 
         $ownedProperties = Property::where('owner_id', $userId)
-            ->with(['units.unitType'])
+            ->with(['units.unitType', 'images', 'listingAgreementSignature'])
             ->latest()
             ->get();
+
+        $hotelCompletions = [];
+        foreach ($hotels as $h) {
+            $hotelCompletions[$h->id] = ListingCompletionService::forHotel($h);
+        }
+
+        $propertyCompletions = [];
+        foreach ($ownedProperties as $p) {
+            $propertyCompletions[$p->id] = ListingCompletionService::forProperty($p);
+        }
 
         $amenities = \App\Models\Amenity::orderBy('title')->get();
 
@@ -109,6 +126,10 @@ public function index()
         // Room / date grid: hotels (Hotel model) + properties (Property model)
         $calYear = (int) request('cal_year', now()->year);
         $calYear = max(2020, min(2035, $calYear));
+        $calCalendarView = request('cal_calendar_view', \App\Services\RoomBookingCalendarService::VIEW_UPCOMING);
+        if (! in_array($calCalendarView, [\App\Services\RoomBookingCalendarService::VIEW_UPCOMING, \App\Services\RoomBookingCalendarService::VIEW_HISTORY], true)) {
+            $calCalendarView = \App\Services\RoomBookingCalendarService::VIEW_UPCOMING;
+        }
 
         foreach ($hotels as $h) {
             $calendarListingOptions->push(['key' => 'h-'.$h->id, 'label' => $h->name]);
@@ -136,13 +157,13 @@ public function index()
                 $selectedCalHotel = $hotels->firstWhere('id', $hid);
                 if ($selectedCalHotel) {
                     $selectedCalendarHotelId = $selectedCalHotel->id;
-                    $bookingCalendarPayload = RoomBookingCalendarService::buildForHotel($selectedCalHotel, $calYear);
+                    $bookingCalendarPayload = RoomBookingCalendarService::buildForHotel($selectedCalHotel, $calYear, $calCalendarView);
                 }
             } elseif (str_starts_with($calListing, 'p-')) {
                 $pid = (int) substr($calListing, 2);
                 $selectedCalProperty = $ownedProperties->firstWhere('id', $pid);
                 if ($selectedCalProperty) {
-                    $bookingCalendarPayload = RoomBookingCalendarService::buildForProperty($selectedCalProperty, $calYear);
+                    $bookingCalendarPayload = RoomBookingCalendarService::buildForProperty($selectedCalProperty, $calYear, $calCalendarView);
                 }
             }
 
@@ -153,6 +174,7 @@ public function index()
                 $calendarYearUrls[$y] = route('myProperties', array_filter([
                     'cal_year' => $y,
                     'cal_listing' => $selectedCalendarListingKey,
+                    'cal_calendar_view' => $calCalendarView,
                 ], static function ($v) {
                     return $v !== null && $v !== '';
                 }), true).'#calendar';
@@ -162,6 +184,9 @@ public function index()
 
     return view('frontend.myProperties', [
         'hotels' => $hotels,
+        'ownedProperties' => $ownedProperties ?? collect(),
+        'hotelCompletions' => $hotelCompletions ?? [],
+        'propertyCompletions' => $propertyCompletions ?? [],
         'amenities' => $amenities,
         'earnings' => $earnings,
         'upcomingBookings' => $upcomingBookings,
@@ -172,6 +197,7 @@ public function index()
         'selectedCalendarHotelId' => $selectedCalendarHotelId,
         'calendarListingOptions' => $calendarListingOptions,
         'selectedCalendarListingKey' => $selectedCalendarListingKey,
+        'calendarView' => $calCalendarView,
     ]);
 }
 
@@ -214,6 +240,13 @@ public function index()
 public function storeHotel(Request $request)
 {
 try {
+        $request->validate([
+            'cancellation_free_period' => 'nullable|string|max:10000',
+            'cancellation_refund_conditions' => 'nullable|string|max:10000',
+            'cancellation_no_show_policy' => 'nullable|string|max:10000',
+            'listing_terms' => 'nullable|string|max:65000',
+        ]);
+
         $fileName = '';
 
         if ($request->hasFile('image')) {
@@ -239,6 +272,10 @@ try {
             'phone' => $request->phone,
             'city' => $request->city,
             'description' => $request->description,
+            'cancellation_free_period' => $request->cancellation_free_period,
+            'cancellation_refund_conditions' => $request->cancellation_refund_conditions,
+            'cancellation_no_show_policy' => $request->cancellation_no_show_policy,
+            'listing_terms' => $request->listing_terms,
             'image' => $fileName,
             'website' => $request->website,
             'category_id' => 1,
@@ -370,6 +407,10 @@ try {
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'description' => 'nullable|string',
+            'cancellation_free_period' => 'nullable|string|max:10000',
+            'cancellation_refund_conditions' => 'nullable|string|max:10000',
+            'cancellation_no_show_policy' => 'nullable|string|max:10000',
+            'listing_terms' => 'nullable|string|max:65000',
             'image' => 'nullable|image|max:4096',
             'category_id' => 'nullable|integer',
             'program_id' => 'nullable|integer',
@@ -676,6 +717,109 @@ try {
         $image->delete();
 
         return redirect()->back()->with('success', 'Image has been deleted successfully.');
+    }
+
+    public function showHotelListingAgreement(Hotel $hotel)
+    {
+        $this->authorizeOwner($hotel);
+        $hotel->load('listingAgreementSignature');
+        $template = ListingAgreementTemplate::current();
+
+        return view('frontend.owner.listing-agreement', [
+            'template' => $template,
+            'hotel' => $hotel,
+            'propertyModel' => null,
+            'completion' => ListingCompletionService::forHotel($hotel),
+        ]);
+    }
+
+    public function signHotelListingAgreement(Request $request, Hotel $hotel)
+    {
+        $this->authorizeOwner($hotel);
+
+        $request->validate([
+            'signature_image' => 'required|image|max:4096',
+            'confirm_agreement' => 'required|accepted',
+        ]);
+
+        $template = ListingAgreementTemplate::current();
+        $path = $request->file('signature_image')->store('public/listing-agreements/owner');
+        $relative = str_replace('public/', '', $path);
+
+        $existing = $hotel->listingAgreementSignature;
+        if ($existing && $existing->owner_signature_path && Storage::exists('public/'.$existing->owner_signature_path)) {
+            Storage::delete('public/'.$existing->owner_signature_path);
+        }
+
+        ListingAgreementSignature::updateOrCreate(
+            [
+                'signable_type' => Hotel::class,
+                'signable_id' => $hotel->id,
+            ],
+            [
+                'owner_signature_path' => $relative,
+                'signed_at' => now(),
+                'template_version_at' => $template->fresh()->updated_at,
+                'signer_ip' => $request->ip(),
+            ]
+        );
+
+        return redirect()->to(route('myProperties').'#properties')->with('success', 'Listing agreement signed. Your listing setup is updated.');
+    }
+
+    public function showPropertyListingAgreement(Property $property)
+    {
+        $this->authorizePropertyOwner($property);
+        $property->load('listingAgreementSignature', 'units', 'images');
+        $template = ListingAgreementTemplate::current();
+
+        return view('frontend.owner.listing-agreement', [
+            'template' => $template,
+            'hotel' => null,
+            'propertyModel' => $property,
+            'completion' => ListingCompletionService::forProperty($property),
+        ]);
+    }
+
+    public function signPropertyListingAgreement(Request $request, Property $property)
+    {
+        $this->authorizePropertyOwner($property);
+
+        $request->validate([
+            'signature_image' => 'required|image|max:4096',
+            'confirm_agreement' => 'required|accepted',
+        ]);
+
+        $template = ListingAgreementTemplate::current();
+        $path = $request->file('signature_image')->store('public/listing-agreements/owner');
+        $relative = str_replace('public/', '', $path);
+
+        $existing = $property->listingAgreementSignature;
+        if ($existing && $existing->owner_signature_path && Storage::exists('public/'.$existing->owner_signature_path)) {
+            Storage::delete('public/'.$existing->owner_signature_path);
+        }
+
+        ListingAgreementSignature::updateOrCreate(
+            [
+                'signable_type' => Property::class,
+                'signable_id' => $property->id,
+            ],
+            [
+                'owner_signature_path' => $relative,
+                'signed_at' => now(),
+                'template_version_at' => $template->fresh()->updated_at,
+                'signer_ip' => $request->ip(),
+            ]
+        );
+
+        return redirect()->to(route('myProperties').'#properties')->with('success', 'Listing agreement signed.');
+    }
+
+    protected function authorizePropertyOwner(Property $property): void
+    {
+        if ((int) $property->owner_id !== (int) auth()->id()) {
+            abort(403);
+        }
     }
 
     protected function authorizeOwner(Hotel $hotel)

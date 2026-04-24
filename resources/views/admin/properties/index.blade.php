@@ -15,7 +15,18 @@
             <div class="bg-light text-center rounded p-4">
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div>
-                        <h6 class="mb-0">Properties Management (Hotels & Apartments)</h6>
+                        <h6 class="mb-0">
+                            @if(!empty($mineOnly))
+                                My properties
+                            @else
+                                Properties Management (Hotels & Apartments)
+                            @endif
+                        </h6>
+                        @if(!empty($mineOnly) && !empty($isPropertySuperAdmin))
+                            <p class="small text-muted mb-0 mt-1">
+                                <a href="{{ route('admin.properties.index') }}">Show all properties</a>
+                            </p>
+                        @endif
                         <div class="d-flex gap-2 mt-2">
                             <span class="badge bg-warning">
                                 <i class="fa fa-clock me-1"></i>Pending: {{ $pendingCount ?? 0 }}
@@ -44,6 +55,9 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <form method="GET" action="{{ route('admin.properties.index') }}" class="row g-3">
+                            @if(request('mine'))
+                                <input type="hidden" name="mine" value="1">
+                            @endif
                             <div class="col-md-3">
                                 <select name="type" class="form-select">
                                     <option value="">All Types</option>

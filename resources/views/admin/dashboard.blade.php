@@ -32,6 +32,18 @@
                         </a>
                     </div>
                     <div class="col-sm-6 col-xl-3">
+                        <a href="{{ route('admin.properties.index', ['mine' => 1]) }}" class="text-decoration-none">
+                            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 h-100 hover-shadow">
+                                <i class="fa fa-user-check fa-3x text-primary"></i>
+                                <div class="ms-3 text-end">
+                                    <p class="mb-2 text-secondary">My properties</p>
+                                    <h6 class="mb-0 text-dark">{{ $myPropertiesCount ?? 0 }}</h6>
+                                    <small class="text-muted">Listings you added</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
                         <a href="{{ route('admin.units.index') }}" class="text-decoration-none">
                             <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 h-100 hover-shadow">
                                 <i class="fa fa-door-open fa-3x text-primary"></i>

@@ -104,23 +104,28 @@ class AdminBookingCalendarController extends Controller
             $listing = 'all';
         }
 
+        $calendarView = $request->input('calendar_view', RoomBookingCalendarService::VIEW_UPCOMING);
+        if (! in_array($calendarView, [RoomBookingCalendarService::VIEW_UPCOMING, RoomBookingCalendarService::VIEW_HISTORY], true)) {
+            $calendarView = RoomBookingCalendarService::VIEW_UPCOMING;
+        }
+
         $hotelsList = $this->manageableHotelsQuery()->get(['id', 'name']);
         $propertiesList = $this->manageablePropertiesQuery()->get(['id', 'name']);
 
         $calendars = [];
 
-        $appendCalendarSorted = function (array &$bucket, iterable $hotels, iterable $properties, int $year): void {
+        $appendCalendarSorted = function (array &$bucket, iterable $hotels, iterable $properties, int $year) use ($calendarView): void {
             $entries = [];
             foreach ($hotels as $hotel) {
                 $entries[] = [
                     'sort' => $hotel->name,
-                    'payload' => RoomBookingCalendarService::buildForHotel($hotel, $year),
+                    'payload' => RoomBookingCalendarService::buildForHotel($hotel, $year, $calendarView),
                 ];
             }
             foreach ($properties as $property) {
                 $entries[] = [
                     'sort' => $property->name,
-                    'payload' => RoomBookingCalendarService::buildForProperty($property, $year),
+                    'payload' => RoomBookingCalendarService::buildForProperty($property, $year, $calendarView),
                 ];
             }
             usort($entries, static function ($a, $b) {
@@ -141,20 +146,21 @@ class AdminBookingCalendarController extends Controller
             if (! $this->userMayAccessHotel($hotel)) {
                 abort(403);
             }
-            $calendars[] = RoomBookingCalendarService::buildForHotel($hotel, $year);
+            $calendars[] = RoomBookingCalendarService::buildForHotel($hotel, $year, $calendarView);
         } elseif (str_starts_with($listing, 'p-')) {
             $id = (int) substr($listing, 2);
             $property = $this->manageablePropertiesQuery()->with(['units.unitType'])->whereKey($id)->firstOrFail();
             if (! $this->userMayAccessProperty($property)) {
                 abort(403);
             }
-            $calendars[] = RoomBookingCalendarService::buildForProperty($property, $year);
+            $calendars[] = RoomBookingCalendarService::buildForProperty($property, $year, $calendarView);
         }
 
         return view('admin.booking-calendar.index', [
             'calendars' => $calendars,
             'year' => $year,
             'listing' => $listing,
+            'calendarView' => $calendarView,
             'hotelsList' => $hotelsList,
             'propertiesList' => $propertiesList,
         ]);

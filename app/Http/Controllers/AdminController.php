@@ -36,6 +36,11 @@ class AdminController extends Controller
         $totalSales = (clone $reservationsQuery)->sum('total_amount');
         $totalCommission = (clone $reservationsQuery)->sum('commission_amount');
 
+        $uid = Auth::id();
+        $myPropertiesCount = $uid
+            ? Property::where('owner_id', $uid)->count() + Hotel::where('added_by', $uid)->count()
+            : 0;
+
         $latestReservations = HotelBooking::with(['property', 'unit'])
             ->latest()
             ->take(10)
@@ -52,6 +57,7 @@ class AdminController extends Controller
             'totalSales' => $totalSales,
             'totalCommission' => $totalCommission,
             'latestReservations' => $latestReservations,
+            'myPropertiesCount' => $myPropertiesCount,
         ]);
     }
 

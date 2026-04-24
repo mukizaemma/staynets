@@ -108,6 +108,14 @@
                         </div>
                     @endif
 
+                    <div class="widget">
+                        @include('layouts.includes.property-listing-terms', ['listing' => $hotel])
+                    </div>
+
+                    <div class="widget">
+                        @include('layouts.includes.property-cancellation-policy', ['listing' => $hotel])
+                    </div>
+
                     <div class="widget widget_search">
                         <form class="search-form">
                             <input type="text" placeholder="Search">

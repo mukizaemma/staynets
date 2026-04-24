@@ -201,12 +201,20 @@
 
                         <!-- Description -->
                         @if($property->description)
+                            @php
+                                $descRaw = $property->description;
+                                $descLooksHtml = is_string($descRaw) && preg_match('/<[^>]+>/', $descRaw);
+                            @endphp
                             <div class="card mb-3">
                                 <div class="card-header bg-secondary text-white">
                                     <h6 class="mb-0">Description</h6>
                                 </div>
-                                <div class="card-body">
-                                    {!! nl2br(e($property->description)) !!}
+                                <div class="card-body text-start property-description">
+                                    @if($descLooksHtml)
+                                        {!! $descRaw !!}
+                                    @else
+                                        {!! nl2br(e($descRaw)) !!}
+                                    @endif
                                 </div>
                             </div>
                         @endif

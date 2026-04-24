@@ -8,9 +8,24 @@
 
     <div class="container-fluid pt-4 px-4">
         <div class="bg-light rounded p-4">
+            @php
+                $cvUpcoming = \App\Services\RoomBookingCalendarService::VIEW_UPCOMING;
+                $cvHistory = \App\Services\RoomBookingCalendarService::VIEW_HISTORY;
+                $calendarView = $calendarView ?? $cvUpcoming;
+            @endphp
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                <h4 class="mb-0">Room booking dashboard</h4>
+                <div>
+                    <h4 class="mb-2">Room booking dashboard</h4>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Calendar view">
+                        <a href="{{ route('admin.booking-calendar.index', array_filter(['year' => $year, 'listing' => ($listing ?? 'all') !== 'all' ? ($listing ?? 'all') : null, 'calendar_view' => $cvUpcoming], fn ($v) => $v !== null && $v !== '')) }}"
+                           class="btn {{ $calendarView === $cvUpcoming ? 'btn-primary' : 'btn-outline-primary' }}">Upcoming</a>
+                        <a href="{{ route('admin.booking-calendar.index', array_filter(['year' => $year, 'listing' => ($listing ?? 'all') !== 'all' ? ($listing ?? 'all') : null, 'calendar_view' => $cvHistory], fn ($v) => $v !== null && $v !== '')) }}"
+                           class="btn {{ $calendarView === $cvHistory ? 'btn-primary' : 'btn-outline-primary' }}">Past history</a>
+                    </div>
+                    <p class="text-muted small mb-0 mt-2">Upcoming shows from today through year-end (full months for future years). Past history shows earlier months and days.</p>
+                </div>
                 <form method="get" action="{{ route('admin.booking-calendar.index') }}" class="d-flex flex-wrap gap-2 align-items-end">
+                    <input type="hidden" name="calendar_view" value="{{ $calendarView }}">
                     <div>
                         <label class="form-label small mb-0">Listing</label>
                         <select name="listing" class="form-select form-select-sm" style="min-width: 260px;">
@@ -46,6 +61,7 @@
                     $yearUrls[$y] = route('admin.booking-calendar.index', array_filter([
                         'year' => $y,
                         'listing' => ($listing ?? 'all') !== 'all' ? ($listing ?? 'all') : null,
+                        'calendar_view' => $calendarView ?? $cvUpcoming,
                     ], static fn ($v) => $v !== null && $v !== ''));
                 }
             @endphp
@@ -54,7 +70,13 @@
             @forelse($calendars as $payload)
                 <div class="mb-5 pb-4 border-bottom">
                     <h5 class="fw-bold mb-3">{{ $payload['hotel_name'] ?? 'Property' }} <span class="text-muted small">#{{ $payload['hotel_id'] ?? $payload['property_id'] ?? '' }}</span></h5>
-                    @include('partials.booking-calendar-grid', ['payload' => $payload, 'yearUrls' => $calFirst ? $yearUrls : []])
+                    @include('partials.booking-calendar-grid', [
+                        'payload' => $payload,
+                        'yearUrls' => $calFirst ? $yearUrls : [],
+                        'canEditInventory' => true,
+                        'inventoryUpdateUrl' => route('inventory-day-cap.update'),
+                        'inventoryDetailUrl' => route('inventory-day-cap.show'),
+                    ])
                     @php $calFirst = false; @endphp
                 </div>
             @empty

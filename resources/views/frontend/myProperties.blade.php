@@ -3,6 +3,16 @@
 @section('content')
 @php
     $hotels = $hotels ?? collect(isset($hotel) ? [$hotel] : []);
+    $ownedProperties = $ownedProperties ?? collect();
+    $hotelCompletions = $hotelCompletions ?? [];
+    $propertyCompletions = $propertyCompletions ?? [];
+    $anyIncomplete = false;
+    foreach ($hotelCompletions as $hc) {
+        if (!($hc['complete'] ?? true)) { $anyIncomplete = true; }
+    }
+    foreach ($propertyCompletions as $pc) {
+        if (!($pc['complete'] ?? true)) { $anyIncomplete = true; }
+    }
 @endphp
 <style>
     .owner-dash-wrap { max-width: 1200px; margin: 0 auto 48px; padding: 0 16px; }
@@ -82,6 +92,13 @@
         <div class="alert alert-danger border-0 shadow-sm" style="border-radius: 12px;">{{ session('error') }}</div>
     @endif
 
+    @if($anyIncomplete && (auth()->check()))
+        <div class="alert alert-warning border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <strong>Please complete your listing(s).</strong> Finish all steps: add property details, rooms/units, gallery images, and sign the listing agreement.
+            Open the <strong>My Properties</strong> tab to see progress and continue each step.
+        </div>
+    @endif
+
     <ul class="nav nav-pills owner-dash-tabs mb-4" id="ownerDashboardTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="earnings-tab" data-bs-toggle="tab" data-bs-target="#earnings" type="button" role="tab">
@@ -126,12 +143,25 @@
         <div class="tab-pane fade" id="calendar" role="tabpanel" tabindex="0">
             <div class="card border-0 shadow-sm" style="border-radius: 14px;">
                 <div class="card-body p-4">
+                    @php
+                        $cvUp = \App\Services\RoomBookingCalendarService::VIEW_UPCOMING;
+                        $cvHist = \App\Services\RoomBookingCalendarService::VIEW_HISTORY;
+                        $calendarViewOwner = $calendarView ?? $cvUp;
+                    @endphp
                     <h5 class="card-title mb-2 fw-bold">Room booking dashboard</h5>
-                    <p class="text-muted small mb-3">Daily booking counts per room type (same view as admin). Use year chips to switch. Scroll horizontally on small screens.</p>
+                    <p class="text-muted small mb-2">Same rules as admin: <strong>Upcoming</strong> shows from today forward; <strong>Past history</strong> shows earlier months and days.</p>
 
                     @if(isset($calendarListingOptions) && $calendarListingOptions->isNotEmpty())
+                        <div class="btn-group btn-group-sm mb-3" role="group">
+                            <a href="{{ route('myProperties', array_filter(['cal_listing' => $selectedCalendarListingKey, 'cal_year' => $bookingCalendarPayload['year'] ?? request('cal_year', date('Y')), 'cal_calendar_view' => $cvUp], fn ($v) => $v !== null && $v !== '')) }}#calendar"
+                               class="btn {{ $calendarViewOwner === $cvUp ? 'btn-primary' : 'btn-outline-primary' }}">Upcoming</a>
+                            <a href="{{ route('myProperties', array_filter(['cal_listing' => $selectedCalendarListingKey, 'cal_year' => $bookingCalendarPayload['year'] ?? request('cal_year', date('Y')), 'cal_calendar_view' => $cvHist], fn ($v) => $v !== null && $v !== '')) }}#calendar"
+                               class="btn {{ $calendarViewOwner === $cvHist ? 'btn-primary' : 'btn-outline-primary' }}">Past history</a>
+                        </div>
+
                         @if($calendarListingOptions->count() > 1)
                             <form method="get" action="{{ route('myProperties') }}" class="row g-2 align-items-end mb-4">
+                                <input type="hidden" name="cal_calendar_view" value="{{ $calendarViewOwner }}">
                                 <div class="col-auto">
                                     <label class="form-label small mb-0">Listing</label>
                                     <select name="cal_listing" class="form-select form-select-sm" style="min-width: 220px;" onchange="this.form.submit()">
@@ -181,6 +211,9 @@
                         @include('partials.booking-calendar-grid', [
                             'payload' => $bookingCalendarPayload,
                             'yearUrls' => $calendarYearUrls ?? [],
+                            'canEditInventory' => true,
+                            'inventoryUpdateUrl' => route('inventory-day-cap.update'),
+                            'inventoryDetailUrl' => route('inventory-day-cap.show'),
                         ])
                     @else
                         <div class="owner-empty-state">
@@ -237,7 +270,7 @@
 
         {{-- My Properties Tab --}}
         <div class="tab-pane fade" id="properties" role="tabpanel">
-    @if($hotels->isEmpty())
+    @if($hotels->isEmpty() && $ownedProperties->isEmpty())
         <div class="card p-4 text-center">
             <h4>You don't have any properties yet</h4>
             <p class="text-muted mb-3">Read the guide to see the process and required details, then add your first property.</p>
@@ -247,6 +280,8 @@
             </div>
         </div>
     @else
+        @if($hotels->isNotEmpty())
+        <h5 class="mb-3 fw-bold text-secondary">Hotel listings (your submissions)</h5>
         <div class="row gy-4">
             @foreach($hotels as $hotel)
                 <div class="col-md-6 col-lg-4">
@@ -271,6 +306,28 @@
                                 {{ Str::limit(strip_tags($hotel->description),120) }}
                             </p>
 
+                            @php $hc = $hotelCompletions[$hotel->id] ?? null; @endphp
+                            @if($hc && !($hc['complete'] ?? false))
+                                <div class="mb-2 p-2 rounded border border-warning border-opacity-50 bg-warning bg-opacity-10 small">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-semibold text-dark">Listing setup</span>
+                                        <span class="badge bg-secondary">{{ $hc['percent'] ?? 0 }}%</span>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $hc['percent'] ?? 0 }}%"></div>
+                                    </div>
+                                    <div class="text-muted mb-0">Next steps:
+                                        @foreach($hc['steps'] ?? [] as $step)
+                                            @if(empty($step['done']))
+                                                <a href="{{ $step['url'] }}" class="text-decoration-none d-inline-block me-2">{{ $step['label'] }}</a>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @elseif($hc && ($hc['complete'] ?? false))
+                                <p class="small text-success mb-2"><i class="fas fa-check-circle me-1"></i>Listing setup complete</p>
+                            @endif
+
                             <div class="d-flex flex-wrap gap-1" style="font-size: 0.85rem;">
                                 <button type="button" class="btn btn-sm btn-info"
                                     data-bs-toggle="modal"
@@ -284,6 +341,10 @@
 
                                 <a href="{{ route('my.properties.rooms.create', $hotel) }}" class="btn btn-sm btn-primary">
                                     <i class="fa fa-plus"></i> Add room
+                                </a>
+
+                                <a href="{{ route('my.properties.listing-agreement.show', $hotel) }}" class="btn btn-sm btn-success">
+                                    <i class="fa fa-file-signature"></i> Agreement
                                 </a>
 
                                 <form action="{{ route('my.properties.hotels.destroy', $hotel->id) }}" method="POST" onsubmit="return confirm('Remove this property from your dashboard? It will be archived (not permanently deleted).');" style="display:inline;">
@@ -537,6 +598,49 @@
                 </div>
             @endforeach
         </div>
+        @endif
+
+        @if($ownedProperties->isNotEmpty())
+            <h5 class="mt-5 mb-3 fw-bold text-secondary">Properties (unified listings)</h5>
+            <p class="text-muted small">These listings are managed in the admin area (units, gallery, and details).</p>
+            <div class="row gy-4">
+                @foreach($ownedProperties as $prop)
+                    <div class="col-md-6 col-lg-4">
+                        <div class="tour-box h-100">
+                            <div class="tour-content">
+                                <h3 class="box-title">{{ $prop->name }}</h3>
+                                <p class="small text-muted mb-2">{{ ucfirst($prop->property_type ?? 'property') }} · {{ $prop->status ?? '—' }}</p>
+                                @php $pc = $propertyCompletions[$prop->id] ?? null; @endphp
+                                @if($pc && !($pc['complete'] ?? false))
+                                    <div class="mb-2 p-2 rounded border border-warning border-opacity-50 bg-warning bg-opacity-10 small">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-semibold text-dark">Listing setup</span>
+                                            <span class="badge bg-secondary">{{ $pc['percent'] ?? 0 }}%</span>
+                                        </div>
+                                        <div class="progress mb-2" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $pc['percent'] ?? 0 }}%"></div>
+                                        </div>
+                                        <div class="text-muted mb-0">Next steps:
+                                            @foreach($pc['steps'] ?? [] as $step)
+                                                @if(empty($step['done']))
+                                                    <a href="{{ $step['url'] }}" class="text-decoration-none d-inline-block me-2">{{ $step['label'] }}</a>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @elseif($pc && ($pc['complete'] ?? false))
+                                    <p class="small text-success mb-2"><i class="fas fa-check-circle me-1"></i>Listing setup complete</p>
+                                @endif
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a href="{{ route('admin.properties.edit', $prop->id) }}" class="btn btn-sm btn-warning">Manage in admin</a>
+                                    <a href="{{ route('my.properties.property.listing-agreement.show', $prop) }}" class="btn btn-sm btn-success">Agreement</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     @endif
         </div>{{-- end properties tab-pane --}}
     </div>{{-- end tab-content --}}
@@ -567,9 +671,35 @@
         });
     }
 
+    function showPropertiesTab() {
+        var tabBtn = document.getElementById('properties-tab');
+        var panel = document.getElementById('properties');
+        if (!tabBtn || !panel) {
+            return;
+        }
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+            try {
+                bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+            } catch (e) {
+                tabBtn.click();
+            }
+        } else {
+            tabBtn.click();
+        }
+        requestAnimationFrame(function () {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var params = new URLSearchParams(window.location.search);
         var hash = window.location.hash;
+
+        if (hash === '#properties') {
+            showPropertiesTab();
+            return;
+        }
+
         var shouldShowCalendar = params.has('cal_year')
             || hash === '#calendar'
             || hash === '#booking-calendar-panel';

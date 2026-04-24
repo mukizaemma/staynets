@@ -38,6 +38,8 @@ use App\Mail\AdminNotification;
 use App\Mail\ReservationSubmitted;
 use App\Mail\ReservationAdminNotification;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
+use App\Services\BookingInventoryService;
 
 
 class HomeController extends Controller
@@ -786,6 +788,15 @@ public function storeBooking(Request $request)
         return redirect()->back()->with('error', 'Invalid unit for this property.');
     }
 
+    $checkInStay = Carbon::parse($request->check_in)->startOfDay();
+    $checkOutStay = Carbon::parse($request->check_out)->startOfDay();
+    $minUnitRem = BookingInventoryService::minEffectiveRemainingUnitStay($unit, $checkInStay, $checkOutStay);
+    if ($minUnitRem < 1) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'There are no remaining units for this category on one or more nights in your selected dates. Please choose different dates.');
+    }
+
     // Validate extra_charges belong to this unit
     $unitExtraChargeIds = $unit->extraCharges->pluck('id')->toArray();
     $selectedExtraIds = array_map('intval', $request->input('extra_charges', []));
@@ -893,6 +904,77 @@ public function storeBooking(Request $request)
 }
 
 /**
+ * JSON: minimum remaining inventory for each night of a stay (hotel room type).
+ */
+public function checkHotelRoomBookingAvailability(Request $request, string $hotelSlug, string $roomSlug)
+{
+    $hotel = Hotel::where('slug', $hotelSlug)->firstOrFail();
+    $room = HotelRoom::where('hotel_id', $hotel->id)->where('slug', $roomSlug)->firstOrFail();
+
+    $validated = $request->validate([
+        'check_in' => 'required|date',
+        'check_out' => 'required|date|after:check_in',
+    ]);
+
+    $checkIn = Carbon::parse($validated['check_in'])->startOfDay();
+    $checkOut = Carbon::parse($validated['check_out'])->startOfDay();
+    $min = BookingInventoryService::minEffectiveRemainingHotelRoomStay($room, $checkIn, $checkOut);
+
+    return response()->json([
+        'available' => $min >= 1,
+        'min_remaining' => $min,
+        'message' => $min < 1
+            ? 'There are no remaining rooms for this category on one or more nights in your selected dates.'
+            : null,
+    ]);
+}
+
+/**
+ * JSON: minimum remaining inventory for each night of a stay (property unit).
+ */
+public function checkUnitBookingAvailability(Request $request, $property, $unit)
+{
+    $propertyModel = Property::query()
+        ->where(function ($q) use ($property) {
+            if (is_numeric($property)) {
+                $q->where('id', $property);
+            } else {
+                $q->where('slug', $property);
+            }
+        })
+        ->publishedForGuests()
+        ->firstOrFail();
+
+    $unitModel = \App\Models\Unit::query()
+        ->where('property_id', $propertyModel->id)
+        ->where(function ($q) use ($unit) {
+            if (is_numeric($unit)) {
+                $q->where('id', $unit);
+            } else {
+                $q->where('slug', $unit);
+            }
+        })
+        ->firstOrFail();
+
+    $validated = $request->validate([
+        'check_in' => 'required|date',
+        'check_out' => 'required|date|after:check_in',
+    ]);
+
+    $checkIn = Carbon::parse($validated['check_in'])->startOfDay();
+    $checkOut = Carbon::parse($validated['check_out'])->startOfDay();
+    $min = BookingInventoryService::minEffectiveRemainingUnitStay($unitModel, $checkIn, $checkOut);
+
+    return response()->json([
+        'available' => $min >= 1,
+        'min_remaining' => $min,
+        'message' => $min < 1
+            ? 'There are no remaining units for this category on one or more nights in your selected dates.'
+            : null,
+    ]);
+}
+
+/**
  * Guest booking request for a hotel room (Hotel + HotelRoom models).
  */
 public function storeHotelRoomBookingRequest(Request $request, string $hotelSlug, string $roomSlug)
@@ -923,24 +1005,15 @@ public function storeHotelRoomBookingRequest(Request $request, string $hotelSlug
     if (! ($room->accepts_room_bookings ?? true)) {
         return redirect()->back()->with('error', 'This room is not open for booking (marked fully booked).');
     }
-    if ((int) ($room->available_rooms ?? 0) < 1) {
-        return redirect()->back()->with('error', 'There is no availability left for this room type.');
-    }
 
-    $checkIn = \Carbon\Carbon::parse($validated['check_in'])->startOfDay();
-    $checkOut = \Carbon\Carbon::parse($validated['check_out'])->startOfDay();
+    $checkIn = Carbon::parse($validated['check_in'])->startOfDay();
+    $checkOut = Carbon::parse($validated['check_out'])->startOfDay();
 
-    $overlap = HotelBooking::where('room_id', $room->id)
-        ->where('booking_status', '!=', 'cancelled')
-        ->whereDate('check_in', '<', $checkOut->toDateString())
-        ->whereDate('check_out', '>', $checkIn->toDateString())
-        ->count();
-
-    $capacity = max(1, (int) ($room->available_rooms ?? 1));
-    if ($overlap >= $capacity) {
+    $minRem = BookingInventoryService::minEffectiveRemainingHotelRoomStay($room, $checkIn, $checkOut);
+    if ($minRem < 1) {
         return redirect()->back()
             ->withInput()
-            ->with('error', 'No availability for these dates. Please choose different dates.');
+            ->with('error', 'There are no remaining rooms for this category on one or more nights in your selected dates. Please choose different dates.');
     }
 
     $nights = max(0, $checkIn->diffInDays($checkOut));
