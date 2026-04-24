@@ -34,7 +34,7 @@
                     <h6 class="text-muted text-uppercase small mb-1">Current template</h6>
                     <p class="mb-0">
                         <strong>{{ $templateModel->platform_name ?? '—' }}</strong>
-                        @if($templateModel->platform_representative_name)
+                        @if($templateModel?->platform_representative_name)
                             · Representative: {{ $templateModel->platform_representative_name }}
                         @endif
                         @if($templateModel)
