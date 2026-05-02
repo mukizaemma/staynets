@@ -12,6 +12,7 @@
             </h2>
             <p class="mt-2 text-sm text-gray-600">
                 Before continuing, could you verify your email address by clicking on the link we just emailed to you?
+                Accounts that stay unverified are removed automatically after {{ config('registration.verification_ttl_hours', 24) }} hours.
             </p>
             @if (auth()->check())
                 <p class="mt-2 text-sm text-gray-500">

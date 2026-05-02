@@ -135,17 +135,90 @@ class AdminController extends Controller
                   ->orWhere('email', 'LIKE', "%{$search}%");
             });
         }
+
+        $segment = $request->input('segment');
+        $nonAdminScope = function ($q) {
+            $q->where(function ($w) {
+                $w->where('role', '!=', 1)->orWhereNull('role');
+            });
+        };
+
+        if ($segment === 'unverified') {
+            $query->whereNull('email_verified_at')->where($nonAdminScope);
+        } elseif ($segment === 'verified_no_property') {
+            $query->whereNotNull('email_verified_at')
+                ->whereDoesntHave('properties')
+                ->whereDoesntHave('ownedHotels')
+                ->where($nonAdminScope);
+        } elseif ($segment === 'with_properties') {
+            $query->where(function ($q) {
+                $q->whereHas('properties')->orWhereHas('ownedHotels');
+            })->where($nonAdminScope);
+        }
+
+        $segmentCounts = null;
+        if ($isSuperAdmin) {
+            $segmentCounts = [
+                'unverified' => User::query()->where($nonAdminScope)->whereNull('email_verified_at')->count(),
+                'verified_no_property' => User::query()->where($nonAdminScope)
+                    ->whereNotNull('email_verified_at')
+                    ->whereDoesntHave('properties')
+                    ->whereDoesntHave('ownedHotels')
+                    ->count(),
+                'with_properties' => User::query()->where($nonAdminScope)
+                    ->where(function ($q) {
+                        $q->whereHas('properties')->orWhereHas('ownedHotels');
+                    })
+                    ->count(),
+            ];
+        }
         
         $users = $query->latest()->get();
         $setting = Setting::first();
+
+        $canBulkDeleteSelected = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
         
         return view('admin.users',[
             'users'=>$users,
             'setting'=>$setting,
             'filter'=>$filter,
             'search'=>$search,
-            'isSuperAdmin'=>$isSuperAdmin
+            'segment'=>$segment,
+            'segmentCounts'=>$segmentCounts,
+            'isSuperAdmin'=>$isSuperAdmin,
+            'canBulkDeleteSelected'=>$canBulkDeleteSelected,
         ]);
+    }
+
+    /**
+     * Bulk-delete users (primary super admin only). Never deletes admins or the current user.
+     */
+    public function bulkDeleteUsers(Request $request)
+    {
+        $canBulkDelete = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        if (!$canBulkDelete) {
+            return redirect()->route('dashboard')->with('error', 'Only admin@iremetech.com may bulk-delete users.');
+        }
+
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        $ids = collect($validated['ids'])->unique()->filter(fn ($id) => (int) $id !== (int) Auth::id())->values();
+
+        if ($ids->isEmpty()) {
+            return redirect()->back()->with('info', 'No users selected.');
+        }
+
+        $deleted = User::query()
+            ->whereIn('id', $ids)
+            ->where(function ($q) {
+                $q->where('role', '!=', 1)->orWhereNull('role');
+            })
+            ->delete();
+
+        return redirect()->back()->with('success', $deleted.' user account(s) removed.');
     }
 
     public function showUser($id){

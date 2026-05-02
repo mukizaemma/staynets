@@ -15,6 +15,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/Users/{id}/password-reset', [App\Http\Controllers\AdminController::class, 'sendUserPasswordReset'])->name('admin.users.password-reset');
     Route::get('/Users/{id}/verify', [App\Http\Controllers\AdminController::class, 'verifyUserEmail'])->name('admin.users.verify');
     Route::get('/Users/{id}/makeAdmin', [App\Http\Controllers\AdminController::class, 'makeAdmin'])->name('makeAdmin');
+    Route::post('/Users/bulk-delete', [App\Http\Controllers\AdminController::class, 'bulkDeleteUsers'])->name('admin.users.bulk-delete');
     Route::get('/deleteUser/{id}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('deleteUser');
     
     Route::get('/Comments', [App\Http\Controllers\AdminController::class, 'blogsComment'])->name('blogsComment');

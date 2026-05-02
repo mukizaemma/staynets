@@ -49,6 +49,15 @@ class FortifyServiceProvider extends ServiceProvider
                 ]);
             }
 
+            $ttlHours = (int) config('registration.verification_ttl_hours', 24);
+            $isAdmin = (int) ($user->role ?? 0) === 1;
+            if (!$isAdmin && !$user->hasVerifiedEmail() && $user->created_at && $user->created_at->lt(now()->subHours($ttlHours))) {
+                $user->delete();
+                throw ValidationException::withMessages([
+                    Fortify::username() => [__('This registration expired because the email was not verified in time. Please register again.')],
+                ]);
+            }
+
             return $user;
         });
         

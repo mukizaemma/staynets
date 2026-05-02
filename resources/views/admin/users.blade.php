@@ -60,6 +60,34 @@
                             @endif
                         </div>
                     </div>
+
+                    @if(isset($isSuperAdmin) && $isSuperAdmin && isset($segmentCounts))
+                        @php
+                            $segQuery = array_filter(['filter' => $filter ?? 'all', 'search' => $search ?? null]);
+                        @endphp
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-3 pb-3 border-bottom">
+                            <span class="text-muted small me-1">Cleanup segments:</span>
+                            <a href="{{ route('users', $segQuery) }}"
+                               class="btn btn-sm {{ empty($segment ?? null) ? 'btn-secondary' : 'btn-outline-secondary' }}">
+                                All segments
+                            </a>
+                            <a href="{{ route('users', array_merge($segQuery, ['segment' => 'unverified'])) }}"
+                               class="btn btn-sm {{ ($segment ?? '') === 'unverified' ? 'btn-warning' : 'btn-outline-warning' }}"
+                               title="Email not verified">
+                                Not verified <span class="badge bg-light text-dark ms-1">{{ $segmentCounts['unverified'] }}</span>
+                            </a>
+                            <a href="{{ route('users', array_merge($segQuery, ['segment' => 'verified_no_property'])) }}"
+                               class="btn btn-sm {{ ($segment ?? '') === 'verified_no_property' ? 'btn-info' : 'btn-outline-info' }}"
+                               title="Verified email but no property or legacy hotel listing">
+                                Verified, no listing <span class="badge bg-light text-dark ms-1">{{ $segmentCounts['verified_no_property'] }}</span>
+                            </a>
+                            <a href="{{ route('users', array_merge($segQuery, ['segment' => 'with_properties'])) }}"
+                               class="btn btn-sm {{ ($segment ?? '') === 'with_properties' ? 'btn-success' : 'btn-outline-success' }}"
+                               title="Has at least one property or legacy hotel">
+                                With listings <span class="badge bg-light text-dark ms-1">{{ $segmentCounts['with_properties'] }}</span>
+                            </a>
+                        </div>
+                    @endif
                     
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -86,6 +114,9 @@
                     <div class="mb-4">
                         <form method="GET" action="{{ route('users') }}" id="searchForm">
                             <input type="hidden" name="filter" value="{{ $filter ?? 'all' }}" id="filterInput">
+                            @if(!empty($segment))
+                                <input type="hidden" name="segment" value="{{ $segment }}" id="segmentInput">
+                            @endif
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-search"></i>
@@ -98,7 +129,7 @@
                                        value="{{ $search ?? '' }}"
                                        autocomplete="off">
                                 @if(isset($search) && $search)
-                                    <a href="{{ route('users', ['filter' => $filter ?? 'all']) }}" class="btn btn-outline-secondary" title="Clear search">
+                                    <a href="{{ route('users', array_filter(['filter' => $filter ?? 'all', 'segment' => $segment ?? null])) }}" class="btn btn-outline-secondary" title="Clear search">
                                         <i class="fas fa-times"></i>
                                     </a>
                                 @endif
@@ -113,10 +144,24 @@
                         </div>
                     @endif
 
+                    @if(!empty($canBulkDeleteSelected))
+                        <form method="POST" action="{{ route('admin.users.bulk-delete') }}" id="bulkDeleteForm" class="mb-2">
+                            @csrf
+                            <button type="button" class="btn btn-danger btn-sm mb-2" id="bulkDeleteBtn" disabled>
+                                <i class="fas fa-trash-alt me-1"></i>Delete selected
+                            </button>
+                        </form>
+                    @endif
+
                     <div class="table-responsive">
                         <table class="table text-start align-middle table-bordered table-hover mb-0">
                             <thead>
                                 <tr class="text-dark">
+                                    @if(!empty($canBulkDeleteSelected))
+                                        <th scope="col" style="width: 42px;">
+                                            <input type="checkbox" class="form-check-input" id="selectAllUsers" title="Select all deletable users">
+                                        </th>
+                                    @endif
                                     <th scope="col">Name</th>
                                     <th scope="col">Email</th>
                                     <th scope="col">Role</th>
@@ -143,8 +188,17 @@
                                     $listingTotal = (int) ($user->properties_count ?? 0) + (int) ($user->owned_hotels_count ?? 0);
                                     $guestBookings = (int) ($user->guest_bookings_count ?? 0);
                                     $hostBookings = (int) ($user->host_bookings_count ?? 0);
+                                    $canBulkDeleteRow = !empty($canBulkDeleteSelected) && (int)($user->role ?? 0) !== 1;
                                 @endphp
                                 <tr>
+                                    @if(!empty($canBulkDeleteSelected))
+                                        <td>
+                                            @if($canBulkDeleteRow)
+                                                <input type="checkbox" class="form-check-input user-delete-cb" form="bulkDeleteForm" name="ids[]" value="{{ $user->id }}"
+                                                       data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}">
+                                            @endif
+                                        </td>
+                                    @endif
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
@@ -203,7 +257,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">
+                                    <td colspan="{{ !empty($canBulkDeleteSelected) ? '8' : '7' }}" class="text-center py-4">
                                         <div class="text-muted">
                                             <i class="fas fa-user-slash fa-3x mb-3"></i>
                                             <p class="mb-0">No users found</p>
@@ -221,6 +275,32 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if(!empty($canBulkDeleteSelected))
+                        <div class="modal fade" id="bulkDeleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="bulkDeleteConfirmModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="bulkDeleteConfirmModalLabel">Confirm bulk deletion</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="text-danger font-weight-bold mb-2">These accounts will be permanently removed:</p>
+                                        <ul class="list-group list-group-flush" id="bulkDeleteUserList"></ul>
+                                        <p class="text-muted small mt-3 mb-0">This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger" id="bulkDeleteConfirmSubmit" form="bulkDeleteForm">
+                                            Delete permanently
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
             <!-- Recent Sales End -->
@@ -253,6 +333,64 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const filterInput = document.getElementById('filterInput');
     let searchTimeout;
+
+    const selectAll = document.getElementById('selectAllUsers');
+    const bulkBtn = document.getElementById('bulkDeleteBtn');
+    const bulkDeleteModalEl = document.getElementById('bulkDeleteConfirmModal');
+    const bulkDeleteUserList = document.getElementById('bulkDeleteUserList');
+
+    function refreshBulkButton() {
+        if (!bulkBtn) return;
+        const any = document.querySelectorAll('.user-delete-cb:checked').length > 0;
+        bulkBtn.disabled = !any;
+    }
+
+    function openBulkDeleteModal() {
+        if (!bulkDeleteModalEl || !bulkDeleteUserList) return;
+        const checked = document.querySelectorAll('.user-delete-cb:checked');
+        if (!checked.length) return;
+
+        bulkDeleteUserList.innerHTML = '';
+        checked.forEach(function(cb) {
+            const name = cb.getAttribute('data-user-name') || '—';
+            const email = cb.getAttribute('data-user-email') || '—';
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-start flex-column flex-sm-row gap-1';
+            li.innerHTML = '<span class="fw-medium">' + escapeHtml(name) + '</span><span class="text-muted small">' + escapeHtml(email) + '</span>';
+            bulkDeleteUserList.appendChild(li);
+        });
+
+        if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+            window.jQuery('#bulkDeleteConfirmModal').modal('show');
+        } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(bulkDeleteModalEl).show();
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    if (bulkBtn) {
+        bulkBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openBulkDeleteModal();
+        });
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            document.querySelectorAll('.user-delete-cb').forEach(function(cb) {
+                cb.checked = selectAll.checked;
+            });
+            refreshBulkButton();
+        });
+    }
+    document.querySelectorAll('.user-delete-cb').forEach(function(cb) {
+        cb.addEventListener('change', refreshBulkButton);
+    });
 
     // Auto-search functionality with debounce
     if (searchInput) {
@@ -287,6 +425,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const filter = url.searchParams.get('filter') || 'all';
             if (filterInput) {
                 filterInput.value = filter;
+            }
+            const segIn = document.getElementById('segmentInput');
+            const seg = url.searchParams.get('segment');
+            if (segIn && seg) {
+                segIn.value = seg;
             }
         });
     });
