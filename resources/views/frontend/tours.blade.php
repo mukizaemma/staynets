@@ -3,28 +3,6 @@
 @section('content')
 
     <!--==============================
-    Trips Page Hero
-============================== -->
-    <div class="breadcumb-wrapper" data-bg-src="{{ asset('assets/img/bg/breadcumb-bg-1.jpg') }}" style="position: relative; width: 100%; overflow: hidden;">
-        <!-- Dark overlay to ensure text readability over any background image -->
-        <div style="position:absolute; inset:0; background:linear-gradient(135deg, rgba(0,0,0,0.75), rgba(0,0,0,0.55));"></div>
-
-        <div class="container">
-            <div class="breadcumb-content text-center" style="position: relative; z-index: 1; padding: 10px 0 50px;">
-                <h1 class="breadcumb-title" style="color:#fff; margin-bottom:18px;">
-                    Explore Rwanda &amp; East Africa
-                </h1>
-                <p style="max-width: 860px; margin: 0 auto; color:#f5f5f5; font-size:16px; line-height:1.7;">
-                    Welcome to Stay Nets. At Stay Nets, we create unforgettable travel experiences across Rwanda and East Africa.
-                    Specializing in wildlife safaris, mountain gorilla trekking, cultural tours, and scenic adventures, we craft
-                    tailor-made itineraries for individuals, families, and groups. Whether you seek luxury or budget-friendly travel,
-                    our professional guides, seamless logistics, and curated experiences ensure an exceptional journey.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!--==============================
     Destinations Area
 ==============================-->
     <section class="space">
@@ -178,7 +156,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label" style="font-weight: 500;">Phone Number</label>
-                                    <input type="tel" class="form-control" name="phone" placeholder="+250 788 123 456">
+                                    <input type="tel" class="form-control" name="phone" placeholder="+250 7XX XXX XXX">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label" style="font-weight: 500;">Country</label>

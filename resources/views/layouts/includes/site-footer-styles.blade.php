@@ -51,7 +51,7 @@
             left: 0;
             width: 40px;
             height: 2px;
-            background: linear-gradient(90deg, #2dd4bf, #0d9488);
+            background: linear-gradient(90deg, var(--brand-green), var(--brand-blue));
             border-radius: 2px;
         }
         
@@ -116,23 +116,28 @@
         }
         
         /* Smaller logo on small screens so it fits the header without dominating */
+        .header-logo img,
+        .mobile-logo img,
+        .about-logo img {
+            height: auto;
+            max-height: 52px;
+            width: auto;
+            object-fit: contain;
+        }
         @media (max-width: 991px) {
             .header-logo img {
-                width: 120px !important;
-                max-width: 120px;
-                height: auto;
+                width: auto !important;
+                max-height: 44px;
             }
         }
         @media (max-width: 575px) {
             .header-logo img {
-                width: 95px !important;
-                max-width: 95px;
-                height: auto;
+                width: auto !important;
+                max-height: 38px;
             }
             .mobile-logo img {
-                width: 90px !important;
-                max-width: 90px;
-                height: auto;
+                width: auto !important;
+                max-height: 36px;
             }
         }
         
@@ -159,14 +164,14 @@
         }
         
         .th-social a:hover {
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, var(--brand-green), var(--brand-blue));
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+            box-shadow: 0 5px 15px rgba(56, 136, 64, 0.35);
         }
         
         .th-social--footer a:hover {
-            background: linear-gradient(135deg, #2dd4bf, #0d9488);
-            box-shadow: 0 5px 16px rgba(13, 148, 136, 0.35);
+            background: linear-gradient(135deg, var(--brand-green), var(--brand-blue));
+            box-shadow: 0 5px 16px rgba(56, 136, 64, 0.30);
         }
         
         .footer-widget.widget_nav_menu ul.menu {
@@ -195,11 +200,11 @@
             left: -20px;
             opacity: 0;
             transition: all 0.3s ease;
-            color: #25D366;
+            color: var(--brand-green);
         }
         
         .footer-widget.widget_nav_menu ul.menu li a:hover {
-            color: #25D366;
+            color: var(--brand-green);
             padding-left: 20px;
         }
         
@@ -395,13 +400,13 @@
         }
         
         .info-box_text .icon {
-            background: rgba(37, 211, 102, 0.2);
-            border: 1px solid rgba(37, 211, 102, 0.3);
+            background: rgba(56, 136, 64, 0.20);
+            border: 1px solid rgba(56, 136, 64, 0.30);
         }
         
         .info-box_text:hover .icon {
-            background: rgba(37, 211, 102, 0.3);
-            border-color: #25D366;
+            background: rgba(56, 136, 64, 0.28);
+            border-color: var(--brand-green);
         }
         
         .info-box_text .details p,
@@ -411,7 +416,7 @@
         }
         
         .info-box_text .details a:hover {
-            color: #25D366;
+            color: var(--brand-green);
         }
         
         .destination-btn .th-btn {
@@ -419,12 +424,12 @@
             padding: 12px 30px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            box-shadow: 0 4px 15px rgba(56, 136, 64, 0.25);
         }
         
         .destination-btn .th-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+            box-shadow: 0 6px 20px rgba(56, 136, 64, 0.35);
         }
         
         .copyright-wrap {
@@ -442,7 +447,7 @@
         }
         
         .copyright-text a {
-            color: #25D366;
+            color: var(--brand-green);
             text-decoration: none;
             transition: all 0.3s ease;
         }
@@ -463,7 +468,7 @@
         
         .btn-add-property:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5) !important;
+            box-shadow: 0 6px 20px rgba(56, 136, 64, 0.35) !important;
             color: #fff !important;
         }
         
@@ -502,14 +507,14 @@
             left: 30px;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, var(--brand-green), var(--brand-blue));
             color: #ffffff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 28px;
-            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            box-shadow: 0 4px 20px rgba(56, 136, 64, 0.35);
             z-index: 1000;
             transition: all 0.3s ease;
             text-decoration: none;
@@ -518,8 +523,8 @@
         
         .whatsapp-float:hover {
             transform: scale(1.1) translateY(-5px);
-            box-shadow: 0 6px 25px rgba(37, 211, 102, 0.6);
-            background: linear-gradient(135deg, #128C7E, #25D366);
+            box-shadow: 0 6px 25px rgba(56, 136, 64, 0.45);
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-green));
         }
         
         .whatsapp-float i {
@@ -528,13 +533,13 @@
         
         @keyframes pulse {
             0% {
-                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+                box-shadow: 0 4px 20px rgba(56, 136, 64, 0.35);
             }
             50% {
-                box-shadow: 0 4px 30px rgba(37, 211, 102, 0.6);
+                box-shadow: 0 4px 30px rgba(56, 136, 64, 0.45);
             }
             100% {
-                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+                box-shadow: 0 4px 20px rgba(56, 136, 64, 0.35);
             }
         }
         

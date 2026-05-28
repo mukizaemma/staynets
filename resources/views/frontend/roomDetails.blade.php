@@ -41,7 +41,7 @@
     }
     .gallery-thumb.active {
         opacity: 1;
-        border: 3px solid #0071c2;
+        border: 3px solid var(--brand-blue);
     }
     .gallery-thumb img {
         width: 100%;
@@ -61,7 +61,7 @@
         cursor: pointer;
     }
     .gallery-thumbnail.active {
-        border: 2px solid #0071c2 !important;
+        border: 2px solid var(--brand-blue) !important;
     }
     .gallery-thumbnail:hover {
         opacity: 0.8;

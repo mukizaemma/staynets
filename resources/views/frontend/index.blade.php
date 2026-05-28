@@ -276,8 +276,8 @@
                     <a href="{{ route('connect') }}" class="text-decoration-none">
                         <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
                             <div class="card-body p-4">
-                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(37,211,102,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                                    <i class="fas fa-plane" style="color:#25D366; font-size:28px;"></i>
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(56,136,64,0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="fas fa-plane" style="color:var(--brand-green); font-size:28px;"></i>
                                 </div>
                                 <h5 class="card-title mb-2" style="color:#1a1a1a;">Airport Transfers</h5>
                                 <p class="card-text mb-0" style="font-size:14px; color:#555;">
@@ -292,8 +292,8 @@
                     <a href="{{ route('showCars') }}" class="text-decoration-none">
                         <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
                             <div class="card-body p-4">
-                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(37,211,102,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                                    <i class="fas fa-car" style="color:#25D366; font-size:28px;"></i>
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(56,136,64,0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="fas fa-car" style="color:var(--brand-green); font-size:28px;"></i>
                                 </div>
                                 <h5 class="card-title mb-2" style="color:#1a1a1a;">Car Rentals</h5>
                                 <p class="card-text mb-0" style="font-size:14px; color:#555;">
@@ -308,8 +308,8 @@
                     <a href="{{ route('tours') }}" class="text-decoration-none">
                         <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
                             <div class="card-body p-4">
-                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(37,211,102,0.2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                                    <i class="fas fa-map-marked-alt" style="color:#25D366; font-size:28px;"></i>
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(56,136,64,0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="fas fa-map-marked-alt" style="color:var(--brand-green); font-size:28px;"></i>
                                 </div>
                                 <h5 class="card-title mb-2" style="color:#1a1a1a;">Tours</h5>
                                 <p class="card-text mb-0" style="font-size:14px; color:#555;">
@@ -320,6 +320,69 @@
                     </a>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!--==============================
+    Tours – oldest 3 trips
+    ==============================-->
+    <section class="space" id="home-tours-sec" style="background:#ffffff;">
+        <div class="container">
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-8">
+                    <div class="title-area text-center">
+                        <h2 class="sec-title">Tours &amp; Experiences</h2>
+                        <p class="sec-text">Start with these highlights — explore more tours across Rwanda &amp; East Africa.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                @foreach(($trips ?? collect())->take(3) as $trip)
+                    @php
+                        $tripImage = asset('assets/img/tour/tour_3_1.jpg');
+                        if (!empty($trip->image) && file_exists(storage_path('app/public/images/trips/' . $trip->image))) {
+                            $tripImage = asset('storage/images/trips/' . $trip->image);
+                        } elseif (!empty($trip->images) && $trip->images->count() > 0) {
+                            $img = $trip->images->first();
+                            if (!empty($img->image) && file_exists(storage_path('app/public/images/trips/' . $img->image))) {
+                                $tripImage = asset('storage/images/trips/' . $img->image);
+                            }
+                        }
+                        $short = \Illuminate\Support\Str::limit(strip_tags($trip->description ?? ''), 110);
+                    @endphp
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="tour-box th-ani h-100">
+                            <div class="tour-box_img global-img">
+                                <img src="{{ $tripImage }}" alt="{{ $trip->title ?? 'Tour' }}" style="width:100%;height:220px;object-fit:cover;">
+                            </div>
+                            <div class="tour-content">
+                                <h3 class="box-title">
+                                    <a href="{{ route('tour', $trip->slug) }}">{{ $trip->title ?? 'Tour' }}</a>
+                                </h3>
+                                @if(!empty($short))
+                                    <p class="mb-3" style="color:#666; font-size:0.95rem; line-height:1.5;">{{ $short }}</p>
+                                @endif
+                                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                    @if(!empty($trip->location))
+                                        <span class="small text-muted"><i class="fa-solid fa-location-dot text-primary me-1"></i>{{ $trip->location }}</span>
+                                    @else
+                                        <span class="small text-muted">&nbsp;</span>
+                                    @endif
+                                    <a href="{{ route('tour', $trip->slug) }}" class="th-btn style3 featured-listing-avail-btn">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            @if(($tripsTotal ?? 0) > 3)
+                <div class="text-center mt-4">
+                    <a href="{{ route('tours') }}" class="th-btn style3 th-icon">View more tours</a>
+                </div>
+            @endif
         </div>
     </section>
 
@@ -394,7 +457,7 @@ Why Choose Stay Nets
                         <div class="row g-3">
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -405,7 +468,7 @@ Why Choose Stay Nets
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -416,7 +479,7 @@ Why Choose Stay Nets
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -427,7 +490,7 @@ Why Choose Stay Nets
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -438,7 +501,7 @@ Why Choose Stay Nets
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -595,8 +658,8 @@ Service Area
 #heroSearchForm .form-control:focus,
 #heroSearchForm .form-select:focus {
     background: #ffffff !important;
-    border-color: #25D366 !important;
-    box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.2);
+    border-color: var(--brand-green) !important;
+    box-shadow: 0 0 0 0.2rem rgba(56, 136, 64, 0.20);
     outline: none;
     color: #333 !important;
 }
@@ -622,7 +685,7 @@ Service Area
 /* Button hover effect */
 #searchBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(56, 136, 64, 0.35) !important;
 }
 
 @media (max-width: 991px) {
@@ -691,7 +754,7 @@ Service Area
 /* Travel Service Card Hover */
 .travel-service-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(37, 211, 102, 0.2) !important;
+    box-shadow: 0 12px 30px rgba(56, 136, 64, 0.20) !important;
 }
 
 /* Travel Services section – full-width background image */

@@ -5,6 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    @php
+        // Ensure $setting is always available (some controllers don't pass it).
+        if (!isset($setting) || $setting === null) {
+            $setting = \App\Models\Setting::first();
+        }
+    @endphp
     <title>{{ $setting->company ?? '' }}</title>
     <meta name="author" content="StayNets">
     <meta name="description" content="Best Accommodation Booking Engine in Rwanda">
@@ -15,9 +21,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     @php
-        $favicon = $setting->logo
-            ? asset('storage/images/' . $setting->logo)
-            : asset('assets/img/favicons/apple-icon-180x180.png');
+        // "Contacts" settings in admin manage this Setting record.
+        // Logo path can vary by uploader (e.g. 'logo.png', 'images/logo.png', 'images/site/logo.png').
+        $logoUrl = asset('assets/img/logo.svg');
+        $favicon = asset('assets/img/favicons/apple-icon-180x180.png');
+
+        $rawLogo = ltrim((string) ($setting?->logo ?? ''), '/');
+        if (!empty($rawLogo)) {
+            $logoCandidates = array_values(array_unique(array_filter([
+                $rawLogo,
+                'images/' . $rawLogo,
+                'images/site/' . $rawLogo,
+            ])));
+
+            foreach ($logoCandidates as $candidate) {
+                try {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($candidate)) {
+                        $logoUrl = \Illuminate\Support\Facades\Storage::url($candidate);
+                        // use the same logo as favicon when present (existing behavior)
+                        $favicon = $logoUrl;
+                        break;
+                    }
+                } catch (\Throwable $e) {
+                    // fall back below
+                }
+            }
+        }
     @endphp
 
     <!-- Favicons - Place favicon.ico in the root directory -->
@@ -78,7 +107,7 @@
                     icon: 'success',
                     title: 'Success!',
                     text: '{{ session('success') }}',
-                    confirmButtonColor: '#25D366'
+                    confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--brand-green').trim() || '#388840'
                 });
             });
         </script>
@@ -105,7 +134,7 @@
             <div class="widget  ">
                 <div class="th-widget-about">
                     <div class="about-logo">
-                        <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets"></a>
+                        <a href="{{ route('home') }}"><img src="{{ $logoUrl }}" alt="StayNets"></a>
                     </div>
                     <p class="about-text">Discover Rwanda's charm with a peaceful stay through our booking engine.</p>
                     <div class="th-social">
@@ -189,7 +218,7 @@
         <div class="th-menu-area text-center">
             <button class="th-menu-toggle"><i class="fal fa-times"></i></button>
             <div class="mobile-logo">
-                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets" width="120px"></a>
+                <a href="{{ route('home') }}"><img src="{{ $logoUrl }}" alt="StayNets" width="120px"></a>
             </div>
             <div class="th-mobile-menu">
                 <ul>
@@ -243,7 +272,7 @@
                     <div class="row align-items-center">
                         <div class="col-auto">
                             <div class="header-logo">
-                                <a href="{{ route('home') }}"><img src="{{ asset('storage/images') . $setting->logo }}" alt="StayNets" width="150px"></a>
+                                <a href="{{ route('home') }}"><img src="{{ $logoUrl }}" alt="StayNets" width="150px"></a>
                             </div>
                         </div>
                         <div class="col d-flex justify-content-center d-none d-xl-flex">
@@ -284,7 +313,7 @@
                                 </a>
                                 <a href="{{ route('myPropertyCreate') }}"
                                    class="btn btn-add-property me-2"
-                                   style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: all 0.3s ease;">
+                                   style="background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(56, 136, 64, 0.35); transition: all 0.3s ease;">
                                     <i class="fas fa-plus-circle me-2"></i>Add your Property
                                 </a>
                                 <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -295,7 +324,7 @@
                                 </form>
                             @else
                                 <a href="#login-form" class="popup-content btn btn-add-property"
-                                   style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: all 0.3s ease;">
+                                   style="background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(56, 136, 64, 0.35); transition: all 0.3s ease;">
                                     <i class="fas fa-plus-circle me-2"></i>Add your Property
                                 </a>
                             @endif
@@ -437,7 +466,7 @@ modal Area
             <div class="modal-content" style="border-radius: 15px; border: none;">
                 <div class="modal-header" style="border-bottom: 1px solid #e0e0e0; padding: 20px 25px;">
                     <h5 class="modal-title" id="forgotPasswordModalLabel" style="font-weight: 600; color: #333;">
-                        <i class="fas fa-key me-2" style="color: #25D366;"></i>Reset Password
+                        <i class="fas fa-key me-2" style="color: var(--brand-green);"></i>Reset Password
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -464,7 +493,7 @@ modal Area
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg" id="forgot-submit-btn" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none; border-radius: 8px; padding: 12px; font-weight: 600;">
+                            <button type="submit" class="btn btn-primary btn-lg" id="forgot-submit-btn" style="background: linear-gradient(135deg, var(--brand-green), var(--brand-blue)); border: none; border-radius: 8px; padding: 12px; font-weight: 600;">
                                 <i class="fas fa-paper-plane me-2"></i>Send Reset Link
                             </button>
                         </div>
@@ -484,13 +513,13 @@ modal Area
     }
     
     #forgotPasswordModal .form-control-lg:focus {
-        border-color: #25D366;
-        box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.25);
+        border-color: var(--brand-green);
+        box-shadow: 0 0 0 0.2rem rgba(56, 136, 64, 0.25);
     }
     
     #forgotPasswordModal .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        box-shadow: 0 5px 15px rgba(56, 136, 64, 0.35);
     }
     </style>
 

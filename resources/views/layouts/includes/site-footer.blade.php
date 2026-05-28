@@ -97,7 +97,7 @@
         <div class="container">
             <div class="row justify-content-between align-items-center">
                 <div class="col-12 text-center">
-                    <p class="copyright-text mb-0">&copy; {{ date('Y') }} <a href="{{ route('home') }}">{{ optional($setting)->company ?? 'Stay Nests' }}</a>. All rights reserved. <span class="copyright-meta">Crafted by <a href="https://www.iremetech.com" target="_blank" rel="noopener noreferrer">Ireme Technologies</a></span></p>
+                    <p class="copyright-text mb-0">&copy; {{ date('Y') }}, All rights reserved by <a href="{{ route('home') }}">{{ optional($setting)->company ?? 'Stay Nests' }}</a>. <span class="copyright-meta">Crafted by <a href="https://www.iremetech.com" target="_blank" rel="noopener noreferrer">Ireme Technologies</a></span></p>
                 </div>
             </div>
 

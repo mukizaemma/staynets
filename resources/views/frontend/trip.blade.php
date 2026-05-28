@@ -216,7 +216,7 @@ if ($images->isEmpty()) {
                                     
                                     <div class="mb-3">
                                         <label class="form-label" style="font-weight: 500; margin-bottom: 5px;">Phone Number <span class="text-danger">*</span></label>
-                                        <input type="tel" name="phone" class="form-control" placeholder="+250 788 123 456" required>
+                                        <input type="tel" name="phone" class="form-control" placeholder="+250 7XX XXX XXX" required>
                                     </div>
                                     
                                     <div class="mb-3">

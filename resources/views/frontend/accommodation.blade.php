@@ -25,7 +25,7 @@
         line-height: 1.3;
     }
     .property-location {
-        color: #0071c2;
+        color: var(--brand-blue);
         font-size: 14px;
         margin: 0;
     }
@@ -43,7 +43,7 @@
     .property-rating-badge {
         display: inline-flex;
         align-items: center;
-        background: #003580;
+        background: var(--brand-blue);
         color: white;
         padding: 6px 12px;
         border-radius: 6px;
@@ -90,7 +90,7 @@
     }
     .gallery-thumb.active {
         opacity: 1;
-        border: 3px solid #0071c2;
+        border: 3px solid var(--brand-blue);
     }
     .gallery-thumb img {
         width: 100%;
@@ -142,7 +142,7 @@
         border-radius: 8px;
     }
     .facility-item i {
-        color: #0071c2;
+        color: var(--brand-blue);
         margin-right: 12px;
         font-size: 18px;
         width: 24px;
@@ -200,7 +200,7 @@
         color: #d32f2f;
     }
     .btn-book-room {
-        background: #0071c2;
+        background: var(--brand-blue);
         color: white;
         border: none;
         padding: 10px 20px;
@@ -210,7 +210,7 @@
         transition: background 0.3s;
     }
     .btn-book-room:hover {
-        background: #005a9e;
+        background: #123a5a;
     }
     .btn-book-room:disabled {
         background: #ccc;
@@ -224,7 +224,7 @@
     }
     .reserve-box {
         background: white;
-        border: 2px solid #0071c2;
+        border: 2px solid var(--brand-blue);
         border-radius: 12px;
         padding: 25px;
         margin-bottom: 30px;
@@ -265,11 +265,11 @@
     .reserve-form-group input:focus,
     .reserve-form-group select:focus {
         outline: none;
-        border-color: #0071c2;
+        border-color: var(--brand-blue);
     }
     .btn-reserve {
         width: 100%;
-        background: #0071c2;
+        background: var(--brand-blue);
         color: white;
         border: none;
         padding: 15px;
@@ -281,7 +281,7 @@
         margin-top: 10px;
     }
     .btn-reserve:hover {
-        background: #005a9e;
+        background: #123a5a;
     }
     .btn-reserve:disabled {
         background: #ccc;
@@ -724,20 +724,30 @@
                                                 $currency = $unit->currency ?? 'USD';
                                                 $currencySymbol = getCurrencySymbol($currency);
                                                 $uPt = $unit->price_display_type ?? 'per_night';
+                                                $weeklyEnabled = (bool)($unit->enable_weekly_rate ?? false);
+                                                $monthlyEnabled = (bool)($unit->enable_monthly_rate ?? false);
                                             @endphp
-                                            @if($uPt === 'per_month')
-                                                <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_month ?? 0, 0) }}</div>
-                                                <div class="room-price-label">per month</div>
-                                            @elseif($uPt === 'both')
-                                                <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
-                                                <div class="room-price-label">per night</div>
-                                                @if(!empty($unit->base_price_per_month))
-                                                    <div class="room-price mt-1">{{ $currencySymbol }}{{ number_format($unit->base_price_per_month, 0) }}</div>
-                                                    <div class="room-price-label">per month</div>
-                                                @endif
-                                            @else
-                                                <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
-                                                <div class="room-price-label">per night</div>
+                                            <div class="room-price">{{ $currencySymbol }}{{ number_format($unit->base_price_per_night ?? 0, 0) }}</div>
+                                            <div class="room-price-label">daily rate</div>
+
+                                            @if(($weeklyEnabled || !empty($unit->base_price_per_week)) && !empty($unit->base_price_per_week))
+                                                <div class="mt-2 small">
+                                                    <span class="badge bg-light text-dark" style="border:1px solid #eaeaea;">
+                                                        <i class="fas fa-calendar-week me-1" style="color:var(--brand-blue);"></i>
+                                                        Weekly: {{ $currencySymbol }}{{ number_format($unit->base_price_per_week ?? 0, 0) }}
+                                                    </span>
+                                                    <div class="text-muted" style="font-size: 12px;">Applied for stays 7+ nights</div>
+                                                </div>
+                                            @endif
+
+                                            @if(($monthlyEnabled || !empty($unit->base_price_per_month)) && !empty($unit->base_price_per_month))
+                                                <div class="mt-2 small">
+                                                    <span class="badge bg-light text-dark" style="border:1px solid #eaeaea;">
+                                                        <i class="fas fa-calendar-alt me-1" style="color:var(--brand-blue);"></i>
+                                                        Monthly: {{ $currencySymbol }}{{ number_format($unit->base_price_per_month ?? 0, 0) }}
+                                                    </span>
+                                                    <div class="text-muted" style="font-size: 12px;">Applied for stays 30+ nights</div>
+                                                </div>
                                             @endif
                                         </td>
                                         <td>
@@ -1071,7 +1081,7 @@
 
 <style>
     .gallery-thumbnail.active {
-        border: 2px solid #0071c2 !important;
+        border: 2px solid var(--brand-blue) !important;
     }
     .gallery-thumbnail:hover {
         opacity: 0.8;
@@ -1270,8 +1280,9 @@
         const dailyRate = parseFloat(selectedUnitDailyRate) || 0;
         const weeklyRate = parseFloat(selectedUnitWeeklyRate) || 0;
         const monthlyRate = parseFloat(selectedUnitMonthlyRate) || 0;
-        const enableWeekly = !!selectedUnitEnableWeekly;
-        const enableMonthly = !!selectedUnitEnableMonthly;
+        // Treat as available if explicitly enabled OR a rate was configured (>0).
+        const enableWeekly = (!!selectedUnitEnableWeekly) || (weeklyRate > 0);
+        const enableMonthly = (!!selectedUnitEnableMonthly) || (monthlyRate > 0);
 
         var extrasTotal = 0;
         document.querySelectorAll('#extrasList .extra-charge-cb:checked').forEach(function(cb) {
@@ -1286,19 +1297,25 @@
                 const diffTime = Math.abs(date2 - date1);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                document.getElementById('numberOfNights').textContent = diffDays + ' ' + (diffDays == 1 ? 'night' : 'nights');
+                const nightsLabel = diffDays + ' ' + (diffDays == 1 ? 'night' : 'nights');
+                document.getElementById('numberOfNights').textContent = nightsLabel;
                 const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
                 let baseTotal = dailyRate * diffDays;
                 // Apply weekly/monthly if enabled and thresholds met (7+ nights => weekly, 30+ => monthly).
+                let appliedLabel = 'Daily rate';
                 if (diffDays >= 30 && enableMonthly && monthlyRate > 0) {
                     const months = Math.ceil(diffDays / 30);
                     baseTotal = monthlyRate * months;
+                    appliedLabel = `Monthly rate · ${months} month${months === 1 ? '' : 's'}`;
                 } else if (diffDays >= 7 && enableWeekly && weeklyRate > 0) {
                     const weeks = Math.ceil(diffDays / 7);
                     baseTotal = weeklyRate * weeks;
+                    appliedLabel = `Weekly rate · ${weeks} week${weeks === 1 ? '' : 's'}`;
                 }
                 const total = baseTotal + extrasTotal;
                 document.getElementById('totalAmount').textContent = currencySymbol + total.toLocaleString();
+                var priceLabelTextEl = document.getElementById('priceLabelText');
+                if (priceLabelTextEl) priceLabelTextEl.textContent = appliedLabel + ':';
                 
                 if (selectedUnitId) {
                     document.getElementById('btnReserve').disabled = false;
@@ -1307,12 +1324,16 @@
                 document.getElementById('numberOfNights').textContent = '-';
                 const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
                 document.getElementById('totalAmount').textContent = currencySymbol + (extrasTotal || 0).toLocaleString();
+                var priceLabelTextEl = document.getElementById('priceLabelText');
+                if (priceLabelTextEl) priceLabelTextEl.textContent = 'Price per night:';
                 document.getElementById('btnReserve').disabled = true;
             }
         } else {
             document.getElementById('numberOfNights').textContent = '-';
             const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
             document.getElementById('totalAmount').textContent = currencySymbol + (extrasTotal || 0).toLocaleString();
+            var priceLabelTextEl = document.getElementById('priceLabelText');
+            if (priceLabelTextEl) priceLabelTextEl.textContent = 'Price per night:';
             document.getElementById('btnReserve').disabled = true;
         }
     }
@@ -1411,7 +1432,7 @@
 <div class="modal fade" id="bookingLoginModal" tabindex="-1" aria-labelledby="bookingLoginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #0071c2, #005a9e); color: white; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--brand-blue), #123a5a); color: white; border: none;">
                 <h5 class="modal-title" id="bookingLoginModalLabel">
                     <i class="fas fa-lock me-2"></i>Login Required
                 </h5>
@@ -1425,7 +1446,7 @@
                 <!-- Tab Navigation -->
                 <ul class="nav nav-tabs mb-4" id="bookingAuthTabs" role="tablist" style="border-bottom: 2px solid #e0e0e0;">
                     <li class="nav-item" role="presentation" style="flex: 1;">
-                        <button class="nav-link active w-100" id="booking-login-tab" data-bs-toggle="tab" data-bs-target="#booking-login" type="button" role="tab" aria-controls="booking-login" aria-selected="true" style="border: none; border-bottom: 3px solid #0071c2; color: #0071c2; font-weight: 600; padding: 12px;">
+                        <button class="nav-link active w-100" id="booking-login-tab" data-bs-toggle="tab" data-bs-target="#booking-login" type="button" role="tab" aria-controls="booking-login" aria-selected="true" style="border: none; border-bottom: 3px solid var(--brand-blue); color: var(--brand-blue); font-weight: 600; padding: 12px;">
                             <i class="fas fa-sign-in-alt me-2"></i>Login
                         </button>
                     </li>
@@ -1481,14 +1502,14 @@
                                         Remember me
                                     </label>
                                 </div>
-                                <a href="{{ route('password.request') }}" class="text-decoration-none" style="color: #0071c2; font-size: 14px;">
+                                <a href="{{ route('password.request') }}" class="text-decoration-none" style="color: var(--brand-blue); font-size: 14px;">
                                     Forgot password?
                                 </a>
                             </div>
 
                             <div id="booking-login-message" class="mb-3"></div>
 
-                            <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #0071c2, #005a9e); color: white; padding: 12px; font-weight: 600; border-radius: 8px;">
+                            <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, var(--brand-blue), #123a5a); color: white; padding: 12px; font-weight: 600; border-radius: 8px;">
                                 <i class="fas fa-sign-in-alt me-2"></i>Sign In
                             </button>
                         </form>
@@ -1566,7 +1587,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="terms" id="booking-terms" required>
                                         <label class="form-check-label" for="booking-terms">
-                                            I agree to the <a href="{{ route('terms.show') }}" target="_blank" style="color: #0071c2;">Terms of Service</a> and <a href="{{ route('policy.show') }}" target="_blank" style="color: #0071c2;">Privacy Policy</a>
+                                            I agree to the <a href="{{ route('terms.show') }}" target="_blank" style="color: var(--brand-blue);">Terms of Service</a> and <a href="{{ route('policy.show') }}" target="_blank" style="color: var(--brand-blue);">Privacy Policy</a>
                                         </label>
                                     </div>
                                 </div>
@@ -1574,7 +1595,7 @@
 
                             <div id="booking-register-message" class="mb-3"></div>
 
-                            <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #0071c2, #005a9e); color: white; padding: 12px; font-weight: 600; border-radius: 8px;">
+                            <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, var(--brand-blue), #123a5a); color: white; padding: 12px; font-weight: 600; border-radius: 8px;">
                                 <i class="fas fa-user-plus me-2"></i>Create Account
                             </button>
                         </form>

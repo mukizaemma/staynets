@@ -11,7 +11,7 @@
 
 <style>
     .lb-hero {
-        background: linear-gradient(135deg, rgba(18, 140, 126, 0.08), rgba(0, 113, 194, 0.06));
+        background: linear-gradient(135deg, rgba(56, 136, 64, 0.10), rgba(24, 72, 112, 0.08));
         border-radius: 16px;
         overflow: hidden;
     }
@@ -27,7 +27,7 @@
         gap: 8px;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(37, 211, 102, 0.12);
+        background: rgba(56, 136, 64, 0.14);
         color: #0b7a3a;
         font-weight: 700;
         font-size: 13px;
@@ -48,11 +48,11 @@
         justify-content: center;
         font-weight: 800;
         background: #e7f3ff;
-        color: #0071c2;
+        color: var(--brand-blue);
         flex: 0 0 auto;
     }
     .lb-faq .accordion-button:not(.collapsed) {
-        background: rgba(0, 113, 194, 0.06);
+        background: rgba(24, 72, 112, 0.08);
         color: #0a3d62;
     }
 </style>
@@ -72,13 +72,13 @@
 
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         <span class="badge bg-light text-dark" style="padding:10px 12px;border-radius:12px;">
-                            <i class="fas fa-clock me-1" style="color:#0071c2;"></i> Flexible drop-off &amp; pick-up
+                            <i class="fas fa-clock me-1" style="color:var(--brand-blue);"></i> Flexible drop-off &amp; pick-up
                         </span>
                         <span class="badge bg-light text-dark" style="padding:10px 12px;border-radius:12px;">
-                            <i class="fas fa-user-check me-1" style="color:#0071c2;"></i> Trusted handling
+                            <i class="fas fa-user-check me-1" style="color:var(--brand-blue);"></i> Trusted handling
                         </span>
                         <span class="badge bg-light text-dark" style="padding:10px 12px;border-radius:12px;">
-                            <i class="fas fa-map-marker-alt me-1" style="color:#0071c2;"></i> Ideal for transit days
+                            <i class="fas fa-map-marker-alt me-1" style="color:var(--brand-blue);"></i> Ideal for transit days
                         </span>
                     </div>
 
@@ -102,19 +102,19 @@
         <div class="row g-3 g-lg-4 mb-4">
             <div class="col-lg-4">
                 <div class="lb-card p-4 h-100">
-                    <h4 class="mb-2" style="font-weight: 800;"><i class="fas fa-lock me-2" style="color:#0071c2;"></i>Safe storage</h4>
+                    <h4 class="mb-2" style="font-weight: 800;"><i class="fas fa-lock me-2" style="color:var(--brand-blue);"></i>Safe storage</h4>
                     <p class="text-muted mb-0">Your bags are handled by our team and stored safely so you can explore worry-free.</p>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="lb-card p-4 h-100">
-                    <h4 class="mb-2" style="font-weight: 800;"><i class="fas fa-walking me-2" style="color:#0071c2;"></i>Travel hands‑free</h4>
+                    <h4 class="mb-2" style="font-weight: 800;"><i class="fas fa-walking me-2" style="color:var(--brand-blue);"></i>Travel hands‑free</h4>
                     <p class="text-muted mb-0">Perfect between check‑out and late flights, city tours, meetings, or day trips.</p>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="lb-card p-4 h-100">
-                    <h4 class="mb-2" style="font-weight: 800;"><i class="fas fa-bolt me-2" style="color:#0071c2;"></i>Fast booking</h4>
+                    <h4 class="mb-2" style="font-weight: 800;"><i class="fas fa-bolt me-2" style="color:var(--brand-blue);"></i>Fast booking</h4>
                     <p class="text-muted mb-0">Submit your request in under a minute — we’ll confirm details by email/phone.</p>
                 </div>
             </div>

@@ -4,7 +4,7 @@
 <style>
     .unit-header-section { margin-bottom: 16px; }
     .unit-title { font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0; }
-    .breadcrumb-link { color: #0071c2; text-decoration: none; }
+    .breadcrumb-link { color: var(--brand-blue); text-decoration: none; }
     .breadcrumb-link:hover { text-decoration: underline; }
     .image-gallery-main {
         position: relative; width: 100%; height: 500px; border-radius: 12px; overflow: hidden;
@@ -17,7 +17,7 @@
         cursor: pointer; opacity: 0.8; transition: opacity 0.3s;
     }
     .gallery-thumb:hover { opacity: 1; }
-    .gallery-thumb.active { opacity: 1; border: 3px solid #0071c2; }
+    .gallery-thumb.active { opacity: 1; border: 3px solid var(--brand-blue); }
     .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .gallery-overlay {
         position: absolute; bottom: 15px; right: 15px;
@@ -30,19 +30,19 @@
     }
     .section-title { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
     .property-gallery-link {
-        display: inline-flex; align-items: center; gap: 8px; color: #0071c2; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px; color: var(--brand-blue); text-decoration: none;
         font-weight: 600; padding: 10px 16px; background: #e7f3ff; border-radius: 8px; margin-bottom: 20px;
     }
-    .property-gallery-link:hover { background: #cce5ff; color: #005a9e; }
+    .property-gallery-link:hover { background: #cce5ff; color: #123a5a; }
     .room-snapshot { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
     .room-snapshot-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 8px; }
-    .room-snapshot-item i { color: #0071c2; font-size: 18px; width: 24px; }
+    .room-snapshot-item i { color: var(--brand-blue); font-size: 18px; width: 24px; }
     .btn-book-room {
-        background: #0071c2; color: white; border: none; padding: 12px 24px;
+        background: var(--brand-blue); color: white; border: none; padding: 12px 24px;
         border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.3s;
     }
-    .btn-book-room:hover { background: #005a9e; }
-    .gallery-thumbnail.active { border: 2px solid #0071c2 !important; }
+    .btn-book-room:hover { background: #123a5a; }
+    .gallery-thumbnail.active { border: 2px solid var(--brand-blue) !important; }
     @media (max-width: 991px) { .image-gallery-main { height: 300px; } .image-gallery-thumbs { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 767px) { .image-gallery-thumbs { grid-template-columns: repeat(2, 1fr); } }
 </style>

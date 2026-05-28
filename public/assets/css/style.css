@@ -88,9 +88,14 @@ Last Update: 20-07-2024
 /*------------------- 1.2. Function -------------------*/
 /*------------------- 1.3. Variable-------------------*/
 :root {
-  --theme-color: #2F74B3;
-  --primary-color: #2F74B3;
-  --title-color: #1CA8CB;
+  /* StayNets brand palette (from logo) */
+  --brand-blue: #184870;
+  --brand-green: #388840;
+
+  /* Template mappings */
+  --theme-color: var(--brand-blue);
+  --primary-color: var(--brand-blue);
+  --title-color: var(--brand-blue);
   --body-color: #6E7070;
   --smoke-color: #E9F6F9;
   --smoke-color2: #F3F4F6;
@@ -99,8 +104,8 @@ Last Update: 20-07-2024
   --gray-color: #E1E4E5;
   --white-color: #ffffff;
   --light-color: #E1E4E5;
-  --yellow-color: #1CA8CB;
-  --success-color: #28a745;
+  --yellow-color: var(--brand-green);
+  --success-color: var(--brand-green);
   --error-color: #dc3545;
   --th-border-color: #E9EDF5;
   --title-font: "Signika", sans-serif;

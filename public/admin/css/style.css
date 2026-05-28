@@ -1,9 +1,10 @@
 /********** Template CSS **********/
 :root {
-    --primary: #d9a409;
+    /* StayNets brand palette (from logo) */
+    --primary: #184870;
+    --brand-green: #388840;
     --light: #F3F6F9;
     --dark: #191C24;
-    --bruish: #6a4c93;
 }
 
 .back-to-top {
@@ -36,23 +37,23 @@
 }
 
 .btn.btn-primary {
-    color: #AC380B;
-    background-color: #d9a409;
-    border:none;
+    color: #FFFFFF;
+    background-color: var(--primary);
+    border: none;
 }
 .btn.btn-primary:hover {
     color: #FFFFFF;
-    background-color: #AC380B;
+    background-color: #123a5a;
 }
 
-/*** Admin headings & icons (bruish) ***/
+/*** Admin headings & icons (StayNets brand-blue) ***/
 .content h1,
 .content h2,
 .content h3,
 .content h4,
 .content h5,
 .content h6 {
-    color: var(--bruish);
+    color: var(--primary);
 }
 
 .content h1 i,
@@ -63,7 +64,7 @@
 .content h6 i,
 .content .page-title i,
 .content .section-title i {
-    color: var(--bruish);
+    color: var(--primary);
 }
 
 .btn-square {

@@ -55,6 +55,7 @@ class HomeController extends Controller
         $rooms = HotelRoom::oldest()->get();
         $articles = Blog::latest()->paginate(3);
         $trips = Trip::with('images')->oldest()->take(3)->get();
+        $tripsTotal = Trip::count();
         $locations = Hotel::whereNotNull('location')->where('status', 'Active')->where('is_listing_visible', true)->distinct()->pluck('location');
         if ($locations->isEmpty()) {
             $locations = Property::whereNotNull('location')->publishedForGuests()->distinct()->pluck('location');
@@ -135,6 +136,7 @@ class HomeController extends Controller
             'rooms'=>$rooms,
             'articles'=>$articles,
             'trips'=>$trips,
+            'tripsTotal'=>$tripsTotal,
             'services'=>$services,
             'locations'=>$locations,
             'destinations'=>$destinations,
@@ -683,8 +685,8 @@ public function showAccommodation(Request $request, $slug)
                 'dailyRate' => (float) ($u->base_price_per_night ?? 0),
                 'weeklyRate' => (float) ($u->base_price_per_week ?? 0),
                 'monthlyRate' => (float) ($u->base_price_per_month ?? 0),
-                'enableWeekly' => (bool) ($u->enable_weekly_rate ?? false),
-                'enableMonthly' => (bool) ($u->enable_monthly_rate ?? false),
+                'enableWeekly' => (bool) ($u->enable_weekly_rate ?? false) || (float) ($u->base_price_per_week ?? 0) > 0,
+                'enableMonthly' => (bool) ($u->enable_monthly_rate ?? false) || (float) ($u->base_price_per_month ?? 0) > 0,
             ];
         })->values()->toArray();
 
@@ -826,9 +828,9 @@ public function storeBooking(Request $request)
         $nights,
         (float) ($unit->base_price_per_night ?? 0),
         (float) ($unit->base_price_per_week ?? 0),
-        (bool) ($unit->enable_weekly_rate ?? false),
+        (bool) ($unit->enable_weekly_rate ?? false) || (float) ($unit->base_price_per_week ?? 0) > 0,
         (float) ($unit->base_price_per_month ?? 0),
-        (bool) ($unit->enable_monthly_rate ?? false),
+        (bool) ($unit->enable_monthly_rate ?? false) || (float) ($unit->base_price_per_month ?? 0) > 0,
     );
     $baseTotal = (float) ($pricing['base_total'] ?? 0);
 
@@ -1040,9 +1042,9 @@ public function storeHotelRoomBookingRequest(Request $request, string $hotelSlug
         $nights,
         (float) ($room->price_per_night ?? 0),
         (float) ($room->price_per_week ?? 0),
-        (bool) ($room->enable_weekly_rate ?? false),
+        (bool) ($room->enable_weekly_rate ?? false) || (float) ($room->price_per_week ?? 0) > 0,
         (float) ($room->price_per_month ?? 0),
-        (bool) ($room->enable_monthly_rate ?? false),
+        (bool) ($room->enable_monthly_rate ?? false) || (float) ($room->price_per_month ?? 0) > 0,
     );
     $totalAmount = (float) ($pricing['base_total'] ?? 0);
     $commissionRate = 10;
