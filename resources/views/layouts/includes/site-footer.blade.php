@@ -2,6 +2,25 @@
 @php
     $reviewsCount = \App\Models\Review::where('is_approved', true)->count();
     $reviewsAvg = \App\Models\Review::where('is_approved', true)->avg('rating') ?? 0;
+
+    // Contacts Setting: header logo = $setting->logo, footer logo = $setting->donate
+    $footerLogoUrl = $logoUrl ?? asset('assets/img/logo.svg');
+    $rawFooterLogo = ltrim((string) (optional($setting)->donate ?? ''), '/');
+    if (!empty($rawFooterLogo)) {
+        $footerCandidates = array_values(array_unique(array_filter([
+            $rawFooterLogo,
+            'images/' . $rawFooterLogo,
+            'images/site/' . $rawFooterLogo,
+        ])));
+        foreach ($footerCandidates as $candidate) {
+            try {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($candidate)) {
+                    $footerLogoUrl = \Illuminate\Support\Facades\Storage::url($candidate);
+                    break;
+                }
+            } catch (\Throwable $e) {}
+        }
+    }
 @endphp
 <!--==============================
 	Footer Area
@@ -14,8 +33,7 @@
                     <div class="widget footer-widget footer-widget--brand mb-0">
                         <div class="th-widget-about">
                             <div class="about-logo">
-                                <a href="{{ route('home') }}"><img src="{{ asset('storage/images/' . ($setting->logo ?? '')) }}"
-                                   width="120" alt="{{ $setting->company ?? 'StayNets' }}"></a>
+                                <a href="{{ route('home') }}"><img src="{{ $footerLogoUrl }}" alt="{{ $setting->company ?? 'StayNets' }}"></a>
                             </div>
                             <p class="about-text">The Best Hospitality Services Management in Rwanda</p>
                             <div class="th-social th-social--footer">

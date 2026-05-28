@@ -37,9 +37,6 @@ class CreateNewUser implements CreatesNewUsers
             'password' => Hash::make($input['password']),
         ]);
 
-        // Send email verification notification (admins are notified only when a property is submitted)
-        $user->sendEmailVerificationNotification();
-
         return $user;
     }
 }

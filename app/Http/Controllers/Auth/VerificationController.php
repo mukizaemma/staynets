@@ -38,19 +38,11 @@ class VerificationController extends Controller
      */
     public function resend(Request $request)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            if ($request->expectsJson() || $request->wantsJson()) {
-                return response()->json(['message' => 'Email already verified.'], 400);
-            }
-            return back()->with('status', 'email-already-verified');
-        }
-
-        $request->user()->sendEmailVerificationNotification();
-
+        // Registration/verification emails are disabled by business requirement.
         if ($request->expectsJson() || $request->wantsJson()) {
-            return response()->json(['message' => 'Verification link sent!']);
+            return response()->json(['message' => 'Email notifications are disabled.'], 200);
         }
 
-        return back()->with('status', 'verification-link-sent');
+        return back()->with('status', 'email-notifications-disabled');
     }
 }
