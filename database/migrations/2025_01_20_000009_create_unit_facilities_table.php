@@ -14,6 +14,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('unit_facilities')) {
+            return;
+        }
+
         Schema::create('unit_facilities', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('unit_id');
@@ -24,11 +28,15 @@ return new class extends Migration
                   ->references('id')
                   ->on('units')
                   ->onDelete('cascade');
-                  
-            $table->foreign('facility_id')
-                  ->references('id')
-                  ->on('amenities')
-                  ->onDelete('cascade');
+            
+            // NOTE: amenities table is created later in this repo's migration timeline.
+            // Add the FK only if amenities already exists; otherwise a later migration will add it.
+            if (Schema::hasTable('amenities')) {
+                $table->foreign('facility_id')
+                      ->references('id')
+                      ->on('amenities')
+                      ->onDelete('cascade');
+            }
                   
             // Ensure unique combination
             $table->unique(['unit_id', 'facility_id']);

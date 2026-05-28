@@ -40,6 +40,7 @@ use App\Mail\ReservationAdminNotification;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use App\Services\BookingInventoryService;
+use App\Services\StayPricingService;
 
 
 class HomeController extends Controller
@@ -79,6 +80,18 @@ class HomeController extends Controller
                 });
             })
             ->oldest()
+            ->get();
+
+        // Home page featured properties (max 6)
+        $featuredProperties = Property::publishedForGuests()
+            ->featured()
+            ->with(['units' => function($q) {
+                $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
+            }, 'reviews'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->latest()
+            ->take(6)
             ->get();
 
         // Get latest 3 properties (prefer Property model, fallback to Hotel)
@@ -125,6 +138,7 @@ class HomeController extends Controller
             'services'=>$services,
             'locations'=>$locations,
             'destinations'=>$destinations,
+            'featuredProperties'=>$featuredProperties,
             'latestProperties'=>$latestProperties,
             'popularTrips'=>$popularTrips,
             'businessReviews'=>$businessReviews,
@@ -658,18 +672,19 @@ public function showAccommodation(Request $request, $slug)
             ->get();
 
         $roomsDataJson = $hotel->units->map(function ($u) {
-            $pt = $u->price_display_type ?? 'per_night';
-            $price = ($pt === 'per_month') ? (float)($u->base_price_per_month ?? 0) : (float)($u->base_price_per_night ?? 0);
             $unitTypeName = $u->unitType->name ?? null;
             $unitDisplayName = $unitTypeName && $unitTypeName !== $u->name ? $unitTypeName . ' – ' . $u->name : $u->name;
             return [
                 'id' => $u->id,
-                'price' => $price,
                 'name' => $unitDisplayName,
                 'currency' => $u->currency ?? 'USD',
                 'currencySymbol' => getCurrencySymbol($u->currency ?? 'USD'),
-                'priceType' => $pt,
                 'available' => $u->available_units > 0,
+                'dailyRate' => (float) ($u->base_price_per_night ?? 0),
+                'weeklyRate' => (float) ($u->base_price_per_week ?? 0),
+                'monthlyRate' => (float) ($u->base_price_per_month ?? 0),
+                'enableWeekly' => (bool) ($u->enable_weekly_rate ?? false),
+                'enableMonthly' => (bool) ($u->enable_monthly_rate ?? false),
             ];
         })->values()->toArray();
 
@@ -802,16 +817,20 @@ public function storeBooking(Request $request)
     $selectedExtraIds = array_map('intval', $request->input('extra_charges', []));
     $validExtraIds = array_intersect($selectedExtraIds, $unitExtraChargeIds);
 
-    // Calculate base total (per night or per month)
-    $priceType = $unit->price_display_type ?? 'per_night';
-    if ($priceType === 'per_month') {
-        $baseTotal = (float) ($unit->base_price_per_month ?? 0);
-    } else {
-        $checkIn = new \DateTime($request->check_in);
-        $checkOut = new \DateTime($request->check_out);
-        $nights = $checkIn->diff($checkOut)->days;
-        $baseTotal = ((float) ($unit->base_price_per_night ?? 0)) * $nights;
-    }
+    // Calculate base total using daily/weekly/monthly rules based on stay length.
+    $checkIn = new \DateTime($request->check_in);
+    $checkOut = new \DateTime($request->check_out);
+    $nights = (int) ($checkIn->diff($checkOut)->days ?? 0);
+
+    $pricing = StayPricingService::compute(
+        $nights,
+        (float) ($unit->base_price_per_night ?? 0),
+        (float) ($unit->base_price_per_week ?? 0),
+        (bool) ($unit->enable_weekly_rate ?? false),
+        (float) ($unit->base_price_per_month ?? 0),
+        (bool) ($unit->enable_monthly_rate ?? false),
+    );
+    $baseTotal = (float) ($pricing['base_total'] ?? 0);
 
     // Add extras total
     $extrasTotal = 0;
@@ -1016,9 +1035,16 @@ public function storeHotelRoomBookingRequest(Request $request, string $hotelSlug
             ->with('error', 'There are no remaining rooms for this category on one or more nights in your selected dates. Please choose different dates.');
     }
 
-    $nights = max(0, $checkIn->diffInDays($checkOut));
-    $nightPrice = (float) ($room->price_per_night ?? 0);
-    $totalAmount = $nights * $nightPrice;
+    $nights = max(0, (int) $checkIn->diffInDays($checkOut));
+    $pricing = StayPricingService::compute(
+        $nights,
+        (float) ($room->price_per_night ?? 0),
+        (float) ($room->price_per_week ?? 0),
+        (bool) ($room->enable_weekly_rate ?? false),
+        (float) ($room->price_per_month ?? 0),
+        (bool) ($room->enable_monthly_rate ?? false),
+    );
+    $totalAmount = (float) ($pricing['base_total'] ?? 0);
     $commissionRate = 10;
     $commissionAmount = round($totalAmount * ($commissionRate / 100), 2);
     $referenceNumber = 'BK' . strtoupper(uniqid());

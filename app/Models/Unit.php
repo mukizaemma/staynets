@@ -25,7 +25,10 @@ class Unit extends Model
         'total_units',
         'available_units',
         'base_price_per_night',
+        'base_price_per_week',
         'base_price_per_month',
+        'enable_weekly_rate',
+        'enable_monthly_rate',
         'currency',
         'price_display_type',
         'featured_image',
@@ -44,7 +47,10 @@ class Unit extends Model
         'total_units' => 'integer',
         'available_units' => 'integer',
         'base_price_per_night' => 'decimal:2',
+        'base_price_per_week' => 'decimal:2',
         'base_price_per_month' => 'decimal:2',
+        'enable_weekly_rate' => 'boolean',
+        'enable_monthly_rate' => 'boolean',
         'meta_data' => 'array',
     ];
 

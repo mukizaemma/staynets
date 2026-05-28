@@ -174,8 +174,21 @@
                             @error('base_price_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-6 col-md-2 mb-2">
+                            <label for="base_price_per_week" class="form-label">Weekly rate</label>
+                            <input type="number" name="base_price_per_week" class="form-control @error('base_price_per_week') is-invalid @enderror" id="base_price_per_week" value="{{ old('base_price_per_week', $unit->base_price_per_week ?? 0) }}" min="0" step="0.01">
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" name="enable_weekly_rate" id="enable_weekly_rate" value="1" {{ old('enable_weekly_rate', $unit->enable_weekly_rate ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="enable_weekly_rate">Enable (7+ nights)</label>
+                            </div>
+                            @error('base_price_per_week')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-6 col-md-2 mb-2">
                             <label for="base_price_per_month" class="form-label">Price per month</label>
                             <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" id="base_price_per_month" value="{{ old('base_price_per_month', $unit->base_price_per_month) }}" min="0" step="0.01">
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" name="enable_monthly_rate" id="enable_monthly_rate" value="1" {{ old('enable_monthly_rate', $unit->enable_monthly_rate ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="enable_monthly_rate">Enable (30+ nights)</label>
+                            </div>
                             @error('base_price_per_month')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>

@@ -3,6 +3,7 @@
     --primary: #d9a409;
     --light: #F3F6F9;
     --dark: #191C24;
+    --bruish: #6a4c93;
 }
 
 .back-to-top {
@@ -42,6 +43,27 @@
 .btn.btn-primary:hover {
     color: #FFFFFF;
     background-color: #AC380B;
+}
+
+/*** Admin headings & icons (bruish) ***/
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+    color: var(--bruish);
+}
+
+.content h1 i,
+.content h2 i,
+.content h3 i,
+.content h4 i,
+.content h5 i,
+.content h6 i,
+.content .page-title i,
+.content .section-title i {
+    color: var(--bruish);
 }
 
 .btn-square {

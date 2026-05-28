@@ -339,6 +339,10 @@ $trips = $trips ?? collect();
                                         <div id="hotelRoomAvailabilityNote" class="alert alert-sm py-2 px-3 mb-0 d-none small" role="status"></div>
                                     </div>
 
+                                    <div class="col-12 form-group mb-0">
+                                        <div id="hotelRoomPricingNote" class="alert alert-sm py-2 px-3 mb-0 d-none small" role="status"></div>
+                                    </div>
+
                                     <div class="col-12 form-group">
                                         <label class="form-label">Special requests</label>
                                         <textarea name="special_requests" class="form-control" rows="3" placeholder="Optional">{{ old('special_requests') }}</textarea>
@@ -604,12 +608,57 @@ document.addEventListener('DOMContentLoaded', function () {
         const ci = document.getElementById('hotelRoomCheckIn');
         const co = document.getElementById('hotelRoomCheckOut');
         const note = document.getElementById('hotelRoomAvailabilityNote');
+        const pricingNote = document.getElementById('hotelRoomPricingNote');
         const availUrl = @json(route('hotel.room.booking.availability', ['hotelSlug' => $hotel->slug, 'roomSlug' => $room->slug]));
         if (!ci || !co || !note) return;
+        const nightly = @json((float)($room->price_per_night ?? 0));
+        const weekly = @json((float)($room->price_per_week ?? 0));
+        const monthly = @json((float)($room->price_per_month ?? 0));
+        const enableWeekly = @json((bool)($room->enable_weekly_rate ?? false));
+        const enableMonthly = @json((bool)($room->enable_monthly_rate ?? false));
+        const currencySymbol = @json(getCurrencySymbol($room->currency ?? 'USD'));
+
+        function updatePricing() {
+            if (!pricingNote) return;
+            if (!ci.value || !co.value || co.value <= ci.value) {
+                pricingNote.classList.add('d-none');
+                pricingNote.classList.remove('alert-info');
+                pricingNote.textContent = '';
+                return;
+            }
+            const date1 = new Date(ci.value);
+            const date2 = new Date(co.value);
+            if (!(date2 > date1)) {
+                pricingNote.classList.add('d-none');
+                pricingNote.classList.remove('alert-info');
+                pricingNote.textContent = '';
+                return;
+            }
+            const diffTime = Math.abs(date2 - date1);
+            const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let baseTotal = nightly * nights;
+            let rateLabel = 'Daily rate';
+            if (nights >= 30 && enableMonthly && monthly > 0) {
+                const months = Math.ceil(nights / 30);
+                baseTotal = monthly * months;
+                rateLabel = 'Monthly rate';
+            } else if (nights >= 7 && enableWeekly && weekly > 0) {
+                const weeks = Math.ceil(nights / 7);
+                baseTotal = weekly * weeks;
+                rateLabel = 'Weekly rate';
+            }
+
+            pricingNote.classList.remove('d-none');
+            pricingNote.classList.add('alert-info');
+            pricingNote.textContent = `${nights} night${nights === 1 ? '' : 's'} · ${rateLabel} applied · Estimated total: ${currencySymbol}${baseTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        }
+
         function checkAvail() {
             if (!ci.value || !co.value || co.value <= ci.value) {
                 note.classList.add('d-none');
                 note.classList.remove('alert-success', 'alert-danger', 'alert-warning');
+                updatePricing();
                 return;
             }
             note.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning');
@@ -624,9 +673,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     note.classList.add('alert-danger');
                     note.textContent = j.message || 'No remaining rooms for one or more nights in this range.';
                 }
+                updatePricing();
             }).catch(function () {
                 note.classList.add('alert-warning');
                 note.textContent = 'Could not verify availability right now. You may still submit your request.';
+                updatePricing();
             });
         }
         ci.addEventListener('change', checkAvail);

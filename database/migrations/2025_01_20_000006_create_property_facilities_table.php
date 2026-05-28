@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('property_facilities')) {
+            return;
+        }
+
         Schema::create('property_facilities', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('property_id');
@@ -23,11 +27,14 @@ return new class extends Migration
                   ->references('id')
                   ->on('properties')
                   ->onDelete('cascade');
-                  
-            $table->foreign('facility_id')
-                  ->references('id')
-                  ->on('amenities')
-                  ->onDelete('cascade');
+            
+            // amenities table is created later in this repo's migration timeline
+            if (Schema::hasTable('amenities')) {
+                $table->foreign('facility_id')
+                      ->references('id')
+                      ->on('amenities')
+                      ->onDelete('cascade');
+            }
                   
             // Ensure unique combination
             $table->unique(['property_id', 'facility_id']);

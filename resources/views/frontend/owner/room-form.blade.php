@@ -59,9 +59,24 @@
                            value="{{ old('price_per_night', $room->price_per_night ?? '') }}">
                 </div>
                 <div class="col-md-4 mb-2">
+                    <label class="form-label">Weekly rate <span class="text-muted">(optional)</span></label>
+                    <input type="number" step="0.01" name="price_per_week" class="form-control"
+                           value="{{ old('price_per_week', $room->price_per_week ?? '') }}">
+                    <div class="form-check mt-1">
+                        <input type="checkbox" name="enable_weekly_rate" value="1" class="form-check-input" id="enable_weekly_rate"
+                            @checked(old('enable_weekly_rate', $room->enable_weekly_rate ?? false))>
+                        <label class="form-check-label small" for="enable_weekly_rate">Enable weekly pricing for stays 7+ nights</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
                     <label class="form-label">Price per month <span class="text-muted">(optional)</span></label>
                     <input type="number" step="0.01" name="price_per_month" class="form-control"
                            value="{{ old('price_per_month', $room->price_per_month ?? '') }}">
+                    <div class="form-check mt-1">
+                        <input type="checkbox" name="enable_monthly_rate" value="1" class="form-check-input" id="enable_monthly_rate"
+                            @checked(old('enable_monthly_rate', $room->enable_monthly_rate ?? false))>
+                        <label class="form-check-label small" for="enable_monthly_rate">Enable monthly pricing for stays 30+ nights</label>
+                    </div>
                 </div>
             </div>
 

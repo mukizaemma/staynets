@@ -204,6 +204,8 @@
                             <li><a href="{{ route('connect') }}">Airport Transfers</a></li>
                             <li><a href="{{ route('showCars') }}">Car Rentals</a></li>
                             <li><a href="{{ route('tours') }}">Tours</a></li>
+                            <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
+                            <li><a href="{{ route('ticketing') }}">Ticketing</a></li>
                         </ul>
                     </li>
                     <li><a href="{{ route('connect') }}">Contact</a></li>
@@ -263,6 +265,8 @@
                                             <li><a href="{{ route('connect') }}"><i class="fas fa-plane-arrival me-2"></i>Airport Transfers</a></li>
                                             <li><a href="{{ route('showCars') }}"><i class="fas fa-car me-2"></i>Car Rentals</a></li>
                                             <li><a href="{{ route('tours') }}"><i class="fas fa-map-marked-alt me-2"></i>Tours</a></li>
+                                            <li><a href="{{ route('leftBags') }}"><i class="fas fa-suitcase-rolling me-2"></i>Left Bags</a></li>
+                                            <li><a href="{{ route('ticketing') }}"><i class="fas fa-ticket-alt me-2"></i>Ticketing</a></li>
                                         </ul>
                                     </li>
                                     <li>

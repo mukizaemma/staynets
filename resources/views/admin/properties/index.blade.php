@@ -186,6 +186,15 @@
                                             <a href="{{ route('admin.properties.edit', $property->id) }}" class="btn btn-warning btn-sm">
                                                 <i class="fa fa-edit"></i>
                                             </a>
+                                            @if(!empty($isPropertySuperAdmin) && empty($property->is_hotel_model))
+                                                <button type="button"
+                                                        class="btn btn-sm {{ $property->is_featured ? 'btn-success' : 'btn-outline-success' }} featured-toggle-btn"
+                                                        data-property-id="{{ $property->id }}"
+                                                        data-is-featured="{{ $property->is_featured ? 1 : 0 }}"
+                                                        title="{{ $property->is_featured ? 'Unfeature property' : 'Feature property' }}">
+                                                    <i class="fa fa-star"></i>
+                                                </button>
+                                            @endif
                                             <a href="{{ route('admin.properties.destroy', $property->id) }}" 
                                                class="btn btn-danger btn-sm" 
                                                onclick="return confirm('Are you sure?')">
@@ -218,6 +227,65 @@
     @push('scripts')
     <script>
         $(document).ready(function() {
+            // Toggle featured property
+            $(document).on('click', '.featured-toggle-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const btn = $(this);
+                const propertyId = btn.data('property-id');
+                const isFeatured = parseInt(btn.data('is-featured'), 10) === 1;
+                const next = !isFeatured;
+
+                btn.prop('disabled', true);
+                const oldHtml = btn.html();
+                btn.html('<i class="fa fa-spinner fa-spin"></i>');
+
+                $.ajax({
+                    url: `{{ url('/admin/properties') }}/${propertyId}/featured`,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        is_featured: next ? 1 : 0
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (!res || !res.success) {
+                            throw new Error(res && res.message ? res.message : 'Failed');
+                        }
+
+                        // Update UI badge in property name cell
+                        const row = btn.closest('tr');
+                        const nameCell = row.find('td:eq(0)');
+                        nameCell.find('.badge.bg-warning').filter(function(){ return $(this).text().trim() === 'Featured'; }).remove();
+                        if (res.is_featured) {
+                            nameCell.find('strong').after(' <span class="badge bg-warning">Featured</span>');
+                            btn.removeClass('btn-outline-success').addClass('btn-success');
+                            btn.data('is-featured', 1);
+                            btn.attr('title', 'Unfeature property');
+                        } else {
+                            btn.removeClass('btn-success').addClass('btn-outline-success');
+                            btn.data('is-featured', 0);
+                            btn.attr('title', 'Feature property');
+                        }
+                    },
+                    error: function(xhr) {
+                        let msg = 'Could not update featured flag.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                        alert(msg);
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false);
+                        btn.html(oldHtml);
+                    }
+                });
+            });
+
             // Handle status update via AJAX - use event delegation for dynamically added elements
             $(document).on('click', '.status-update-btn', function(e) {
                 e.preventDefault();

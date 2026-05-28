@@ -197,10 +197,26 @@
                                     @error('base_price_per_night')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-6">
+                                    <label for="base_price_per_week" class="form-label fw-medium">Weekly rate <span class="text-muted">(optional)</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fa fa-calendar-week text-muted"></i></span>
+                                        <input type="number" name="base_price_per_week" class="form-control @error('base_price_per_week') is-invalid @enderror" id="base_price_per_week" value="{{ old('base_price_per_week') }}" min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="enable_weekly_rate" id="enable_weekly_rate" value="1" {{ old('enable_weekly_rate') ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="enable_weekly_rate">Enable weekly pricing for stays 7+ nights</label>
+                                    </div>
+                                    @error('base_price_per_week')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
                                     <label for="base_price_per_month" class="form-label fw-medium">Price per month</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fa fa-calendar-alt text-muted"></i></span>
                                         <input type="number" name="base_price_per_month" class="form-control @error('base_price_per_month') is-invalid @enderror" id="base_price_per_month" value="{{ old('base_price_per_month') }}" min="0" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="enable_monthly_rate" id="enable_monthly_rate" value="1" {{ old('enable_monthly_rate') ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="enable_monthly_rate">Enable monthly pricing for stays 30+ nights</label>
                                     </div>
                                     @error('base_price_per_month')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>

@@ -171,21 +171,21 @@
     <!--======== / Hero Section ========-->
     
     <!--==============================
-    Featured Listings – 3 latest items: cover image, short description, rating, Check availability
+    Featured Listings – up to 6 featured properties
     ==============================-->
     <section class="position-relative overflow-hidden space" id="featured-listings-sec">
         <div class="container">
             <div class="row justify-content-center mb-4">
                 <div class="col-12">
                     <div class="title-area text-center">
-                        <h2 class="sec-title">Explore Properties</h2>
-                        <p class="sec-text">Our latest properties. Check availability and book your stay.</p>
+                        <h2 class="sec-title">Featured Properties</h2>
+                        <p class="sec-text">Handpicked stays — check availability and book your stay.</p>
                     </div>
                 </div>
             </div>
 
             <div class="row g-4 justify-content-center">
-                @foreach($latestProperties ?? [] as $item)
+                @foreach(($featuredProperties ?? collect()) as $item)
                     @php
                         $isProperty = $item instanceof \App\Models\Property;
                         $coverImage = $isProperty

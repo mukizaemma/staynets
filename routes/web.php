@@ -139,6 +139,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/properties/{id}/status', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'updateStatus'])->name('admin.properties.updateStatus'); // POST route for AJAX status updates
     Route::put('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update');
     Route::post('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'update'])->name('admin.properties.update.post'); // Fallback for forms without @method
+    Route::post('/admin/properties/{id}/featured', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'toggleFeatured'])->name('admin.properties.featured.toggle');
     Route::get('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'show'])->name('admin.properties.show'); // Generic show route (must be last)
 
     Route::get('/admin/listing-agreement/edit', [App\Http\Controllers\Admin\ListingAgreementController::class, 'edit'])->name('admin.listing-agreement.edit');

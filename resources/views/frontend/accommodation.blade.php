@@ -766,7 +766,7 @@
                                                             ? $unitTypeName . ' – ' . $unitDisplayName
                                                             : $unitDisplayName;
                                                     @endphp
-                                                    <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ $primaryPrice }}, {{ json_encode($unitDisplayNameForJs) }}, '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}', '{{ $uPt }}')">
+                                                    <button class="btn-book-room" onclick="selectRoom({{ $unit->id }}, {{ (float)($unit->base_price_per_night ?? 0) }}, {{ json_encode($unitDisplayNameForJs) }}, '{{ $unitCurrency }}', '{{ $unitCurrencySymbol }}', {{ (float)($unit->base_price_per_week ?? 0) }}, {{ (float)($unit->base_price_per_month ?? 0) }}, {{ (int)($unit->enable_weekly_rate ?? 0) }}, {{ (int)($unit->enable_monthly_rate ?? 0) }})">
                                                         Select room
                                                     </button>
                                                 @else
@@ -933,8 +933,8 @@
                             @endphp
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
                                 <div class="d-flex justify-content-between mb-2">
-                                    <span id="priceLabelText">{{ $formPt === 'per_month' ? 'Price per month:' : 'Price per night:' }}</span>
-                                    <span id="pricePerNight" data-currency="{{ $formCurrency }}" data-currency-symbol="{{ $formCurrencySymbol }}">{{ $formCurrencySymbol }}{{ number_format($formDefaultPrice, 0) }}</span>
+                                    <span id="priceLabelText">Price per night:</span>
+                                    <span id="pricePerNight" data-currency="{{ $formCurrency }}" data-currency-symbol="{{ $formCurrencySymbol }}">{{ $formCurrencySymbol }}{{ number_format($rooms->isNotEmpty() ? ($rooms->first()->base_price_per_night ?? 0) : 0, 0) }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Number of nights:</span>
@@ -1101,11 +1101,14 @@
 
 <script>
     let selectedUnitId = null;
-    let selectedUnitPrice = {{ $rooms->isNotEmpty() ? (($rooms->first()->price_display_type ?? 'per_night') === 'per_month' ? ($rooms->first()->base_price_per_month ?? 0) : ($rooms->first()->base_price_per_night ?? 0)) : 0 }};
+    let selectedUnitDailyRate = {{ $rooms->isNotEmpty() ? (float)($rooms->first()->base_price_per_night ?? 0) : 0 }};
+    let selectedUnitWeeklyRate = {{ $rooms->isNotEmpty() ? (float)($rooms->first()->base_price_per_week ?? 0) : 0 }};
+    let selectedUnitMonthlyRate = {{ $rooms->isNotEmpty() ? (float)($rooms->first()->base_price_per_month ?? 0) : 0 }};
+    let selectedUnitEnableWeekly = {{ $rooms->isNotEmpty() ? (int)($rooms->first()->enable_weekly_rate ?? 0) : 0 }};
+    let selectedUnitEnableMonthly = {{ $rooms->isNotEmpty() ? (int)($rooms->first()->enable_monthly_rate ?? 0) : 0 }};
     let selectedUnitName = {!! json_encode($rooms->isNotEmpty() ? ($rooms->first()->name ?? 'Unit') : 'Unit') !!};
     let selectedUnitCurrency = '{{ $rooms->isNotEmpty() ? ($rooms->first()->currency ?? 'USD') : 'USD' }}';
     let selectedUnitCurrencySymbol = '{{ $rooms->isNotEmpty() ? getCurrencySymbol($rooms->first()->currency ?? 'USD') : '$' }}';
-    let selectedUnitPriceType = '{{ $rooms->isNotEmpty() ? ($rooms->first()->price_display_type ?? 'per_night') : 'per_night' }}';
 
     // Unit extras: unitId => [{ id, name, price }]
     const unitsExtras = @json($rooms->keyBy('id')->map(function($u) { return $u->extraCharges->map(function($e) { return ['id' => $e->id, 'name' => $e->extraChargeType->name ?? 'Extra', 'price' => (float)$e->price]; })->values()->toArray(); })->toArray());
@@ -1190,27 +1193,28 @@
         }
     });
     
-    function selectRoom(unitId, price, name, currency, currencySymbol, priceType) {
-        priceType = priceType || 'per_night';
+    function selectRoom(unitId, dailyRate, name, currency, currencySymbol, weeklyRate, monthlyRate, enableWeekly, enableMonthly) {
         selectedUnitId = unitId;
-        selectedUnitPrice = price;
+        selectedUnitDailyRate = parseFloat(dailyRate) || 0;
+        selectedUnitWeeklyRate = parseFloat(weeklyRate) || 0;
+        selectedUnitMonthlyRate = parseFloat(monthlyRate) || 0;
+        selectedUnitEnableWeekly = enableWeekly ? 1 : 0;
+        selectedUnitEnableMonthly = enableMonthly ? 1 : 0;
         selectedUnitName = name;
         selectedUnitCurrency = currency || 'USD';
         selectedUnitCurrencySymbol = currencySymbol || '$';
-        selectedUnitPriceType = priceType;
         
         document.getElementById('bookingUnitId').value = unitId;
-        document.getElementById('reservePrice').textContent = selectedUnitCurrencySymbol + price.toLocaleString();
+        document.getElementById('reservePrice').textContent = selectedUnitCurrencySymbol + (selectedUnitDailyRate || 0).toLocaleString();
         document.getElementById('reservePrice').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('reservePrice').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
-        document.getElementById('reservePrice').setAttribute('data-price-type', priceType);
         var priceLabelEl = document.getElementById('reservePriceLabel');
-        if (priceLabelEl) priceLabelEl.textContent = priceType === 'per_month' ? 'Price per month' : 'Price per night';
-        document.getElementById('pricePerNight').textContent = selectedUnitCurrencySymbol + price.toLocaleString();
+        if (priceLabelEl) priceLabelEl.textContent = 'Price per night';
+        document.getElementById('pricePerNight').textContent = selectedUnitCurrencySymbol + (selectedUnitDailyRate || 0).toLocaleString();
         document.getElementById('pricePerNight').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('pricePerNight').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
         var priceLabelTextEl = document.getElementById('priceLabelText');
-        if (priceLabelTextEl) priceLabelTextEl.textContent = priceType === 'per_month' ? 'Price per month:' : 'Price per night:';
+        if (priceLabelTextEl) priceLabelTextEl.textContent = 'Price per night:';
         document.getElementById('totalAmount').setAttribute('data-currency', selectedUnitCurrency);
         document.getElementById('totalAmount').setAttribute('data-currency-symbol', selectedUnitCurrencySymbol);
         document.getElementById('btnReserve').disabled = false;
@@ -1263,24 +1267,18 @@
     function calculateTotal() {
         const checkIn = document.getElementById('check_in').value;
         const checkOut = document.getElementById('check_out').value;
-        const pricePerNight = selectedUnitPrice;
-        const priceType = (typeof selectedUnitPriceType !== 'undefined') ? selectedUnitPriceType : 'per_night';
+        const dailyRate = parseFloat(selectedUnitDailyRate) || 0;
+        const weeklyRate = parseFloat(selectedUnitWeeklyRate) || 0;
+        const monthlyRate = parseFloat(selectedUnitMonthlyRate) || 0;
+        const enableWeekly = !!selectedUnitEnableWeekly;
+        const enableMonthly = !!selectedUnitEnableMonthly;
 
         var extrasTotal = 0;
         document.querySelectorAll('#extrasList .extra-charge-cb:checked').forEach(function(cb) {
             extrasTotal += parseFloat(cb.getAttribute('data-price')) || 0;
         });
         
-        if (priceType === 'per_month' && pricePerNight > 0) {
-            document.getElementById('numberOfNights').textContent = '1 month';
-            const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
-            const total = pricePerNight + extrasTotal;
-            document.getElementById('totalAmount').textContent = currencySymbol + total.toLocaleString();
-            if (selectedUnitId) document.getElementById('btnReserve').disabled = false;
-            return;
-        }
-        
-        if (checkIn && checkOut && pricePerNight > 0) {
+        if (checkIn && checkOut && dailyRate > 0) {
             const date1 = new Date(checkIn);
             const date2 = new Date(checkOut);
             
@@ -1290,7 +1288,15 @@
                 
                 document.getElementById('numberOfNights').textContent = diffDays + ' ' + (diffDays == 1 ? 'night' : 'nights');
                 const currencySymbol = document.getElementById('totalAmount').getAttribute('data-currency-symbol') || selectedUnitCurrencySymbol || '$';
-                const baseTotal = pricePerNight * diffDays;
+                let baseTotal = dailyRate * diffDays;
+                // Apply weekly/monthly if enabled and thresholds met (7+ nights => weekly, 30+ => monthly).
+                if (diffDays >= 30 && enableMonthly && monthlyRate > 0) {
+                    const months = Math.ceil(diffDays / 30);
+                    baseTotal = monthlyRate * months;
+                } else if (diffDays >= 7 && enableWeekly && weeklyRate > 0) {
+                    const weeks = Math.ceil(diffDays / 7);
+                    baseTotal = weeklyRate * weeks;
+                }
                 const total = baseTotal + extrasTotal;
                 document.getElementById('totalAmount').textContent = currencySymbol + total.toLocaleString();
                 
@@ -1325,7 +1331,17 @@
             roomToSelect = roomsData.find(r => r.available);
         }
         if (roomToSelect) {
-            selectRoom(roomToSelect.id, roomToSelect.price, roomToSelect.name, roomToSelect.currency, roomToSelect.currencySymbol, roomToSelect.priceType);
+            selectRoom(
+                roomToSelect.id,
+                roomToSelect.dailyRate,
+                roomToSelect.name,
+                roomToSelect.currency,
+                roomToSelect.currencySymbol,
+                roomToSelect.weeklyRate,
+                roomToSelect.monthlyRate,
+                roomToSelect.enableWeekly,
+                roomToSelect.enableMonthly
+            );
             document.getElementById('reserveBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });

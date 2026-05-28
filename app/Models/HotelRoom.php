@@ -17,7 +17,10 @@ class HotelRoom extends Model
         'image',
         'max_occupancy',
         'price_per_night',
+        'price_per_week',
         'price_per_month',
+        'enable_weekly_rate',
+        'enable_monthly_rate',
         'currency',
         'price_display_type',
         'total_rooms',
@@ -32,7 +35,10 @@ class HotelRoom extends Model
         'amenities' => 'array',
         'accepts_room_bookings' => 'boolean',
         'price_per_night' => 'decimal:2',
+        'price_per_week' => 'decimal:2',
         'price_per_month' => 'decimal:2',
+        'enable_weekly_rate' => 'boolean',
+        'enable_monthly_rate' => 'boolean',
     ];
 
     public function hotel()

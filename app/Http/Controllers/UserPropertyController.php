@@ -485,7 +485,10 @@ try {
             'image' => 'nullable|image|max:4096',
             'max_occupancy' => 'nullable|integer',
             'price_per_night' => 'required|numeric',
+            'price_per_week' => 'nullable|numeric|min:0',
             'price_per_month' => 'nullable|numeric',
+            'enable_weekly_rate' => 'nullable|boolean',
+            'enable_monthly_rate' => 'nullable|boolean',
             'currency' => 'nullable|string|max:3',
             'price_display_type' => 'nullable|in:per_night,per_month,both',
             'total_rooms' => 'nullable|integer',
@@ -501,6 +504,8 @@ try {
         unset($data['amenities']);
 
         $data['accepts_room_bookings'] = $request->has('accepts_room_bookings');
+        $data['enable_weekly_rate'] = $request->has('enable_weekly_rate');
+        $data['enable_monthly_rate'] = $request->has('enable_monthly_rate');
 
         $data['hotel_id'] = $hotel->id;
         $data['added_by'] = auth()->id();
@@ -550,7 +555,10 @@ try {
             'image' => 'nullable|image|max:4096',
             'max_occupancy' => 'nullable|integer',
             'price_per_night' => 'required|numeric',
+            'price_per_week' => 'nullable|numeric|min:0',
             'price_per_month' => 'nullable|numeric',
+            'enable_weekly_rate' => 'nullable|boolean',
+            'enable_monthly_rate' => 'nullable|boolean',
             'currency' => 'nullable|string|max:3',
             'price_display_type' => 'nullable|in:per_night,per_month,both',
             'total_rooms' => 'nullable|integer',
@@ -565,6 +573,8 @@ try {
         unset($data['amenities']);
 
         $data['accepts_room_bookings'] = $request->has('accepts_room_bookings');
+        $data['enable_weekly_rate'] = $request->has('enable_weekly_rate');
+        $data['enable_monthly_rate'] = $request->has('enable_monthly_rate');
 
         if ($request->hasFile('image')) {
             if ($room->image && Storage::exists('public/images/rooms/'.$room->image)) {

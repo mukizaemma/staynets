@@ -707,6 +707,52 @@ class AdminPropertiesController extends Controller
     }
 
     /**
+     * Toggle featured flag for Property model listings.
+     * Restriction: at most 6 featured properties at a time.
+     */
+    public function toggleFeatured(Request $request, $id)
+    {
+        if (!$this->isPropertySuperAdmin()) {
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson() || $request->header('X-Requested-With') == 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+            abort(403);
+        }
+
+        $property = Property::find($id);
+        if (!$property) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only unified Property listings can be featured from this screen.',
+            ], 422);
+        }
+
+        $makeFeatured = (bool) $request->boolean('is_featured', !$property->is_featured);
+
+        if ($makeFeatured && !$property->is_featured) {
+            $featuredCount = Property::where('is_featured', true)->count();
+            if ($featuredCount >= 6) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You already have 6 featured properties. Unfeature one before featuring another.',
+                ], 422);
+            }
+        }
+
+        $property->is_featured = $makeFeatured;
+        $property->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $makeFeatured ? 'Property set to featured.' : 'Property removed from featured.',
+            'is_featured' => (bool) $property->is_featured,
+        ]);
+    }
+
+    /**
      * Remove the specified property.
      */
     public function destroy($id)
