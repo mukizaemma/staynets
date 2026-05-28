@@ -7,6 +7,39 @@
     --dark: #191C24;
 }
 
+/* Brand mapping for bootstrap utility colors */
+.bg-primary { background-color: var(--primary) !important; }
+.text-primary { color: var(--primary) !important; }
+.border-primary { border-color: var(--primary) !important; }
+
+.bg-success { background-color: var(--brand-green) !important; }
+.text-success { color: var(--brand-green) !important; }
+.border-success { border-color: var(--brand-green) !important; }
+
+.btn-outline-primary {
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    color: #fff !important;
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.btn.btn-success,
+.btn-success {
+    background-color: var(--brand-green) !important;
+    border-color: var(--brand-green) !important;
+}
+.btn.btn-success:hover,
+.btn-success:hover,
+.btn.btn-success:focus,
+.btn-success:focus {
+    background-color: #2f7436 !important;
+    border-color: #2f7436 !important;
+}
+
 .back-to-top {
     position: fixed;
     display: none;

@@ -2,7 +2,7 @@
 <style>
         /* Enhanced Footer Styling */
         .footer-wrapper.bg-title {
-            background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%);
+            background: linear-gradient(135deg, #0b2f42 0%, var(--brand-blue) 55%, #0b2f42 100%);
             position: relative;
             overflow: hidden;
         }
@@ -433,7 +433,7 @@
         }
         
         .copyright-wrap {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.22);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 25px 0;
             position: relative;

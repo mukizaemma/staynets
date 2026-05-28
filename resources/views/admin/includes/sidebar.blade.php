@@ -7,7 +7,19 @@
         </a> --}}
         <div class="d-flex align-items-center ms-4 mb-4">
             <div class="position-relative">
-                <img class="rounded-circle" src="{{ asset('storage/images') . ($setting->logo ?? '') }}" alt="" style="width: 40px; height: 40px;">
+                @php
+                    $adminLogoUrl = asset('assets/img/logo.svg');
+                    $raw = ltrim((string) (optional($setting)->logo ?? ''), '/');
+                    if (!empty($raw)) {
+                        $cands = array_values(array_unique(array_filter([$raw, 'images/'.$raw, 'images/site/'.$raw])));
+                        foreach ($cands as $c) {
+                            try {
+                                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($c)) { $adminLogoUrl = \Illuminate\Support\Facades\Storage::url($c); break; }
+                            } catch (\Throwable $e) {}
+                        }
+                    }
+                @endphp
+                <img class="rounded-circle" src="{{ $adminLogoUrl }}" alt="{{ $setting->company ?? 'StayNets' }}" style="width: 40px; height: 40px; object-fit: contain; background: #fff;">
                 <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
             </div>
             <div class="ms-3">
@@ -80,9 +92,7 @@
                 <i class="fas fa-star me-2"></i>Reviews
             </a>
 
-            @if(Auth::user()->email == 'admin@iremetech.com' )
             <a href="{{ route('users') }}" class="nav-item nav-link"><i class="fa fa-users me-2"></i> Users</a>
-            @endif
         </div>
     </nav>
 </div>

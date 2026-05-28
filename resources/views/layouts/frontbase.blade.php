@@ -92,6 +92,7 @@
 
     <!-- Theme Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/staynets-overrides.css">
     
     @include('layouts.includes.site-footer-styles')
     @stack('styles')

@@ -61,7 +61,7 @@
                         </div>
                     </div>
 
-                    @if(isset($isSuperAdmin) && $isSuperAdmin && isset($segmentCounts))
+                    @if(isset($segmentCounts))
                         @php
                             $segQuery = array_filter(['filter' => $filter ?? 'all', 'search' => $search ?? null]);
                         @endphp

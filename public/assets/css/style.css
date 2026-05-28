@@ -108,8 +108,9 @@ Last Update: 20-07-2024
   --success-color: var(--brand-green);
   --error-color: #dc3545;
   --th-border-color: #E9EDF5;
-  --title-font: "Signika", sans-serif;
-  --body-font: "Signika", sans-serif;
+  /* Typography */
+  --title-font: "Manrope", sans-serif;
+  --body-font: "Inter", sans-serif;
   --style-font: "Signika", cursive;
   --icon-font: "Font Awesome 6 Pro";
   --main-container: 1320px;

@@ -62,13 +62,15 @@ class AdminController extends Controller
     }
 
     /**
-     * Display users page - accessible ONLY to super admin (email = admin@iremetech.com)
-     * Regular admins cannot access the Users section at all.
+     * Display users page - accessible to admins.
+     * Super Admin (role==1) can manage admins and access privileged actions.
      */
     public function users(Request $request){
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
-        if (!$isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+        $role = (int) (Auth::user()->role ?? 0);
+        $isSuperAdmin = $role === 1;
+        $isAdmin = in_array($role, [1, 2], true);
+        if (!$isAdmin) {
+            return redirect()->route('dashboard')->with('error', 'You do not have permission to access the Users section.');
         }
 
         $query = User::query()
@@ -96,9 +98,7 @@ class AdminController extends Controller
                 )
             ) as host_bookings_count'));
         
-        // Check if current user is super admin (email = admin@iremetech.com)
-        // Note: role == 1 means admin, role != 1 or null means regular user
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        // role: 1 = Super Admin, 2 = Admin, else = regular user
         
         // Filter by admin status
         $filter = $request->input('filter', 'all'); // all, admins, users
@@ -156,27 +156,26 @@ class AdminController extends Controller
             })->where($nonAdminScope);
         }
 
-        $segmentCounts = null;
-        if ($isSuperAdmin) {
-            $segmentCounts = [
-                'unverified' => User::query()->where($nonAdminScope)->whereNull('email_verified_at')->count(),
-                'verified_no_property' => User::query()->where($nonAdminScope)
-                    ->whereNotNull('email_verified_at')
-                    ->whereDoesntHave('properties')
-                    ->whereDoesntHave('ownedHotels')
-                    ->count(),
-                'with_properties' => User::query()->where($nonAdminScope)
-                    ->where(function ($q) {
-                        $q->whereHas('properties')->orWhereHas('ownedHotels');
-                    })
-                    ->count(),
-            ];
-        }
+        // Cleanup segments should be available to all admins (for spam cleanup)
+        $segmentCounts = [
+            'unverified' => User::query()->where($nonAdminScope)->whereNull('email_verified_at')->count(),
+            'verified_no_property' => User::query()->where($nonAdminScope)
+                ->whereNotNull('email_verified_at')
+                ->whereDoesntHave('properties')
+                ->whereDoesntHave('ownedHotels')
+                ->count(),
+            'with_properties' => User::query()->where($nonAdminScope)
+                ->where(function ($q) {
+                    $q->whereHas('properties')->orWhereHas('ownedHotels');
+                })
+                ->count(),
+        ];
         
         $users = $query->latest()->get();
         $setting = Setting::first();
 
-        $canBulkDeleteSelected = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        // Allow admins to bulk-delete non-admin accounts (spam cleanup).
+        $canBulkDeleteSelected = $isAdmin;
         
         return view('admin.users',[
             'users'=>$users,
@@ -191,13 +190,14 @@ class AdminController extends Controller
     }
 
     /**
-     * Bulk-delete users (primary super admin only). Never deletes admins or the current user.
+     * Bulk-delete users (admins). Never deletes admins/superadmins or the current user.
      */
     public function bulkDeleteUsers(Request $request)
     {
-        $canBulkDelete = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        $role = (int) (Auth::user()->role ?? 0);
+        $canBulkDelete = in_array($role, [1, 2], true);
         if (!$canBulkDelete) {
-            return redirect()->route('dashboard')->with('error', 'Only admin@iremetech.com may bulk-delete users.');
+            return redirect()->route('dashboard')->with('error', 'You do not have permission to bulk-delete users.');
         }
 
         $validated = $request->validate([
@@ -222,9 +222,11 @@ class AdminController extends Controller
     }
 
     public function showUser($id){
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
-        if (!$isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+        $role = (int) (Auth::user()->role ?? 0);
+        $isSuperAdmin = $role === 1;
+        $isAdmin = in_array($role, [1, 2], true);
+        if (!$isAdmin) {
+            return redirect()->route('dashboard')->with('error', 'You do not have permission to access the Users section.');
         }
 
         $user = User::with(['properties' => function($query) {
@@ -237,7 +239,7 @@ class AdminController extends Controller
         return view('admin.users.show', [
             'user' => $user,
             'setting' => $setting,
-            'isSuperAdmin' => true
+            'isSuperAdmin' => $isSuperAdmin
         ]);
     }
 
