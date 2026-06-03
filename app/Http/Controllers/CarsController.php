@@ -81,8 +81,11 @@ class CarsController extends Controller
             'fuel_type' => 'nullable|string|max:50',
             'transmission' => 'nullable|string|max:50',
             'seats' => 'nullable|integer|min:1',
-            'program_id' => 'required|exists:programs,id',
-            'advert_type' => 'required|in:rent,sell',
+            'program_id' => 'nullable|exists:programs,id',
+            'advert_type' => 'nullable|in:rent,sell',
+            'price_per_day' => 'nullable|numeric|min:0',
+            'price_per_month' => 'nullable|numeric|min:0',
+            'price_to_buy' => 'nullable|numeric|min:0',
             'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'car_images' => 'nullable|array',
             'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -114,9 +117,9 @@ class CarsController extends Controller
                 'fuel_type' => $request->input('fuel_type'),
                 'seats' => $request->input('seats'),
                 'transmission' => $request->input('transmission'),
-                'price_per_day' => $request->input('advert_type') === 'rent' ? $request->input('price_per_day') : null,
-                'price_per_month' => $request->input('advert_type') === 'rent' ? $request->input('price_per_month') : null,
-                'price_to_buy' => $request->input('advert_type') === 'sell' ? $request->input('price_to_buy') : null,
+                'price_per_day' => $request->input('price_per_day'),
+                'price_per_month' => $request->input('price_per_month'),
+                'price_to_buy' => $request->input('price_to_buy'),
                 'image' => $coverImageName, // Cover image
                 'description' => $request->input('description'),
                 'program_id' => $request->input('program_id'),
@@ -186,8 +189,11 @@ class CarsController extends Controller
                 'fuel_type' => 'nullable|string|max:50',
                 'transmission' => 'nullable|string|max:50',
                 'seats' => 'nullable|integer|min:1',
-                'program_id' => 'required|exists:programs,id',
-                'advert_type' => 'required|in:rent,sell',
+                'program_id' => 'nullable|exists:programs,id',
+                'advert_type' => 'nullable|in:rent,sell',
+                'price_per_day' => 'nullable|numeric|min:0',
+                'price_per_month' => 'nullable|numeric|min:0',
+                'price_to_buy' => 'nullable|numeric|min:0',
                 'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
                 'car_images' => 'nullable|array',
                 'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -217,16 +223,9 @@ class CarsController extends Controller
             $car->program_id = $request->input('program_id');
             $car->status = $request->input('status');
             
-            // Update pricing based on advert type
-            if ($request->input('advert_type') === 'rent') {
-                $car->price_per_day = $request->input('price_per_day');
-                $car->price_per_month = $request->input('price_per_month');
-                $car->price_to_buy = null;
-            } else {
-                $car->price_per_day = null;
-                $car->price_per_month = null;
-                $car->price_to_buy = $request->input('price_to_buy');
-            }
+            $car->price_per_day = $request->input('price_per_day');
+            $car->price_per_month = $request->input('price_per_month');
+            $car->price_to_buy = $request->input('price_to_buy');
     
             // Update slug if name changed
             if ($car->isDirty('name')) {

@@ -45,15 +45,16 @@
                                 {{-- Advert Type & Service --}}
                                 <div class="row mb-3">
                                     <div class="col-lg-6 col-sm-12">
-                                        <label class="form-label">Advert Type <span class="text-danger">*</span></label>
-                                        <select name="advert_type" id="advert_type" class="form-control" required>
+                                        <label class="form-label">Advert Type</label>
+                                        <select name="advert_type" id="advert_type" class="form-control">
                                             <option value="rent" {{ old('advert_type', $advertType ?? 'rent') == 'rent' ? 'selected' : '' }}>Rent</option>
                                             <option value="sell" {{ old('advert_type', $advertType ?? 'rent') == 'sell' ? 'selected' : '' }}>Sell</option>
                                         </select>
                                     </div>
                                     <div class="col-lg-6 col-sm-12">
-                                        <label class="form-label">Service <span class="text-danger">*</span></label>
-                                        <select name="program_id" class="form-control" required>
+                                        <label class="form-label">Service</label>
+                                        <select name="program_id" class="form-control">
+                                            <option value="">— Optional —</option>
                                             @foreach($programs as $program)
                                                 <option value="{{ $program->id }}" {{ old('program_id', $car->program_id) == $program->id ? 'selected' : '' }}>
                                                     {{ $program->title }}

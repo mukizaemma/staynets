@@ -134,17 +134,7 @@
                         </div>
 
                         <div class="text-end">
-                            @if($car->price_to_buy)
-                                <div style="font-size:20px;font-weight:700;">
-                                    {{ number_format($car->price_to_buy) }} RWF
-                                    <small class="text-muted">For Sale</small>
-                                </div>
-                            @elseif($car->price_per_day)
-                                <div style="font-size:20px;font-weight:700;">
-                                    {{ number_format($car->price_per_day) }} RWF
-                                    <small class="text-muted">/ day</small>
-                                </div>
-                            @endif
+                            <p class="text-muted small mb-2">Pricing available on request</p>
                             <button type="button" class="th-btn style4 mt-2" data-bs-toggle="modal" data-bs-target="#carBookingModal">
                                 Book Now
                             </button>
@@ -219,15 +209,7 @@
                                             {{ $car->model }} • {{ $car->fuel_type }}
                                         </p>
 
-                                        <p style="font-size:18px;font-weight:700;">
-                                            @if($car->price_to_buy)
-                                                {{ number_format($car->price_to_buy) }} RWF
-                                                <small class="text-muted">For Sale</small>
-                                            @else
-                                                {{ number_format($car->price_per_day) }} RWF
-                                                <small class="text-muted">/ day</small>
-                                            @endif
-                                        </p>
+                                        <p class="text-muted small mb-3">Pricing available on request</p>
 
                                         <ul class="list-unstyled small">
                                             <li>Seats: <strong>{{ $car->seats }}</strong></li>
@@ -279,19 +261,6 @@
                                                 </ul>
 
                                                 <div class="tour-action">
-                                                    <div class="mt-auto">
-                                                        @if($r->price_per_day !== null)
-                                                            <p class="fw-bold mb-2">
-                                                                {{ number_format($r->price_per_day) }} RWF
-                                                                <span class="text-muted fw-normal">/ day</span>
-                                                            </p>
-                                                        @elseif($r->price_to_buy)
-                                                            <p class="fw-bold mb-2">
-                                                                {{ number_format($r->price_to_buy) }} RWF
-                                                                <span class="text-muted fw-normal">For Sale</span>
-                                                            </p>
-                                                        @endif
-                                                    </div>
                                                     <a href="{{ route('carDetails', $r->slug ?? $r->id) }}" class="th-btn style3">Book Now</a>
                                                 </div>
                                             </div>

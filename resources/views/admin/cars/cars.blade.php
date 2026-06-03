@@ -148,14 +148,15 @@
                             <div class="row mb-3">
                                 <div class="col-lg-6 col-sm-12">
                                     <label class="form-label">Advert Type</label>
-                                    <select name="advert_type" id="advert_type" class="form-control" required>
+                                    <select name="advert_type" id="advert_type" class="form-control">
                                         <option value="rent">Rent</option>
                                         <option value="sell">Sell</option>
                                     </select>
                                 </div>
                                 <div class="col-lg-6 col-sm-12">
-                                    <label class="form-label">Seervice</label>
-                                    <select name="program_id" class="form-control" required>
+                                    <label class="form-label">Service</label>
+                                    <select name="program_id" class="form-control">
+                                        <option value="">— Optional —</option>
                                         @foreach($programs as $program)
                                             <option value="{{ $program->id }}">{{ $program->title }}</option>
                                         @endforeach
@@ -165,7 +166,7 @@
 
                             <div class="row mb-3">
                                 <div class="col-lg-6 col-sm-12">
-                                    <label class="form-label">Car Name</label>
+                                    <label class="form-label">Car Name <span class="text-danger">*</span></label>
                                     <input type="text" name="name" class="form-control" required>
                                 </div>
                                 <div class="col-lg-6 col-sm-12">
@@ -177,8 +178,8 @@
                             <div class="row mb-3">
                                 <div class="col-lg-4 col-sm-12">
                                     <label class="form-label">Fuel Type</label>
-                                        <select name="fuel_type" class="form-control" required>
-                                            <option value="" disabled selected>Select Fuel Type</option>
+                                        <select name="fuel_type" class="form-control">
+                                            <option value="" selected>Select Fuel Type</option>
                                             <option value="Petrol">Petrol</option>
                                             <option value="Diesel">Diesel</option>
                                             <option value="Hybrid">Hybrid</option>
@@ -189,8 +190,8 @@
                                 <div class="col-lg-4 col-sm-12">
                                     <label class="form-label">Transmission</label>
 
-                                        <select name="transmission" class="form-control" required>
-                                            <option value="">Select Transmission</option>
+                                        <select name="transmission" class="form-control">
+                                            <option value="" selected>Select Transmission</option>
                                             <option value="Automatic">Automatic</option>
                                             <option value="Manual">Manual</option>
                                             <option value="Semi-Automatic">Semi-Automatic</option>
@@ -277,18 +278,12 @@
                             if (advertType.value === 'rent') {
                                 rentFields.style.display = '';
                                 sellFields.style.display = 'none';
-                                pricePerDay.required = true;
-                                pricePerMonth.required = true;
-                                priceToBuy.required = false;
                                 priceToBuy.value = '';
                             } else {
                                 rentFields.style.display = 'none';
                                 sellFields.style.display = '';
-                                pricePerDay.required = false;
-                                pricePerMonth.required = false;
                                 pricePerDay.value = '';
                                 pricePerMonth.value = '';
-                                priceToBuy.required = true;
                             }
                         }
 

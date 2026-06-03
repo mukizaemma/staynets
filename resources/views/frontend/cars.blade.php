@@ -205,8 +205,6 @@
                                     <option value="popularity" {{ request('orderby') == 'popularity' ? 'selected' : '' }}>Sort by popularity</option>
                                     <option value="rating" {{ request('orderby') == 'rating' ? 'selected' : '' }}>Sort by average rating</option>
                                     <option value="date" {{ request('orderby') == 'date' ? 'selected' : '' }}>Sort by latest</option>
-                                    <option value="price" {{ request('orderby') == 'price' ? 'selected' : '' }}>Sort by price: low to high</option>
-                                    <option value="price-desc" {{ request('orderby') == 'price-desc' ? 'selected' : '' }}>Sort by price: high to low</option>
                                 </select>
                             </form>
                         </div>
@@ -254,22 +252,6 @@
                                                 </ul>
 
                                                 <div class="tour-action">
-                                                    <div class="mt-auto">
-                                                        @if($car->price_per_day !== null)
-                                                            <p class="fw-bold mb-2">
-                                                                {{ number_format($car->price_per_day) }} RWF
-                                                                <span class="text-muted fw-normal">/ day</span>
-                                                            </p>
-                                                        @elseif($car->price_per_day || $car->price_per_month)
-                                                            {{-- FOR RENT --}}
-                                                            <p class="fw-bold mb-2">
-                                                                {{ number_format($car->price_per_day ?? $car->price_per_month) }} RWF
-                                                                <span class="fw-normal text-muted">
-                                                                    / {{ $car->price_per_day ? 'day' : 'month' }}
-                                                                </span>
-                                                            </p>
-                                                        @endif
-                                                    </div>
                                                     <a href="{{ route('carDetails', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
                                                 </div>
                                             </div>
@@ -310,22 +292,6 @@
                                                 </ul>
 
                                                 <div class="tour-action">
-                                                    <div class="mt-auto">
-                                                        @if($car->price_per_day !== null)
-                                                            <p class="fw-bold mb-2">
-                                                                {{ number_format($car->price_per_day) }} RWF
-                                                                <span class="text-muted fw-normal">/ day</span>
-                                                            </p>
-                                                        @elseif($car->price_per_day || $car->price_per_month)
-                                                            {{-- FOR RENT --}}
-                                                            <p class="fw-bold mb-2">
-                                                                {{ number_format($car->price_per_day ?? $car->price_per_month) }} RWF
-                                                                <span class="fw-normal text-muted">
-                                                                    / {{ $car->price_per_day ? 'day' : 'month' }}
-                                                                </span>
-                                                            </p>
-                                                        @endif
-                                                    </div>
                                                     <a href="{{ route('carDetails', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
                                                 </div>
                                             </div>
