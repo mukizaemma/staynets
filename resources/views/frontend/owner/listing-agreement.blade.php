@@ -7,105 +7,97 @@
         ? route('my.properties.listing-agreement.sign', $hotel)
         : route('my.properties.property.listing-agreement.sign', $propertyModel);
     $backUrl = route('myProperties').'#properties';
-    $sig = $hotel ? $hotel->listingAgreementSignature : $propertyModel->listingAgreementSignature;
-    $signedCurrent = $sig && $sig->isCurrentForTemplate($template);
+    $sig = $signature ?? ($hotel ? $hotel->listingAgreementSignature : $propertyModel->listingAgreementSignature);
+    $fullySigned = $sig && $sig->isFullySigned() && $sig->isCurrentForTemplate($template);
+    $pending = $sig && $sig->isPendingApproval();
+    $needsResign = $sig && $sig->owner_signature_path && ! $sig->isCurrentForTemplate($template) && ! $fullySigned;
 @endphp
-<div class="container py-4" style="max-width: 900px;">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+<div class="container py-4" style="max-width: 960px;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 no-print">
         <div>
-            <h1 class="h3 mb-1">Property listing agreement</h1>
+            <h1 class="h3 mb-1">Property Listing Agreement</h1>
             <p class="text-muted small mb-0">{{ $listingName }}</p>
         </div>
-        <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-sm">Back to dashboard</a>
-    </div>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    @if($sig && ! $signedCurrent)
-        <div class="alert alert-warning">
-            The platform agreement was updated after you last signed. Please review and sign again to keep your listing compliant.
-        </div>
-    @endif
-
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 p-md-5">
-            <p class="text-muted small mb-3">Between <strong>{{ $template->platform_name ?? 'Stay Nets' }}</strong> (“Platform”) and you as Host.</p>
-
-            @if($template->intro_text)
-                <div class="mb-4 property-description" style="white-space: pre-wrap;">{{ $template->intro_text }}</div>
-            @endif
-
-            @foreach(($template->sections ?: \App\Models\ListingAgreementTemplate::defaultSections()) as $block)
-                <div class="mb-4">
-                    <h2 class="h5 text-dark">{{ $block['heading'] ?? '' }}</h2>
-                    @if(!empty($block['items']) && is_array($block['items']))
-                        <ul class="mb-0">
-                            @foreach($block['items'] as $line)
-                                <li>{{ $line }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
-                </div>
-            @endforeach
-
-            <hr class="my-4">
-
-            <div class="row g-4 align-items-end">
-                <div class="col-md-6">
-                    <h3 class="h6 text-uppercase text-muted">Platform representative</h3>
-                    <p class="mb-1 fw-semibold">{{ $template->platform_representative_name ?: '—' }}</p>
-                    @if($template->platform_signature_path)
-                        <div class="border rounded p-2 bg-light mt-2" style="max-width: 280px;">
-                            <img src="{{ asset('storage/'.$template->platform_signature_path) }}" alt="Platform signature" class="img-fluid" style="max-height: 100px;">
-                        </div>
-                    @else
-                        <p class="text-muted small mb-0">Signature on file will appear here once set by the platform.</p>
-                    @endif
-                </div>
-                <div class="col-md-6">
-                    <h3 class="h6 text-uppercase text-muted">Host</h3>
-                    <p class="mb-1 fw-semibold">{{ auth()->user()->name }}</p>
-                    <p class="small text-muted mb-2">{{ $listingName }}</p>
-                    @if($signedCurrent && $sig && $sig->owner_signature_path)
-                        <div class="border rounded p-2 bg-light mt-2" style="max-width: 280px;">
-                            <img src="{{ asset('storage/'.$sig->owner_signature_path) }}" alt="Your signature" class="img-fluid" style="max-height: 100px;">
-                        </div>
-                        <p class="small text-success mt-2 mb-0">Signed {{ $sig->signed_at?->format('M j, Y g:i A') }}</p>
-                    @endif
-                </div>
-            </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i>Download / Print</button>
+            <a href="{{ route('owner.signature.edit') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-signature me-1"></i>My signature</a>
+            <a href="{{ route('profile.show') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-user-cog me-1"></i>Account</a>
+            <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-sm">Back</a>
         </div>
     </div>
 
-    @if(! $signedCurrent)
-        <div class="card border-0 shadow-sm">
+    @if(session('success'))<div class="alert alert-success no-print">{{ session('success') }}</div>@endif
+    @if(session('error'))<div class="alert alert-danger no-print">{{ session('error') }}</div>@endif
+
+    @if($needsResign)
+        <div class="alert alert-warning no-print">The agreement template was updated. Please review and sign again.</div>
+    @elseif($pending)
+        <div class="alert alert-info no-print"><i class="fas fa-clock me-2"></i>Your signature was submitted and is awaiting platform approval.</div>
+    @elseif($fullySigned)
+        <div class="alert alert-success no-print"><i class="fas fa-check-circle me-2"></i>This agreement is fully signed and on file.</div>
+    @endif
+
+    <div class="bg-white rounded shadow-sm p-3 p-md-4 mb-4 print-area">
+        @include('partials.listing-agreement-document', [
+            'template' => $template,
+            'listing' => $listing,
+            'owner' => $owner,
+            'signature' => $sig ?? new \App\Models\ListingAgreementSignature(),
+            'setting' => $setting ?? null,
+            'showSignatures' => $fullySigned || $pending,
+        ])
+    </div>
+
+    @if(! $fullySigned && ! $pending)
+        <div class="card border-0 shadow-sm no-print">
             <div class="card-body p-4">
-                <h2 class="h5 mb-3">Confirm &amp; sign</h2>
-                <p class="text-muted small">Upload a clear image of your signature (PNG or JPG). This confirms you accept the listing agreement for this property.</p>
-                <form action="{{ $signUrl }}" method="POST" enctype="multipart/form-data" class="mt-3">
+                <h2 class="h5 mb-3">Sign this agreement</h2>
+                <p class="text-muted small">Fill in your details, upload your signature (or use your saved one), and submit for platform approval.</p>
+                <form action="{{ $signUrl }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="mb-3">
-                        <label class="form-label">Signature image <span class="text-danger">*</span></label>
-                        <input type="file" name="signature_image" class="form-control" accept="image/*" required>
-                        @error('signature_image')<div class="text-danger small">{{ $message }}</div>@enderror
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Your full name (printed on contract) <span class="text-danger">*</span></label>
+                            <input type="text" name="host_printed_name" class="form-control" value="{{ old('host_printed_name', auth()->user()->name) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Agreement start date</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ old('start_date', date('Y-m-d')) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Upload signature image</label>
+                            <input type="file" name="signature_image" class="form-control" accept="image/*">
+                            @error('signature_image')<div class="text-danger small">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            @if(auth()->user()->signature_path)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="use_saved_signature" id="use_saved_signature" value="1" {{ old('use_saved_signature') ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="use_saved_signature">Use my saved signature</label>
+                                </div>
+                            @else
+                                <p class="small text-muted mb-2"><a href="{{ route('owner.signature.edit') }}">Save a signature</a> to reuse it on future agreements.</p>
+                            @endif
+                        </div>
                     </div>
-                    <div class="form-check mb-3">
+                    <div class="form-check mt-3 mb-3">
                         <input class="form-check-input" type="checkbox" name="confirm_agreement" id="confirm_agreement" value="1" required>
                         <label class="form-check-label" for="confirm_agreement">
                             I have read and agree to the Property Listing Agreement above for <strong>{{ $listingName }}</strong>.
                         </label>
                     </div>
                     @error('confirm_agreement')<div class="text-danger small">{{ $message }}</div>@enderror
-                    <button type="submit" class="btn btn-primary">Submit signature</button>
+                    <button type="submit" class="btn btn-primary">Submit for approval</button>
                 </form>
             </div>
         </div>
-    @else
-        <div class="alert alert-success border-0 mb-0">
-            <i class="fas fa-check-circle me-2"></i>Your agreement is on file and matches the current platform template.
-        </div>
     @endif
 </div>
+
+<style>
+@media print {
+    .no-print, header, footer, .whatsapp-float { display: none !important; }
+    .print-area { box-shadow: none !important; padding: 0 !important; }
+}
+</style>
 @endsection

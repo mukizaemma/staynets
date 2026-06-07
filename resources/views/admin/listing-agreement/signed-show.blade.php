@@ -3,24 +3,9 @@
 @section('content')
 <style>
     @media print {
-        .no-print,
-        .sidebar,
-        .navbar,
-        .back-to-top,
-        #spinner {
-            display: none !important;
-        }
-        .print-area {
-            box-shadow: none !important;
-            border: none !important;
-        }
-        body, .container-fluid {
-            background: #fff !important;
-        }
-        .content {
-            margin-left: 0 !important;
-            width: 100% !important;
-        }
+        .no-print, .sidebar, .navbar, .back-to-top, #spinner { display: none !important; }
+        .content { margin-left: 0 !important; width: 100% !important; }
+        .print-area { box-shadow: none !important; padding: 0 !important; }
     }
 </style>
 
@@ -33,111 +18,78 @@
         <div class="no-print d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('admin.listing-agreement.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-arrow-left me-1"></i>Back to signed agreements
+                    <i class="fas fa-arrow-left me-1"></i>Back
                 </a>
                 <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i>Print
+                    <i class="fas fa-download me-1"></i>Download / Print PDF
                 </button>
             </div>
         </div>
 
+        @if(session('success'))<div class="alert alert-success no-print">{{ session('success') }}</div>@endif
+        @if(session('error'))<div class="alert alert-danger no-print">{{ session('error') }}</div>@endif
+
         <div class="no-print alert alert-light border mb-4">
             <div class="row g-2 small">
                 <div class="col-md-3"><strong>Record #</strong> {{ $signature->id }}</div>
-                <div class="col-md-3"><strong>Listing type</strong> {{ $typeLabel }}</div>
-                <div class="col-md-3"><strong>Signed</strong> {{ $signature->signed_at?->format('M j, Y g:i A') ?? '—' }}</div>
-                <div class="col-md-3"><strong>IP</strong> {{ $signature->signer_ip ?? '—' }}</div>
-                <div class="col-md-6"><strong>Listing</strong> {{ $listingName }}</div>
-                <div class="col-md-6"><strong>Host</strong>
-                    @if($owner)
-                        {{ $owner->name }} &lt;{{ $owner->email }}&gt;
-                    @else
-                        —
-                    @endif
-                </div>
-                <div class="col-12">
-                    <strong>Status</strong>
-                    @if($matchesTemplate)
-                        <span class="badge bg-success">Matches current template</span>
-                    @else
-                        <span class="badge bg-warning text-dark">Template changed since signing — host may need to re-sign</span>
-                    @endif
-                </div>
+                <div class="col-md-3"><strong>Status</strong> <span class="badge bg-{{ $signature->status === 'signed' ? 'success' : 'warning text-dark' }}">{{ $signature->statusLabel() }}</span></div>
+                <div class="col-md-3"><strong>Listing</strong> {{ $listingName }}</div>
+                <div class="col-md-3"><strong>Host</strong> {{ $owner->name ?? '—' }}</div>
             </div>
         </div>
 
-        <div class="print-area bg-white rounded shadow-sm p-4 p-md-5 mx-auto" style="max-width: 900px;">
-            <header class="text-center border-bottom pb-3 mb-4">
-                <h1 class="h4 mb-1">Property listing agreement</h1>
-                <p class="text-muted small mb-0">{{ $template->platform_name ?? 'Stay Nets' }}</p>
-            </header>
-
-            <section class="mb-4 small text-muted">
-                <p class="mb-1"><strong>Listing:</strong> {{ $listingName }}</p>
-                <p class="mb-1"><strong>Host:</strong>
-                    @if($owner)
-                        {{ $owner->name }} ({{ $owner->email }})
-                    @else
-                        —
-                    @endif
-                </p>
-                <p class="mb-0"><strong>Signed on:</strong> {{ $signature->signed_at?->format('F j, Y \a\t g:i A') ?? '—' }}</p>
-            </section>
-
-            <p class="text-muted small mb-3">Between <strong>{{ $template->platform_name ?? 'Stay Nets' }}</strong> (“Platform”) and the Host named below.</p>
-
-            @if($template->intro_text)
-                <div class="mb-4" style="white-space: pre-wrap;">{{ $template->intro_text }}</div>
+        <div class="print-area bg-white rounded shadow-sm p-3 p-md-4 mx-auto mb-4" style="max-width: 900px;">
+            @if($listing)
+            @include('partials.listing-agreement-document', [
+                'template' => $template,
+                'listing' => $listing,
+                'owner' => $owner,
+                'signature' => $signature,
+                'setting' => $setting,
+                'showSignatures' => true,
+            ])
+            @else
+                <p class="text-muted">The linked listing was removed. Signature record #{{ $signature->id }} is kept for audit.</p>
             @endif
-
-            @foreach(($template->sections ?: \App\Models\ListingAgreementTemplate::defaultSections()) as $block)
-                <div class="mb-4">
-                    <h2 class="h6 text-dark fw-bold">{{ $block['heading'] ?? '' }}</h2>
-                    @if(!empty($block['items']) && is_array($block['items']))
-                        <ul class="mb-0">
-                            @foreach($block['items'] as $line)
-                                <li>{{ $line }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
-                </div>
-            @endforeach
-
-            <hr class="my-4">
-
-            <div class="row g-4 align-items-end">
-                <div class="col-md-6">
-                    <h3 class="h6 text-uppercase text-muted">Platform representative</h3>
-                    <p class="mb-1 fw-semibold">{{ $template->platform_representative_name ?: '—' }}</p>
-                    @if($template->platform_signature_path)
-                        <div class="border rounded p-2 bg-light mt-2 d-inline-block">
-                            <img src="{{ asset('storage/'.$template->platform_signature_path) }}" alt="Platform signature" class="img-fluid" style="max-height: 100px;">
-                        </div>
-                    @else
-                        <p class="text-muted small mb-0">—</p>
-                    @endif
-                </div>
-                <div class="col-md-6">
-                    <h3 class="h6 text-uppercase text-muted">Host</h3>
-                    <p class="mb-1 fw-semibold">{{ $owner->name ?? '—' }}</p>
-                    @if($owner && $owner->email)
-                        <p class="small text-muted mb-1">{{ $owner->email }}</p>
-                    @endif
-                    <p class="small text-muted mb-2">Property: {{ $listingName }}</p>
-                    @if($signature->owner_signature_path)
-                        <div class="border rounded p-2 bg-light mt-2 d-inline-block">
-                            <img src="{{ asset('storage/'.$signature->owner_signature_path) }}" alt="Host signature" class="img-fluid" style="max-height: 100px;">
-                        </div>
-                    @else
-                        <p class="text-muted small mb-0">No signature file on record.</p>
-                    @endif
-                </div>
-            </div>
-
-            <footer class="mt-5 pt-3 border-top small text-muted text-center">
-                <p class="mb-0">Printed from {{ config('app.name', 'StayNets') }} admin · Record #{{ $signature->id }}</p>
-            </footer>
         </div>
+
+        @if($signature->isPendingApproval())
+            <div class="no-print bg-light rounded p-4 mx-auto" style="max-width: 900px;">
+                <h5 class="mb-3">Approve &amp; sign as platform</h5>
+                <p class="text-muted small">Review the host signature below, then approve to mark this agreement as fully signed.</p>
+                @if($signature->owner_signature_path)
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Host signature submitted</label>
+                        <div><img src="{{ asset('storage/'.$signature->owner_signature_path) }}" alt="Host signature" style="max-height: 90px;" class="border rounded p-2 bg-white"></div>
+                    </div>
+                @endif
+                <form action="{{ route('admin.listing-agreement.approve', $signature) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Platform signature (optional upload)</label>
+                            <input type="file" name="admin_signature" class="form-control" accept="image/*">
+                            @if($template->platform_signature_path)
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="use_template_signature" id="use_template_signature" value="1" checked>
+                                    <label class="form-check-label" for="use_template_signature">Use template signature on file</label>
+                                </div>
+                                <img src="{{ asset('storage/'.$template->platform_signature_path) }}" alt="" class="img-thumbnail mt-2" style="max-height: 80px;">
+                            @endif
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Admin notes (optional)</label>
+                            <textarea name="admin_notes" class="form-control" rows="4">{{ old('admin_notes', $signature->admin_notes) }}</textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success mt-3"><i class="fas fa-check me-1"></i>Approve &amp; mark as signed</button>
+                </form>
+            </div>
+        @elseif($signature->isFullySigned())
+            <div class="no-print alert alert-success mx-auto" style="max-width: 900px;">
+                <i class="fas fa-check-circle me-2"></i>Approved on {{ $signature->admin_approved_at?->format('M j, Y g:i A') ?? '—' }}
+            </div>
+        @endif
     </div>
 </div>
 

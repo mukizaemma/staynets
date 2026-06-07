@@ -62,9 +62,9 @@
                                 <th>Listing type</th>
                                 <th>Listing name</th>
                                 <th>Host / owner</th>
-                                <th>Signed</th>
                                 <th>Status</th>
-                                <th>Agreement</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
                                 <th>IP</th>
                             </tr>
                         </thead>
@@ -89,19 +89,19 @@
                                             —
                                         @endif
                                     </td>
-                                    <td class="small text-nowrap">{{ $sig->signed_at?->format('M j, Y g:i A') ?? '—' }}</td>
-                                    <td>
-                                        @if(! $templateModel)
-                                            <span class="badge bg-secondary">—</span>
-                                        @elseif($current)
-                                            <span class="badge bg-success">Matches template</span>
+                                    <td class="small text-nowrap">
+                                        @if($sig->status === 'signed')
+                                            <span class="badge bg-success">Signed</span>
+                                        @elseif($sig->status === 'pending_approval')
+                                            <span class="badge bg-warning text-dark">Pending approval</span>
                                         @else
-                                            <span class="badge bg-warning text-dark">Re-sign needed</span>
+                                            <span class="badge bg-secondary">{{ $sig->statusLabel() }}</span>
                                         @endif
                                     </td>
+                                    <td class="small text-nowrap">{{ $sig->signed_at?->format('M j, Y g:i A') ?? '—' }}</td>
                                     <td class="text-nowrap">
                                         <a href="{{ route('admin.listing-agreement.signed.show', $sig) }}" class="btn btn-sm btn-primary py-0">
-                                            View / print
+                                            @if($sig->status === 'pending_approval') Review @else View @endif
                                         </a>
                                         @if($sig->owner_signature_path)
                                             <a href="{{ asset('storage/'.$sig->owner_signature_path) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary py-0 ms-1" title="Signature image only">Image</a>

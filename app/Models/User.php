@@ -41,6 +41,7 @@ class User extends Authenticatable
         'plan_id',
         'role',
         'status',
+        'signature_path',
     ];
     
 

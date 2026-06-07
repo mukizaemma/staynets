@@ -55,17 +55,63 @@
             @method('PUT')
 
             <div class="row g-3 mb-4">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">Platform name</label>
                     <input type="text" name="platform_name" class="form-control" value="{{ old('platform_name', $template->platform_name) }}" required>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Platform representative (printed name)</label>
-                    <input type="text" name="platform_representative_name" class="form-control" value="{{ old('platform_representative_name', $template->platform_representative_name) }}" placeholder="Full name">
+                <div class="col-md-4">
+                    <label class="form-label">Tagline</label>
+                    <input type="text" name="platform_tagline" class="form-control" value="{{ old('platform_tagline', $template->platform_tagline) }}" placeholder="Stay Nets - One Platform, Endless Destinations.">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Representative name</label>
+                    <input type="text" name="platform_representative_name" class="form-control" value="{{ old('platform_representative_name', $template->platform_representative_name) }}" placeholder="Joseph K">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Email</label>
+                    <input type="text" name="platform_email" class="form-control" value="{{ old('platform_email', $template->platform_email) }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Website</label>
+                    <input type="text" name="platform_website" class="form-control" value="{{ old('platform_website', $template->platform_website) }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Phone (footer)</label>
+                    <input type="text" name="platform_phone" class="form-control" value="{{ old('platform_phone', $template->platform_phone) }}">
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Intro (optional)</label>
+                    <label class="form-label">Intro text</label>
                     <textarea name="intro_text" class="form-control" rows="4">{{ old('intro_text', $template->intro_text) }}</textarea>
+                </div>
+            </div>
+
+            <h6 class="mb-3">Modifiable contract terms</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Damage report window (hours)</label>
+                    <input type="number" name="damage_report_hours" class="form-control" min="1" value="{{ old('damage_report_hours', $template->damage_report_hours ?? 24) }}">
+                    <small class="text-muted">Replaces [X] in section 8</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Termination notice (days)</label>
+                    <input type="number" name="termination_notice_days" class="form-control" min="1" value="{{ old('termination_notice_days', $template->termination_notice_days ?? 30) }}">
+                    <small class="text-muted">Replaces [30 days] in section 10</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Commission rate</label>
+                    <input type="text" name="commission_rate" class="form-control" value="{{ old('commission_rate', $template->commission_rate ?? '5%') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Payment method</label>
+                    <input type="text" name="payment_method" class="form-control" value="{{ old('payment_method', $template->payment_method) }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Payment timeline</label>
+                    <input type="text" name="payment_timeline" class="form-control" value="{{ old('payment_timeline', $template->payment_timeline) }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Footer services line</label>
+                    <input type="text" name="footer_services_text" class="form-control" value="{{ old('footer_services_text', $template->footer_services_text) }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Platform representative signature (image)</label>
@@ -75,6 +121,7 @@
                             <img src="{{ asset('storage/'.$template->platform_signature_path) }}" alt="" class="img-thumbnail" style="max-height: 100px;">
                         </div>
                     @endif
+                    <small class="text-muted">Used when approving host agreements</small>
                 </div>
             </div>
 

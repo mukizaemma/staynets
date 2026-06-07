@@ -148,6 +148,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/properties/{id}/featured', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'toggleFeatured'])->name('admin.properties.featured.toggle');
     Route::get('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'show'])->name('admin.properties.show'); // Generic show route (must be last)
 
+    Route::post('/admin/listing-agreement/signed/{signature}/approve', [App\Http\Controllers\Admin\ListingAgreementController::class, 'approve'])->name('admin.listing-agreement.approve');
     Route::get('/admin/listing-agreement/edit', [App\Http\Controllers\Admin\ListingAgreementController::class, 'edit'])->name('admin.listing-agreement.edit');
     Route::get('/admin/listing-agreement/signed/{signature}', [App\Http\Controllers\Admin\ListingAgreementController::class, 'showSigned'])->name('admin.listing-agreement.signed.show');
     Route::put('/admin/listing-agreement', [App\Http\Controllers\Admin\ListingAgreementController::class, 'update'])->name('admin.listing-agreement.update');
@@ -383,6 +384,8 @@ Route::middleware(['auth', 'redirect.admin'])->group(function () {
     Route::post('/my-properties/hotels/{hotel}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'signHotelListingAgreement'])->name('my.properties.listing-agreement.sign');
     Route::get('/my-properties/properties/{property}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'showPropertyListingAgreement'])->name('my.properties.property.listing-agreement.show');
     Route::post('/my-properties/properties/{property}/listing-agreement', [App\Http\Controllers\UserPropertyController::class, 'signPropertyListingAgreement'])->name('my.properties.property.listing-agreement.sign');
+    Route::get('/my-properties/signature', [App\Http\Controllers\OwnerSignatureController::class, 'edit'])->name('owner.signature.edit');
+    Route::post('/my-properties/signature', [App\Http\Controllers\OwnerSignatureController::class, 'update'])->name('owner.signature.update');
 
     Route::get('/inventory-day-cap', [App\Http\Controllers\InventoryDayCapController::class, 'show'])->name('inventory-day-cap.show');
     Route::post('/inventory-day-cap', [App\Http\Controllers\InventoryDayCapController::class, 'update'])->name('inventory-day-cap.update');

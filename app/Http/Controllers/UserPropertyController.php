@@ -739,6 +739,10 @@ try {
             'template' => $template,
             'hotel' => $hotel,
             'propertyModel' => null,
+            'listing' => $hotel,
+            'owner' => auth()->user(),
+            'signature' => $hotel->listingAgreementSignature ?? new ListingAgreementSignature(),
+            'setting' => \App\Models\Setting::first(),
             'completion' => ListingCompletionService::forHotel($hotel),
         ]);
     }
@@ -748,16 +752,30 @@ try {
         $this->authorizeOwner($hotel);
 
         $request->validate([
-            'signature_image' => 'required|image|max:4096',
+            'signature_image' => 'nullable|image|max:4096',
+            'use_saved_signature' => 'nullable|boolean',
+            'host_printed_name' => 'required|string|max:255',
+            'start_date' => 'nullable|date',
             'confirm_agreement' => 'required|accepted',
         ]);
 
         $template = ListingAgreementTemplate::current();
-        $path = $request->file('signature_image')->store('public/listing-agreements/owner');
-        $relative = str_replace('public/', '', $path);
+        $relative = null;
+
+        if ($request->hasFile('signature_image')) {
+            $path = $request->file('signature_image')->store('public/listing-agreements/owner');
+            $relative = str_replace('public/', '', $path);
+        } elseif ($request->boolean('use_saved_signature') && auth()->user()->signature_path) {
+            $relative = auth()->user()->signature_path;
+        }
+
+        if (! $relative) {
+            return redirect()->back()->withInput()->with('error', 'Please upload a signature or save one in your profile first.');
+        }
 
         $existing = $hotel->listingAgreementSignature;
-        if ($existing && $existing->owner_signature_path && Storage::exists('public/'.$existing->owner_signature_path)) {
+        if ($existing && $existing->owner_signature_path && $request->hasFile('signature_image')
+            && Storage::exists('public/'.$existing->owner_signature_path)) {
             Storage::delete('public/'.$existing->owner_signature_path);
         }
 
@@ -768,13 +786,16 @@ try {
             ],
             [
                 'owner_signature_path' => $relative,
+                'host_printed_name' => $request->input('host_printed_name'),
+                'start_date' => $request->input('start_date') ?? now()->toDateString(),
+                'status' => ListingAgreementSignature::STATUS_PENDING,
                 'signed_at' => now(),
                 'template_version_at' => $template->fresh()->updated_at,
                 'signer_ip' => $request->ip(),
             ]
         );
 
-        return redirect()->to(route('myProperties').'#properties')->with('success', 'Listing agreement signed. Your listing setup is updated.');
+        return redirect()->to(route('myProperties').'#properties')->with('success', 'Agreement submitted. It will be fully signed once the platform approves it.');
     }
 
     public function showPropertyListingAgreement(Property $property)
@@ -787,6 +808,10 @@ try {
             'template' => $template,
             'hotel' => null,
             'propertyModel' => $property,
+            'listing' => $property,
+            'owner' => auth()->user(),
+            'signature' => $property->listingAgreementSignature ?? new ListingAgreementSignature(),
+            'setting' => \App\Models\Setting::first(),
             'completion' => ListingCompletionService::forProperty($property),
         ]);
     }
@@ -796,16 +821,30 @@ try {
         $this->authorizePropertyOwner($property);
 
         $request->validate([
-            'signature_image' => 'required|image|max:4096',
+            'signature_image' => 'nullable|image|max:4096',
+            'use_saved_signature' => 'nullable|boolean',
+            'host_printed_name' => 'required|string|max:255',
+            'start_date' => 'nullable|date',
             'confirm_agreement' => 'required|accepted',
         ]);
 
         $template = ListingAgreementTemplate::current();
-        $path = $request->file('signature_image')->store('public/listing-agreements/owner');
-        $relative = str_replace('public/', '', $path);
+        $relative = null;
+
+        if ($request->hasFile('signature_image')) {
+            $path = $request->file('signature_image')->store('public/listing-agreements/owner');
+            $relative = str_replace('public/', '', $path);
+        } elseif ($request->boolean('use_saved_signature') && auth()->user()->signature_path) {
+            $relative = auth()->user()->signature_path;
+        }
+
+        if (! $relative) {
+            return redirect()->back()->withInput()->with('error', 'Please upload a signature or save one in your profile first.');
+        }
 
         $existing = $property->listingAgreementSignature;
-        if ($existing && $existing->owner_signature_path && Storage::exists('public/'.$existing->owner_signature_path)) {
+        if ($existing && $existing->owner_signature_path && $request->hasFile('signature_image')
+            && Storage::exists('public/'.$existing->owner_signature_path)) {
             Storage::delete('public/'.$existing->owner_signature_path);
         }
 
@@ -816,13 +855,16 @@ try {
             ],
             [
                 'owner_signature_path' => $relative,
+                'host_printed_name' => $request->input('host_printed_name'),
+                'start_date' => $request->input('start_date') ?? now()->toDateString(),
+                'status' => ListingAgreementSignature::STATUS_PENDING,
                 'signed_at' => now(),
                 'template_version_at' => $template->fresh()->updated_at,
                 'signer_ip' => $request->ip(),
             ]
         );
 
-        return redirect()->to(route('myProperties').'#properties')->with('success', 'Listing agreement signed.');
+        return redirect()->to(route('myProperties').'#properties')->with('success', 'Agreement submitted. It will be fully signed once the platform approves it.');
     }
 
     protected function authorizePropertyOwner(Property $property): void
