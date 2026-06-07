@@ -63,7 +63,7 @@
                                 @else
                                     <span class="text-muted small">Price on request</span>
                                 @endif
-                                <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style3 btn-sm">Book Now</a>
+                                <a href="{{ route('hotel', $hotel->slug ?? $hotel->id) }}" class="th-btn style3">Book Now</a>
                             </div>
                         </div>
                     </div>

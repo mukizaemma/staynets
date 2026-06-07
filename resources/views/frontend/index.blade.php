@@ -143,7 +143,7 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="tour-box th-ani h-100">
                             <div class="tour-box_img global-img">
-                                <img src="{{ $coverImage }}" alt="{{ $item->name }}" style="width: 100%; height: 220px; object-fit: cover;" loading="lazy" decoding="async">
+                                <img src="{{ $coverImage }}" alt="{{ $item->name }}" loading="lazy" decoding="async">
                             </div>
                             <div class="tour-content">
                                 <h3 class="box-title">
@@ -167,7 +167,7 @@
                                     @else
                                         <span class="text-muted small">Price on request</span>
                                     @endif
-                                    <a href="{{ $detailUrl }}" class="th-btn style3 featured-listing-avail-btn">Check availability</a>
+                                    <a href="{{ $detailUrl }}" class="th-btn style3">Check availability</a>
                                 </div>
                             </div>
                         </div>
@@ -283,7 +283,7 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="tour-box th-ani h-100">
                             <div class="tour-box_img global-img">
-                                <img src="{{ $tripImage }}" alt="{{ $trip->title ?? 'Tour' }}" style="width:100%;height:220px;object-fit:cover;">
+                                <img src="{{ $tripImage }}" alt="{{ $trip->title ?? 'Tour' }}">
                             </div>
                             <div class="tour-content">
                                 <h3 class="box-title">
@@ -298,7 +298,7 @@
                                     @else
                                         <span class="small text-muted">&nbsp;</span>
                                     @endif
-                                    <a href="{{ route('tour', $trip->slug) }}" class="th-btn style3 featured-listing-avail-btn">View</a>
+                                    <a href="{{ route('tour', $trip->slug) }}" class="th-btn style3">View</a>
                                 </div>
                             </div>
                         </div>
@@ -498,13 +498,6 @@ Service Area
 
 
 <style>
-/* Featured Listings: small availability button */
-#featured-listings-sec .featured-listing-avail-btn {
-    padding: 6px 14px !important;
-    font-size: 13px !important;
-    white-space: nowrap;
-}
-
 /* Hero Section Fixes */
 #hero.th-hero-wrapper.hero-7 {
     min-height: 500px !important;
