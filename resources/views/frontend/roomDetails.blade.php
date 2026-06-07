@@ -390,7 +390,7 @@ $trips = $trips ?? collect();
                             <div class="row gy-4">
                                 @foreach($relatedRooms as $r)
                                     <div class="col-xxl-4 col-xl-6 col-md-6">
-                                        <div class="tour-box th-ani">
+                                        <div class="tour-box th-ani h-100">
                                             <div class="tour-box_img global-img">
                                                 @php
                                                     $imgSrc = asset('assets/img/tour/tour_3_1.jpg');

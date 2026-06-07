@@ -4,6 +4,7 @@
 :root {
   --brand-blue: #104868;
   --brand-green: #388840;
+  --listing-card-image-height: 220px;
 }
 
 /* Headings: consistent color + font */
@@ -71,12 +72,14 @@ a:hover, a:focus, .text-primary:hover {
 }
 
 /* Property / listing grid cards: equal cover image height */
-.tour-box:not(.style-flex) > .tour-box_img {
-  height: 220px;
+.tour-box:not(.style-flex) > .tour-box_img,
+.listing-card-img {
+  height: var(--listing-card-image-height);
   overflow: hidden;
 }
 
-.tour-box:not(.style-flex) > .tour-box_img img {
+.tour-box:not(.style-flex) > .tour-box_img img,
+.listing-card-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -84,8 +87,8 @@ a:hover, a:focus, .text-primary:hover {
 }
 
 .tour-box.style-flex > .tour-box_img {
-  height: 220px;
-  min-height: 220px;
+  height: var(--listing-card-image-height);
+  min-height: var(--listing-card-image-height);
   overflow: hidden;
 }
 
@@ -96,15 +99,47 @@ a:hover, a:focus, .text-primary:hover {
   display: block;
 }
 
-/* Smaller action buttons inside listing cards */
+/* Uniform compact buttons on listing, property, and room pages */
+.listing-btn,
 .tour-box .tour-action .th-btn,
 .tour-box .tour-content .th-btn.style3,
-.tour-box .tour-content .th-btn.style4 {
+.tour-box .tour-content .th-btn.style4,
+.tour-box .tour-content > .d-flex .th-btn,
+.btn-book-room,
+.rooms-table .btn-book-room,
+.rooms-table a.listing-btn {
   padding: 6px 16px !important;
   font-size: 13px !important;
   line-height: 1.35 !important;
   border-radius: 24px;
   gap: 4px;
+  font-weight: 600 !important;
+  white-space: nowrap;
+}
+
+.btn-book-room {
+  background: var(--brand-blue) !important;
+  color: #fff !important;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-book-room:hover:not(:disabled) {
+  background: var(--brand-green) !important;
+}
+
+.btn-book-room:disabled {
+  background: #ccc !important;
+  cursor: not-allowed;
+}
+
+.btn-reserve {
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  border-radius: 8px;
+  font-weight: 600 !important;
 }
 
 .tour-box .tour-action .th-btn.th-icon:after {

@@ -315,7 +315,7 @@
         <div class="row gy-4">
             @foreach($hotels as $hotel)
                 <div class="col-md-6 col-lg-4">
-                    <div class="tour-box">
+                    <div class="tour-box h-100">
                         <div class="tour-box_img position-relative">
                             @php
                                 $img = $hotel->image && file_exists(storage_path('app/public/images/hotels/'.$hotel->image))
@@ -327,7 +327,7 @@
                                 @if($st === 'Active') bg-success
                                 @elseif($st === 'Pending') bg-warning text-dark
                                 @else bg-secondary @endif">{{ $st }}</span>
-                            <img src="{{ $img }}" alt="{{ $hotel->name }}" style="height:220px;object-fit:cover;width:100%;">
+                            <img src="{{ $img }}" alt="{{ $hotel->name }}">
                         </div>
 
                         <div class="tour-content">

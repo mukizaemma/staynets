@@ -200,21 +200,7 @@
         color: #d32f2f;
     }
     .btn-book-room {
-        background: var(--brand-blue);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
         transition: background 0.3s;
-    }
-    .btn-book-room:hover {
-        background: #123a5a;
-    }
-    .btn-book-room:disabled {
-        background: #ccc;
-        cursor: not-allowed;
     }
     
     /* Right Sidebar */
@@ -272,16 +258,12 @@
         background: var(--brand-blue);
         color: white;
         border: none;
-        padding: 15px;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 700;
         cursor: pointer;
         transition: background 0.3s;
         margin-top: 10px;
     }
     .btn-reserve:hover {
-        background: #123a5a;
+        background: var(--brand-green);
     }
     .btn-reserve:disabled {
         background: #ccc;
@@ -764,8 +746,8 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-wrap gap-2 align-items-center">
-                                                <a href="{{ route('unit.details', ['property' => $hotel->slug ?? $hotel->id, 'unit' => $unit->slug ?? $unit->id]) }}" 
-                                                   class="btn btn-sm btn-outline-primary" style="padding: 8px 14px; border-radius: 6px; text-decoration: none;">
+                                                <a href="{{ route('unit.details', ['property' => $hotel->slug ?? $hotel->id, 'unit' => $unit->slug ?? $unit->id]) }}"
+                                                   class="th-btn style4 listing-btn">
                                                     <i class="fas fa-images me-1"></i>View room
                                                 </a>
                                                 @if($unit->available_units > 0)
@@ -1000,42 +982,43 @@
                             preg_match('/\d+/', (string)$prop->stars, $m);
                             $propStars = !empty($m) ? max(0, min(5, (int)$m[0])) : 0;
                         }
+                        $propUrl = route('hotel', $prop->slug ?? $prop->id);
                     @endphp
                     <div class="col-lg-3 col-md-6">
-                        <div class="content-section h-100" style="padding: 0; overflow: hidden;">
-                            <a href="{{ route('hotel', $prop->slug ?? $prop->id) }}" class="d-block">
-                                <div style="height: 180px; overflow: hidden;">
-                                    <img src="{{ $propImage }}" alt="{{ $prop->name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <div style="padding: 20px;">
-                                    <h5 class="mb-2" style="font-size: 16px; font-weight: 600;">{{ $prop->name }}</h5>
-                                    @if($propStars > 0)
-                                        <div class="mb-2">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                @if($i <= $propStars)
-                                                    <i class="fa-solid fa-star text-warning" style="font-size: 12px;"></i>
-                                                @else
-                                                    <i class="fa-regular fa-star text-warning" style="font-size: 12px;"></i>
-                                                @endif
-                                            @endfor
-                                            <span class="ms-1 small text-muted">{{ $propStars }} {{ $propStars == 1 ? 'Star' : 'Stars' }}</span>
-                                        </div>
-                                    @endif
-                                    @if($prop->reviews_count > 0)
-                                        <div class="mb-2 small text-muted">
-                                            {{ number_format($prop->reviews_avg_rating ?? 0, 1) }} · {{ $prop->reviews_count }} {{ $prop->reviews_count == 1 ? 'review' : 'reviews' }}
-                                        </div>
-                                    @endif
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        @if($propMinPrice)
-                                            <span class="text-success fw-semibold">{{ $propCurrencySymbol }}{{ number_format($propMinPrice, 0) }}/night</span>
-                                        @else
-                                            <span class="text-muted small">Price on request</span>
-                                        @endif
-                                        <span class="btn btn-sm btn-outline-primary">View</span>
+                        <div class="tour-box th-ani h-100">
+                            <div class="tour-box_img global-img">
+                                <img src="{{ $propImage }}" alt="{{ $prop->name }}" loading="lazy" decoding="async">
+                            </div>
+                            <div class="tour-content">
+                                <h3 class="box-title">
+                                    <a href="{{ $propUrl }}">{{ $prop->name }}</a>
+                                </h3>
+                                @if($propStars > 0)
+                                    <div class="mb-2">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $propStars)
+                                                <i class="fa-solid fa-star text-warning" style="font-size: 12px;"></i>
+                                            @else
+                                                <i class="fa-regular fa-star text-warning" style="font-size: 12px;"></i>
+                                            @endif
+                                        @endfor
+                                        <span class="ms-1 small text-muted">{{ $propStars }} {{ $propStars == 1 ? 'Star' : 'Stars' }}</span>
                                     </div>
+                                @endif
+                                @if($prop->reviews_count > 0)
+                                    <div class="mb-2 small text-muted">
+                                        {{ number_format($prop->reviews_avg_rating ?? 0, 1) }} · {{ $prop->reviews_count }} {{ $prop->reviews_count == 1 ? 'review' : 'reviews' }}
+                                    </div>
+                                @endif
+                                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                    @if($propMinPrice)
+                                        <span class="text-success fw-semibold">{{ $propCurrencySymbol }}{{ number_format($propMinPrice, 0) }}/night</span>
+                                    @else
+                                        <span class="text-muted small">Price on request</span>
+                                    @endif
+                                    <a href="{{ $propUrl }}" class="th-btn style3 listing-btn">View</a>
                                 </div>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 @endforeach

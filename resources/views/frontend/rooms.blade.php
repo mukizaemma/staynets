@@ -39,7 +39,7 @@
                                 <div class="col-xxl-4 col-xl-4 col-sm-12">
                                     <div class="tour-box th-ani">
                                         <div class="tour-box_img global-img">
-                                            <img src="{{ asset('storage/images/rooms/' .$room->image) }}" alt="image" style="height: 300px !important;">
+                                            <img src="{{ asset('storage/images/rooms/' .$room->image) }}" alt="image">
                                         </div>
                                         <div class="tour-content">
                                         <div class="flex items-center justify-between">

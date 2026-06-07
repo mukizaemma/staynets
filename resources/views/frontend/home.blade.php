@@ -91,7 +91,7 @@ Rooms Area
                                 <div class="swiper-slide">
                                     <div class="tour-box th-ani gsap-cursor">
                                         <div class="tour-box_img global-img">
-                                            <img src="{{ asset('storage/images/rooms/' . $room->image) }}" alt="{{ $room->title }}" height="200px">
+                                            <img src="{{ asset('storage/images/rooms/' . $room->image) }}" alt="{{ $room->title }}">
                                         </div>
                                         <div class="tour-content">
                                             <h3 class="box-title">

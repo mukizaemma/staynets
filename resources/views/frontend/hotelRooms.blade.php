@@ -9,7 +9,7 @@
                 <div class="row gy-24 gx-24">
                     @forelse($rooms as $room)
                         <div class="col-md-6">
-                            <div class="tour-box th-ani">
+                            <div class="tour-box th-ani h-100">
                                 <div class="tour-box_img global-img">
                                     @if(!empty($room->image) && file_exists(storage_path('app/public/images/rooms/' . $room->image)))
                                         <img src="{{ asset('storage/images/rooms/' . $room->image) }}" alt="{{ $room->room_type }}">

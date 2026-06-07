@@ -38,10 +38,9 @@
     .room-snapshot-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 8px; }
     .room-snapshot-item i { color: var(--brand-blue); font-size: 18px; width: 24px; }
     .btn-book-room {
-        background: var(--brand-blue); color: white; border: none; padding: 12px 24px;
-        border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.3s;
+        cursor: pointer;
+        transition: background 0.3s;
     }
-    .btn-book-room:hover { background: #123a5a; }
     .gallery-thumbnail.active { border: 2px solid var(--brand-blue) !important; }
     @media (max-width: 991px) { .image-gallery-main { height: 300px; } .image-gallery-thumbs { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 767px) { .image-gallery-thumbs { grid-template-columns: repeat(2, 1fr); } }
@@ -179,7 +178,7 @@
                 </div>
 
                 @if($unit->available_units > 0)
-                    <a href="{{ route('hotel', $property->slug ?? $property->id) }}?unit={{ $unit->id }}#reserveBox" class="btn-book-room w-100 text-center d-block text-decoration-none" style="padding: 14px;">
+                    <a href="{{ route('hotel', $property->slug ?? $property->id) }}?unit={{ $unit->id }}#reserveBox" class="btn-book-room w-100 text-center d-block text-decoration-none">
                         <i class="fas fa-calendar-check me-2"></i>Book this room
                     </a>
                     <p class="text-muted small mt-3 mb-0 text-center">
