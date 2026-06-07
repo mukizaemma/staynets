@@ -61,6 +61,7 @@
                                 <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
                             </ul>
                         </div>
+                        @if($reviewsCount > 0)
                         <div class="footer-reviews-card mt-4 pt-3">
                             <div class="footer-reviews-card__head">
                                 <span class="footer-reviews-card__icon" aria-hidden="true"><i class="fas fa-star"></i></span>
@@ -74,6 +75,7 @@
                             </div>
                             <a href="{{ route('reviews.index') }}" class="footer-reviews-card__link">See all reviews <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i></a>
                         </div>
+                        @endif
                     </div>
                 </div>
                 <div class="col-12 col-md-6 col-lg-4">
