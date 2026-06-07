@@ -22,3 +22,13 @@ if (!function_exists('getCurrencySymbol')) {
         return $symbols[$currency] ?? '$';
     }
 }
+
+if (! function_exists('compress_uploaded_image')) {
+    /**
+     * Compress a single uploaded image when it exceeds 700KB.
+     */
+    function compress_uploaded_image(\Illuminate\Http\UploadedFile $file): \Illuminate\Http\UploadedFile
+    {
+        return app(\App\Services\ImageCompressionService::class)->compressIfNeeded($file);
+    }
+}
