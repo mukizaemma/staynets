@@ -11,29 +11,12 @@
                         <div class="tour-box_img global-img" style="position: relative;">
                             @php
                                 $imagePath = $hotel->featured_image ? asset('storage/images/properties/' . $hotel->featured_image) : asset('assets/img/tour/tour_3_1.jpg');
-                            @endphp
-                            <img src="{{ $imagePath }}" alt="{{ $hotel->name }}">
-                            @php
                                 $minPrice = $hotel->min_price ?? null;
                                 $currency = 'USD';
                                 $priceLabel = '/night';
-                                if (isset($hotel->property_type) && $hotel->units && $hotel->units->isNotEmpty()) {
-                                    $cheapestUnit = $hotel->units->where('base_price_per_night', '>', 0)->sortBy('base_price_per_night')->first();
-                                    if (!$cheapestUnit) {
-                                        $cheapestUnit = $hotel->units->where('base_price_per_month', '>', 0)->sortBy('base_price_per_month')->first();
-                                        if ($cheapestUnit) {
-                                            $minPrice = $minPrice ?? $cheapestUnit->base_price_per_month;
-                                            $currency = $cheapestUnit->currency ?? 'USD';
-                                            $priceLabel = (($cheapestUnit->price_display_type ?? 'per_night') === 'per_month') ? '/month' : '/night';
-                                        }
-                                    } else {
-                                        $minPrice = $minPrice ?? $cheapestUnit->base_price_per_night;
-                                        $currency = $cheapestUnit->currency ?? 'USD';
-                                        $priceLabel = (($cheapestUnit->price_display_type ?? 'per_night') === 'per_month') ? '/month' : '/night';
-                                    }
-                                }
                                 $currencySymbol = getCurrencySymbol($currency);
                             @endphp
+                            <img src="{{ $imagePath }}" alt="{{ $hotel->name }}" loading="lazy" decoding="async">
                         </div>
                         <div class="tour-content">
                             <h3 class="box-title">

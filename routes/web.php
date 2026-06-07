@@ -16,6 +16,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/Users/{id}/verify', [App\Http\Controllers\AdminController::class, 'verifyUserEmail'])->name('admin.users.verify');
     Route::get('/Users/{id}/makeAdmin', [App\Http\Controllers\AdminController::class, 'makeAdmin'])->name('makeAdmin');
     Route::post('/Users/bulk-delete', [App\Http\Controllers\AdminController::class, 'bulkDeleteUsers'])->name('admin.users.bulk-delete');
+    Route::post('/Users/store-admin', [App\Http\Controllers\AdminController::class, 'storeAdminUser'])->name('admin.users.store');
     Route::get('/deleteUser/{id}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('deleteUser');
     
     Route::get('/Comments', [App\Http\Controllers\AdminController::class, 'blogsComment'])->name('blogsComment');
@@ -70,6 +71,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/aboutPage',[App\Http\Controllers\SettingsController::class,'aboutPage'])->name('aboutPage');
     Route::post('/saveAbout',[App\Http\Controllers\SettingsController::class,'saveAbout'])->name('saveAbout');
     Route::post('/saveSiteImages',[App\Http\Controllers\SettingsController::class,'saveSiteImages'])->name('saveSiteImages');
+
+    Route::get('/admin/why-choose-us', [App\Http\Controllers\Admin\WhyChooseUsItemController::class, 'index'])->name('admin.why-choose-us.index');
+    Route::post('/admin/why-choose-us', [App\Http\Controllers\Admin\WhyChooseUsItemController::class, 'store'])->name('admin.why-choose-us.store');
+    Route::post('/admin/why-choose-us/{id}', [App\Http\Controllers\Admin\WhyChooseUsItemController::class, 'update'])->name('admin.why-choose-us.update');
+    Route::get('/admin/why-choose-us/{id}/delete', [App\Http\Controllers\Admin\WhyChooseUsItemController::class, 'destroy'])->name('admin.why-choose-us.destroy');
 
     Route::get('/eventsPage',[App\Http\Controllers\PagesController::class,'eventsPage'])->name('eventsPage');
     Route::post('/saveEvent',[App\Http\Controllers\PagesController::class,'saveEvent'])->name('saveEvent');    
@@ -238,6 +244,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/updateCar/{id}', [App\Http\Controllers\CarsController::class, 'update'])->name('updateCar');
     
     Route::get('/deleteCar/{id}', [App\Http\Controllers\CarsController::class, 'destroy'])->name('deleteCar');
+    Route::post('/updateCarStatus/{id}', [App\Http\Controllers\CarsController::class, 'updateStatus'])->name('updateCarStatus');
     Route::post('/addCarImage/{id}', [App\Http\Controllers\CarsController::class, 'addCarImage'])->name('addCarImage');
     Route::get('/deleteCarImage/{id}', [App\Http\Controllers\CarsController::class, 'deleteCarImage'])->name('deleteCarImage');
     Route::get('/car-bookings', [App\Http\Controllers\CarsController::class, 'carBookings'])->name('admin.carBookings.index');

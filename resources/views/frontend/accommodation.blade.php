@@ -537,9 +537,11 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-amenities" data-bs-toggle="tab" data-bs-target="#content-amenities" type="button" role="tab">Amenities</button>
                     </li>
+                    @if(($hotel->total_reviews ?? 0) > 0)
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab-reviews" data-bs-toggle="tab" data-bs-target="#content-reviews" type="button" role="tab">Reviews ({{ $hotel->total_reviews }})</button>
                     </li>
+                    @endif
                 </ul>
                 <div class="tab-content" id="propertyTabsContent">
                     <div class="tab-pane fade show active" id="content-about" role="tabpanel">
@@ -567,8 +569,8 @@
                             <p class="text-muted">No amenities listed.</p>
                         @endif
                     </div>
+                    @if(($hotel->total_reviews ?? 0) > 0)
                     <div class="tab-pane fade" id="content-reviews" role="tabpanel">
-                        {{-- Guest rating summary --}}
                         @if($hotel->reviews->isNotEmpty())
                             <div class="reviews-summary mb-4">
                                 <div class="reviews-score d-inline-block me-4">
@@ -612,60 +614,59 @@
                                     </div>
                                 @endforeach
                             </div>
-                        @else
-                            <p class="text-muted mb-4">No reviews yet. Be the first to rate this property.</p>
                         @endif
+                    </div>
+                    @endif
+                </div>
+            </div>
 
-                        {{-- Rate this property form (anyone can submit) --}}
-                        <div class="content-section" style="padding: 20px; background: #f8f9fa; border-radius: 12px;">
-                            <h4 class="mb-3">Rate this property</h4>
-                            @if(session('success'))
-                                <div class="alert alert-success">{{ session('success') }}</div>
-                            @endif
-                            <form action="{{ url('/accommodations/' . ($hotel->slug ?? $hotel->id) . '/reviews') }}" method="POST" id="propertyReviewForm">
-                                @csrf
-                                @guest
-                                <div class="row g-2 mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Your name <span class="text-danger">*</span></label>
-                                        <input type="text" name="guest_name" class="form-control" value="{{ old('guest_name') }}" required maxlength="255">
-                                        @error('guest_name')<div class="text-danger small">{{ $message }}</div>@enderror
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Your email <span class="text-danger">*</span></label>
-                                        <input type="email" name="guest_email" class="form-control" value="{{ old('guest_email') }}" required>
-                                        @error('guest_email')<div class="text-danger small">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-                                @endguest
-                                <div class="mb-3">
-                                    <label class="form-label">Rating <span class="text-danger">*</span></label>
-                                    <div class="star-rating-input d-flex gap-1 align-items-center" role="radiogroup" aria-label="Rate from 1 to 5 stars">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <label class="star-rating-star mb-0" data-value="{{ $i }}" title="{{ $i }} {{ $i == 1 ? 'star' : 'stars' }}">
-                                                <input type="radio" name="rating" value="{{ $i }}" {{ old('rating') == $i ? 'checked' : '' }} required class="visually-hidden">
-                                                <i class="fa-star fa-2x {{ old('rating') && old('rating') >= $i ? 'fa-solid text-warning' : 'fa-regular text-warning' }}" style="transition: all 0.2s ease; opacity: 0.9;"></i>
-                                            </label>
-                                        @endfor
-                                        <span class="ms-2 text-muted small" id="ratingLabel">Select your rating</span>
-                                    </div>
-                                    @error('rating')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Title (optional)</label>
-                                    <input type="text" name="title" class="form-control" value="{{ old('title') }}" maxlength="255" placeholder="e.g. Great stay">
-                                    @error('title')<div class="text-danger small">{{ $message }}</div>@enderror
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Your review (optional)</label>
-                                    <textarea name="comment" class="form-control" rows="3" maxlength="1000" placeholder="Share your experience...">{{ old('comment') }}</textarea>
-                                    @error('comment')<div class="text-danger small">{{ $message }}</div>@enderror
-                                </div>
-                                <button type="submit" class="btn btn-primary">Submit rating</button>
-                            </form>
+            {{-- Rate this property (always available) --}}
+            <div class="content-section mt-4" style="padding: 20px; background: #f8f9fa; border-radius: 12px;">
+                <h4 class="mb-3">Rate this property</h4>
+                @if(session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
+                <form action="{{ url('/accommodations/' . ($hotel->slug ?? $hotel->id) . '/reviews') }}" method="POST" id="propertyReviewForm">
+                    @csrf
+                    @guest
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Your name <span class="text-danger">*</span></label>
+                            <input type="text" name="guest_name" class="form-control" value="{{ old('guest_name') }}" required maxlength="255">
+                            @error('guest_name')<div class="text-danger small">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Your email <span class="text-danger">*</span></label>
+                            <input type="email" name="guest_email" class="form-control" value="{{ old('guest_email') }}" required>
+                            @error('guest_email')<div class="text-danger small">{{ $message }}</div>@enderror
                         </div>
                     </div>
-                </div>
+                    @endguest
+                    <div class="mb-3">
+                        <label class="form-label">Rating <span class="text-danger">*</span></label>
+                        <div class="star-rating-input d-flex gap-1 align-items-center" role="radiogroup" aria-label="Rate from 1 to 5 stars">
+                            @for($i = 1; $i <= 5; $i++)
+                                <label class="star-rating-star mb-0" data-value="{{ $i }}" title="{{ $i }} {{ $i == 1 ? 'star' : 'stars' }}">
+                                    <input type="radio" name="rating" value="{{ $i }}" {{ old('rating') == $i ? 'checked' : '' }} required class="visually-hidden">
+                                    <i class="fa-star fa-2x {{ old('rating') && old('rating') >= $i ? 'fa-solid text-warning' : 'fa-regular text-warning' }}" style="transition: all 0.2s ease; opacity: 0.9;"></i>
+                                </label>
+                            @endfor
+                            <span class="ms-2 text-muted small" id="ratingLabel">Select your rating</span>
+                        </div>
+                        @error('rating')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Title (optional)</label>
+                        <input type="text" name="title" class="form-control" value="{{ old('title') }}" maxlength="255" placeholder="e.g. Great stay">
+                        @error('title')<div class="text-danger small">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Your review (optional)</label>
+                        <textarea name="comment" class="form-control" rows="3" maxlength="1000" placeholder="Share your experience...">{{ old('comment') }}</textarea>
+                        @error('comment')<div class="text-danger small">{{ $message }}</div>@enderror
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit rating</button>
+                </form>
             </div>
 
             <!-- Rooms Availability Table -->

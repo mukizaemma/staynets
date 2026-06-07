@@ -34,6 +34,9 @@
                         </h6>
                         <div class="d-flex gap-2 align-items-center">
                             @if(isset($isSuperAdmin) && $isSuperAdmin)
+                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createAdminModal">
+                                    <i class="fas fa-user-plus me-1"></i>Add Admin
+                                </button>
                                 {{-- Only super admin can see admins --}}
                                 <a href="{{ route('users', ['filter' => 'admins']) }}" 
                                    class="btn {{ (isset($filter) && $filter == 'admins') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm">
@@ -435,4 +438,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+@if(isset($isSuperAdmin) && $isSuperAdmin)
+<div class="modal fade" id="createAdminModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('admin.users.store') }}">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Admin User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" minlength="8" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" name="password_confirmation" class="form-control" minlength="8" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="2">Admin</option>
+                            <option value="1">Super Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create Admin</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 @endsection

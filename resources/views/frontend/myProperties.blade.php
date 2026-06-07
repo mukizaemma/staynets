@@ -99,6 +99,36 @@
         </div>
     @endif
 
+    {{-- Mobile quick access for property & room management --}}
+    <div class="owner-mobile-quick-nav d-lg-none mb-4">
+        <div class="row g-2">
+            <div class="col-6">
+                <a href="{{ route('myPropertyCreate') }}" class="btn btn-light w-100 py-3 shadow-sm" style="border-radius: 12px;">
+                    <i class="fas fa-plus-circle d-block mb-1" style="font-size: 1.25rem; color: #0d9488;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 600;">Add Property</span>
+                </a>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-light w-100 py-3 shadow-sm" style="border-radius: 12px;" onclick="document.getElementById('properties-tab').click();">
+                    <i class="fas fa-building d-block mb-1" style="font-size: 1.25rem; color: #0d9488;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 600;">My Properties</span>
+                </button>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-light w-100 py-3 shadow-sm" style="border-radius: 12px;" onclick="document.getElementById('calendar-tab').click();">
+                    <i class="fas fa-calendar-alt d-block mb-1" style="font-size: 1.25rem; color: #0d9488;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 600;">Bookings</span>
+                </button>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-light w-100 py-3 shadow-sm" style="border-radius: 12px;" onclick="document.getElementById('earnings-tab').click();">
+                    <i class="fas fa-piggy-bank d-block mb-1" style="font-size: 1.25rem; color: #0d9488;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 600;">Earnings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <ul class="nav nav-pills owner-dash-tabs mb-4" id="ownerDashboardTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="earnings-tab" data-bs-toggle="tab" data-bs-target="#earnings" type="button" role="tab">

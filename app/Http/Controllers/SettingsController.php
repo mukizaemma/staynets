@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Home;
 use App\Models\Term;
 use App\Models\Leftbag;
 use App\Models\Ticketing;
 use App\Models\About;
 use App\Models\Aboutus;
 use App\Models\Setting;
+use App\Models\Slide;
+use App\Models\WhyChooseUsItem;
 use App\Models\CarRentalContent;
 use App\Models\Getinvolved;
 use Illuminate\Http\Request;
@@ -215,7 +216,40 @@ class SettingsController extends Controller
 
         $data->save();
 
+        cache()->forget('shared_setting');
+
         return redirect()->back()->with('success', 'Site images have been updated successfully.');
+    }
+
+    public function homePage()
+    {
+        $setting = Setting::first();
+        $slidesCount = Slide::count();
+        $whyChooseUsCount = WhyChooseUsItem::active()->count();
+
+        return view('admin.pages.homepage', compact('setting', 'slidesCount', 'whyChooseUsCount'));
+    }
+
+    public function saveHome(Request $request)
+    {
+        $data = Setting::first();
+        if (!$data) {
+            return redirect()->back()->with('error', 'Settings not found.');
+        }
+
+        $dir = 'public/images/site/';
+
+        if ($request->hasFile('home_background_image') && $request->file('home_background_image')->isValid()) {
+            if ($data->home_background_image && \Illuminate\Support\Facades\Storage::exists($dir . $data->home_background_image)) {
+                \Illuminate\Support\Facades\Storage::delete($dir . $data->home_background_image);
+            }
+            $path = $request->file('home_background_image')->store($dir);
+            $data->home_background_image = str_replace($dir, '', $path);
+            $data->save();
+            cache()->forget('shared_setting');
+        }
+
+        return redirect()->back()->with('success', 'Homepage settings saved successfully.');
     }
 
     public function getLeftBags(){

@@ -39,7 +39,7 @@
                                 Add New Image
                               </button>
 
-                              <a href="{{ route('aboutPage') }}" class="btn btn-secondary">Back to Story</a>
+                              <a href="{{ route('homePage') }}" class="btn btn-secondary">Back to Homepage</a>
                         </div>
                         {{-- <a href="">Show All</a> --}}
                     </div>
@@ -60,7 +60,7 @@
                                     <td><a href="{{ route('editSlide', $rs->id) }}">{{$rs->heading}}</a></td>
                                     {{-- <td>{{$rs->subheading}}</td> --}}
                                     <td>
-                                        <a href="{{ route('editSlide', $rs->id) }}"><img src="{{asset('storage/images/slides').$rs->image}}" alt="" width="150px"></a>
+                                        <a href="{{ route('editSlide', $rs->id) }}"><img src="{{ asset('storage/images/slides/' . ltrim($rs->image, '/')) }}" alt="" width="150px"></a>
                                     
                                     </td>
                                     <td>  
@@ -117,16 +117,15 @@
                             <div class="row">
 
                                 <div class="col-12">
-                                    <label for="projectinput8">Heading </label>
+                                    <label for="projectinput8">Heading (Caption)</label>
                                     <input type="text" class="form-control"
-                                    placeholder="Image heading" name="heading">
-                            </div>
-
-                            {{-- <div class="col-lg-6 col-sm-12">
-                                <label for="projectinput8">Sub Heading</span></label>
-                                <input type="text" class="form-control"
-                                placeholder="Image subheading" name="subheading">
-                            </div> --}}
+                                    placeholder="Image heading / caption" name="heading">
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label for="subheading">Subheading</label>
+                                    <input type="text" class="form-control"
+                                    placeholder="Optional subtitle" name="subheading">
+                                </div>
                             </div>
                         </div>
 

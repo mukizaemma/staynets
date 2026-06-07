@@ -198,7 +198,7 @@ class CarsController extends Controller
                 'car_images' => 'nullable|array',
                 'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
                 'description' => 'nullable|string',
-                'status' => 'required|in:available,rented,maintenance',
+                'status' => 'required|in:available,rented,maintenance,unavailable',
             ]);
     
             // Handle cover image update
@@ -288,6 +288,18 @@ class CarsController extends Controller
             Log::error('Car delete error: ' . $e->getMessage());
             return back()->with('error', 'Something went wrong while deleting the car');
         }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $car = Car::findOrFail($id);
+        $validated = $request->validate([
+            'status' => 'required|in:available,rented,maintenance,unavailable',
+        ]);
+        $car->status = $validated['status'];
+        $car->save();
+
+        return redirect()->back()->with('success', 'Car status updated to ' . ucfirst($car->status) . '.');
     }
 
     /**

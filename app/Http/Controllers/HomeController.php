@@ -47,106 +47,44 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-
-        $slides = Slide::oldest()->get();
-        $category = Category::all();
-        $hotels = Hotel::latest()->get();
-        $services = Program::oldest()->get();
-        $rooms = HotelRoom::oldest()->get();
-        $articles = Blog::latest()->paginate(3);
-        $trips = Trip::with('images')->oldest()->take(3)->get();
-        $tripsTotal = Trip::count();
-        $locations = Hotel::whereNotNull('location')->where('status', 'Active')->where('is_listing_visible', true)->distinct()->pluck('location');
-        if ($locations->isEmpty()) {
-            $locations = Property::whereNotNull('location')->publishedForGuests()->distinct()->pluck('location');
-        }
-
-        // Get destinations (categories) with hotel/property counts
-        $destinations = Category::where('status', 'Active')
-            ->withCount([
-                'hotels' => function($query) {
-                    $query->where('status', 'Active')->where('is_listing_visible', true);
-                },
-                'properties' => function($query) {
-                    $query->publishedForGuests()
-                          ->where('property_type', 'hotel');
-                }
-            ])
-            ->where(function($query) {
-                $query->whereHas('hotels', function($q) {
-                    $q->where('status', 'Active')->where('is_listing_visible', true);
-                })->orWhereHas('properties', function($q) {
-                    $q->publishedForGuests()
-                      ->where('property_type', 'hotel');
-                });
-            })
+        $slides = Slide::oldest()->get(['id', 'heading', 'subheading', 'image']);
+        $trips = Trip::where('status', 'Active')
+            ->with(['images' => fn ($q) => $q->select('id', 'trip_id', 'image')])
             ->oldest()
-            ->get();
+            ->take(3)
+            ->get(['id', 'title', 'slug', 'description', 'location', 'image']);
+        $tripsTotal = Trip::where('status', 'Active')->count();
 
-        // Home page featured properties (max 6)
         $featuredProperties = Property::publishedForGuests()
             ->featured()
-            ->with(['units' => function($q) {
-                $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
-            }, 'reviews'])
+            ->with(['units' => function ($q) {
+                $q->where('status', 'Available')
+                    ->select('id', 'property_id', 'base_price_per_night', 'currency')
+                    ->orderBy('base_price_per_night');
+            }])
             ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
             ->latest()
             ->take(6)
-            ->get();
+            ->get(['id', 'name', 'slug', 'description', 'stars', 'featured_image', 'property_type']);
 
-        // Get latest 3 properties (prefer Property model, fallback to Hotel)
-        $latestProperties = Property::publishedForGuests()
-            ->with(['units' => function($q) {
-                $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
-            }, 'reviews'])
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
-            ->latest()
-            ->take(3)
-            ->get();
-
-        if ($latestProperties->isEmpty()) {
-            $latestProperties = Hotel::where('status', 'Active')->where('is_listing_visible', true)
-                ->with(['rooms' => function($q) {
-                    $q->where('status', 'Active')->orderBy('price_per_night', 'asc');
-                }, 'reviews'])
-                ->latest()
-                ->take(3)
-                ->get();
-        }
-
-        // Featured Listings: 3 latest items only (no filters)
-        $popularTrips = Trip::where('status', 'Active')
-            ->with(['images', 'reviews', 'destination'])
-            ->latest()
-            ->take(3)
-            ->get();
-
-        // Get general business reviews (testimonials) - only approved ones, limit to 4
         $businessReviews = Review::where('is_approved', true)
-            ->with(['user', 'images'])
+            ->with(['user:id,name'])
             ->latest()
             ->take(4)
-            ->get();
+            ->get(['id', 'user_id', 'names', 'rating', 'testimony']);
 
-        return view('frontend.index',[
-            'slides'=>$slides,
-            'hotels'=>$hotels,
-            'rooms'=>$rooms,
-            'articles'=>$articles,
-            'trips'=>$trips,
-            'tripsTotal'=>$tripsTotal,
-            'services'=>$services,
-            'locations'=>$locations,
-            'destinations'=>$destinations,
-            'featuredProperties'=>$featuredProperties,
-            'latestProperties'=>$latestProperties,
-            'popularTrips'=>$popularTrips,
-            'businessReviews'=>$businessReviews,
+        $whyChooseUsItems = cache()->remember('home_why_choose_us', 3600, function () {
+            return \App\Models\WhyChooseUsItem::active()->ordered()->get();
+        });
 
+        return view('frontend.index', [
+            'slides' => $slides,
+            'trips' => $trips,
+            'tripsTotal' => $tripsTotal,
+            'featuredProperties' => $featuredProperties,
+            'businessReviews' => $businessReviews,
+            'whyChooseUsItems' => $whyChooseUsItems,
         ]);
-
     }
 
 public function hotelsSearch(Request $request)
@@ -171,9 +109,14 @@ public function hotelsSearch(Request $request)
 
     $query = Property::query()
         ->publishedForGuests()
-        ->with(['units' => function($q) {
-            $q->where('status', 'Available')->orderBy('base_price_per_night', 'asc');
-        }])
+        ->select([
+            'properties.id', 'properties.name', 'properties.slug', 'properties.description',
+            'properties.stars', 'properties.featured_image', 'properties.property_type',
+            'properties.location', 'properties.city', 'properties.address', 'properties.created_at',
+        ])
+        ->withMin(['units as min_price' => function ($q) {
+            $q->where('status', 'Available')->where('base_price_per_night', '>', 0);
+        }], 'base_price_per_night')
         ->withCount('reviews')
         ->withAvg('reviews', 'rating');
 
@@ -289,10 +232,14 @@ public function hotelsSearch(Request $request)
 
     $rooms = $query->paginate(12)->appends($request->query());
 
-    // Filter data for sidebar
-    $locations = Property::publishedForGuests()->whereNotNull('location')->distinct()->pluck('location');
+    // Filter data for sidebar (cached to avoid heavy queries on every request)
+    $locations = cache()->remember('property_search_locations', 3600, function () {
+        return Property::publishedForGuests()->whereNotNull('location')->distinct()->pluck('location');
+    });
     $propertyTypes = ['hotel' => 'Hotel', 'apartment' => 'Apartment', 'villa' => 'Villa', 'guest_house' => 'Guest House', 'lodge' => 'Lodge'];
-    $amenities = \App\Models\Amenity::active()->orderBy('sort_order')->orderBy('title')->get();
+    $amenities = cache()->remember('active_amenities_list', 3600, function () {
+        return \App\Models\Amenity::active()->orderBy('sort_order')->orderBy('title')->get(['id', 'title']);
+    });
 
     // AJAX response
     if ($request->ajax()) {
@@ -329,7 +276,11 @@ public function hotelsSearch(Request $request)
 
         $query = Car::query()
             ->where('status', 'available')
-            ->with('images'); // Eager load images for better performance
+            ->select([
+                'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
+                'price_to_buy', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
+            ])
+            ->with(['images' => fn ($q) => $q->select('id', 'car_id', 'image')]);
 
         if (!empty($q)) {
             $query->where(function ($qb) use ($q) {

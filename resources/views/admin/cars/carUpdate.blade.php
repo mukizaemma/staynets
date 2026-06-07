@@ -138,8 +138,9 @@
                                         <label class="form-label">Status <span class="text-danger">*</span></label>
                                         <select name="status" class="form-control" required>
                                             <option value="available" {{ old('status', $car->status) == 'available' ? 'selected' : '' }}>Available</option>
-                                            <option value="rented" {{ old('status', $car->status) == 'rented' ? 'selected' : '' }}>Rented</option>
+                                            <option value="rented" {{ old('status', $car->status) == 'rented' ? 'selected' : '' }}>Rented / Booked</option>
                                             <option value="maintenance" {{ old('status', $car->status) == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                            <option value="unavailable" {{ old('status', $car->status) == 'unavailable' ? 'selected' : '' }}>Unavailable</option>
                                         </select>
                                     </div>
                                 </div>

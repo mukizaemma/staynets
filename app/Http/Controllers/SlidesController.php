@@ -61,13 +61,11 @@ class SlidesController extends Controller
 
         if ($request->hasFile('image') && request('image') != '') {
             $dir = 'public/images/slides';
-
-            if (File::exists($dir)) {
-                unlink($dir);
+            if ($data->image) {
+                Storage::delete($dir . '/' . ltrim($data->image, '/'));
             }
             $path = $request->file('image')->store($dir);
-            $fileName = str_replace($dir, '', $path);
-
+            $fileName = str_replace($dir . '/', '', str_replace($dir, '', $path));
             $data->image = $fileName;
         }
 
@@ -78,11 +76,13 @@ class SlidesController extends Controller
 
     public function destroy($id)
     {
-        $image = Slide::findOrFail($id);
-        // delete the image file
-        Storage::delete('public/images/gallery/'.$image);
-        $image->delete();
-        return redirect()->back()->with('warning', 'Item has been deleted');
+        $slide = Slide::findOrFail($id);
+        if ($slide->image) {
+            Storage::delete('public/images/slides/' . ltrim($slide->image, '/'));
+        }
+        $slide->delete();
+
+        return redirect()->route('slides')->with('warning', 'Slide has been deleted');
     }
 
 

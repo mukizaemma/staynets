@@ -113,8 +113,6 @@
                                             <span class="ms-2" style="font-size: 14px; color: #666;">
                                                 {{ number_format($avgRating, 1) }} ({{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }})
                                             </span>
-                                        @else
-                                            <span class="ms-2" style="font-size: 14px; color: #666;">No reviews yet</span>
                                         @endif
                                     </div>
                                 </div>

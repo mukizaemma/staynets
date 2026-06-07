@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
 use App\Mail\CommentApprovalNotification;
 use App\Models\BlogComment;
 use App\Models\Message;
@@ -24,8 +25,6 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $users = User::all();
-
         $data = Setting::first();
 
         // Dashboard stats: properties, units/rooms, reservations (excl. cancelled), sales, commission
@@ -48,7 +47,6 @@ class AdminController extends Controller
 
         $setting = Setting::first();
         return view('admin.dashboard', [
-            'users' => $users,
             'data' => $data,
             'setting' => $setting,
             'totalProperties' => $totalProperties,
@@ -248,9 +246,9 @@ class AdminController extends Controller
      */
     public function updateUser(Request $request, $id)
     {
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        $isSuperAdmin = Auth::check() && (int) (Auth::user()->role ?? 0) === 1;
         if (!$isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+            return redirect()->route('dashboard')->with('error', 'Only super admins can manage user roles.');
         }
 
         $user = User::findOrFail($id);
@@ -276,9 +274,9 @@ class AdminController extends Controller
      */
     public function sendUserPasswordReset($id)
     {
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        $isSuperAdmin = Auth::check() && (int) (Auth::user()->role ?? 0) === 1;
         if (! $isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+            return redirect()->route('dashboard')->with('error', 'Only super admins can reset user passwords.');
         }
 
         $user = User::findOrFail($id);
@@ -297,9 +295,9 @@ class AdminController extends Controller
     }
 
     public function verifyUserEmail($id){
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        $isSuperAdmin = Auth::check() && (int) (Auth::user()->role ?? 0) === 1;
         if (!$isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+            return redirect()->route('dashboard')->with('error', 'Only super admins can verify user emails.');
         }
 
         $user = User::findOrFail($id);
@@ -313,9 +311,9 @@ class AdminController extends Controller
     }
 
     public function makeAdmin($id){
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        $isSuperAdmin = Auth::check() && (int) (Auth::user()->role ?? 0) === 1;
         if (!$isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+            return redirect()->route('dashboard')->with('error', 'Only super admins can grant admin access.');
         }
         
         $user = User::findOrFail($id);
@@ -328,15 +326,45 @@ class AdminController extends Controller
     
     public function deleteUser($id)
     {
-        $isSuperAdmin = Auth::check() && Auth::user()->email === 'admin@iremetech.com';
+        $isSuperAdmin = Auth::check() && (int) (Auth::user()->role ?? 0) === 1;
         if (!$isSuperAdmin) {
-            return redirect()->route('dashboard')->with('error', 'Only the super admin can access the Users section.');
+            return redirect()->route('dashboard')->with('error', 'Only super admins can delete users.');
         }
 
         $post = User::findOrFail($id);
         $post->delete();
 
         return redirect()->back()->with('success', 'User has been deleted');
+    }
+
+    /**
+     * Create a new admin user (super admin only).
+     */
+    public function storeAdminUser(Request $request)
+    {
+        if ((int) (Auth::user()->role ?? 0) !== 1) {
+            return redirect()->route('dashboard')->with('error', 'Only super admins can create admin users.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:1,2',
+        ]);
+
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'status' => 'Active',
+            'email_verified_at' => now(),
+        ]);
+
+        $filter = (int) $validated['role'] === 1 ? 'admins' : 'all';
+
+        return redirect()->route('users', ['filter' => $filter])->with('success', 'Admin user created successfully.');
     }
 
 

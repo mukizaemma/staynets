@@ -39,6 +39,7 @@
                             <tr>
                                 <th>Advert</th>
                                 <th>Cover</th>
+                                <th>Status</th>
                                 <th>Pricing</th>
                                 <th>Description</th>
                                 <th class="text-center">Actions</th>
@@ -62,6 +63,18 @@
                                                 width="80px"
                                                 class="rounded shadow-sm">
                                         </a>
+                                    </td>
+
+                                    <td>
+                                        <form action="{{ route('updateCarStatus', $rs->id) }}" method="POST" class="d-flex gap-1 align-items-center">
+                                            @csrf
+                                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 120px;">
+                                                <option value="available" {{ $rs->status === 'available' ? 'selected' : '' }}>Available</option>
+                                                <option value="rented" {{ $rs->status === 'rented' ? 'selected' : '' }}>Rented</option>
+                                                <option value="maintenance" {{ $rs->status === 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                                <option value="unavailable" {{ $rs->status === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+                                            </select>
+                                        </form>
                                     </td>
 
                                     {{-- Price --}}
@@ -112,7 +125,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">
+                                    <td colspan="6" class="text-center text-muted">
                                         No cars found
                                     </td>
                                 </tr>

@@ -273,7 +273,7 @@
                                         <div class="tour-box style-flex th-ani">
                                             <div class="tour-box_img global-img">
                                                 @if($car->image && file_exists(storage_path('app/public/images/cars/' . $car->image)))
-                                                    <img src="{{ asset('storage/images/cars/' . $car->image) }}" alt="{{ $car->name }}">
+                                                    <img src="{{ asset('storage/images/cars/' . $car->image) }}" alt="{{ $car->name }}" loading="lazy" decoding="async">
                                                 @else
                                                     <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $car->name }}">
                                                 @endif

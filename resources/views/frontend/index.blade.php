@@ -93,83 +93,9 @@
             }
         }
     </style>
-    <!--==============================
-    Hero Area - full height with top bar on image
-    ==============================-->
-    @php
-        $heroBg = (optional($setting)->home_background_image ?? null)
-            ? asset('storage/images/site/' . optional($setting)->home_background_image)
-            : (isset($about) && $about && $about->image1 ? asset('storage/images/about/' . $about->image1) : asset('assets/img/bg/breadcumb-bg-1.jpg'));
-    @endphp
-    <div class="th-hero-wrapper hero-7 hero-home" id="hero" data-bg-src="{{ $heroBg }}" style="background-size: cover; background-position: center; position: relative; overflow: hidden;">
-        <!-- Overlay for readability -->
-        <div class="hero-overlay" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 100%); z-index: 0;"></div>
-
-        <div class="container h-100" style="position: relative; z-index: 1;">
-            <div class="row align-items-center justify-content-center h-100" style="min-height: 60vh; min-height: 60dvh; padding-top: 56px;">
-                <div class="col-12">
-                    <div class="hero-style7 text-center" style="padding: 40px 0 30px 0;">
-                        <h1 class="hero-title text-white mb-4" style="font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 700;">Your Travel Booking Partner</h1>
-                        <div class="btn-group mb-4 flex-wrap justify-content-center">
-                            <a href="{{ route('hotels') }}" class="th-btn th-icon style3">Hotels</a>
-                            <a href="{{ route('apartments') }}" class="th-btn style2 th-icon">Apartments</a>
-                        </div>
-                    </div>
-
-                    {{-- Search bar (same as header - redirects to search results) --}}
-                    <div class="row justify-content-center mt-4">
-                        <div class="col-12">
-                            <form action="{{ route('hotelsSearch') }}" method="GET" id="heroSearchForm" class="hero-search-form bg-white rounded-3 p-3" style="max-width: 900px; margin: 0 auto; background: #ffffff !important; border: 1px solid rgba(0,0,0,0.08) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.2), 0 2px 10px rgba(0,0,0,0.1) !important;">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-12 col-md-4 col-xl-3">
-                                        <div class="position-relative">
-                                            <i class="fas fa-map-marker-alt position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
-                                            <input type="text" name="location" list="hero-destinations" class="form-control form-control-sm" placeholder="Type destination, address or city — or choose All" value="{{ request('location') }}" autocomplete="off" style="padding-left: 38px; border-radius: 8px; height: 44px;">
-                                            <datalist id="hero-destinations">
-                                                <option value="All">All Destinations</option>
-                                                @if(isset($searchLocations) && $searchLocations->isNotEmpty())
-                                                    @foreach($searchLocations as $loc)
-                                                        <option value="{{ $loc }}">{{ $loc }}</option>
-                                                    @endforeach
-                                                @elseif(isset($locations) && $locations->isNotEmpty())
-                                                    @foreach($locations as $loc)
-                                                        <option value="{{ $loc }}">{{ $loc }}</option>
-                                                    @endforeach
-                                                @endif
-                                            </datalist>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-3 col-xl-2">
-                                        <div class="position-relative">
-                                            <i class="fas fa-calendar-check position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
-                                            <input type="date" name="checkin" id="checkinDate" class="form-control form-control-sm" value="{{ request('checkin') }}" min="{{ date('Y-m-d') }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-3 col-xl-2">
-                                        <div class="position-relative">
-                                            <i class="fas fa-calendar-times position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%); color: #888; font-size: 14px;"></i>
-                                            <input type="date" name="checkout" id="checkoutDate" class="form-control form-control-sm" value="{{ request('checkout') }}" min="{{ date('Y-m-d', strtotime('+1 day')) }}" style="padding-left: 38px; border-radius: 8px; height: 44px;">
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-3 col-xl-2">
-                                        @include('frontend.partials.guests_rooms_selector', ['selectorId' => 'hero-guests-rooms'])
-                                    </div>
-                                    <div class="col-12 col-md-4 col-xl-2">
-                                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 8px; height: 44px; font-weight: 600;">
-                                            <i class="fas fa-search me-2"></i>Search
-                                        </button>
-                                    </div>
-                                </div>
-                                <div id="formMessages" class="small mt-2" style="display: none;"></div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--======== / Hero Section ========-->
+    @include('frontend.partials.hero-section')
     
+    @if(($featuredProperties ?? collect())->isNotEmpty())
     <!--==============================
     Featured Listings – up to 6 featured properties
     ==============================-->
@@ -217,7 +143,7 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="tour-box th-ani h-100">
                             <div class="tour-box_img global-img">
-                                <img src="{{ $coverImage }}" alt="{{ $item->name }}" style="width: 100%; height: 220px; object-fit: cover;">
+                                <img src="{{ $coverImage }}" alt="{{ $item->name }}" style="width: 100%; height: 220px; object-fit: cover;" loading="lazy" decoding="async">
                             </div>
                             <div class="tour-content">
                                 <h3 class="box-title">
@@ -250,6 +176,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <!--==============================
     Travel Services – buttons/icons with full-width background image
@@ -323,6 +250,7 @@
         </div>
     </section>
 
+    @if(($trips ?? collect())->isNotEmpty())
     <!--==============================
     Tours – oldest 3 trips
     ==============================-->
@@ -385,6 +313,7 @@
             @endif
         </div>
     </section>
+    @endif
 
     <!--==============================
     Customer Reviews (StayNets Wireframe)
@@ -440,13 +369,13 @@
     </section>
     @endif
 
+    @if(($whyChooseUsItems ?? collect())->isNotEmpty())
     <!--==============================
 Why Choose Stay Nets  
 ==============================-->
     <section class="space" style="background:#f7f7f7;">
         <div class="container">
             <div class="row gy-4 align-items-start">
-                <!-- Left: Benefit cards -->
                 <div class="col-lg-6">
                     <div class="title-area" style="margin-bottom: 24px;">
                         <h2 class="sec-title">Why Choose Stay Nets</h2>
@@ -455,61 +384,21 @@ Why Choose Stay Nets
 
                     <div class="d-flex flex-column">
                         <div class="row g-3">
+                            @foreach($whyChooseUsItems as $item)
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
-                                        ★
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; flex-shrink:0;">
+                                        {{ $item->icon ?? '★' }}
                                     </div>
                                     <div>
-                                        <h5 style="margin:0 0 4px; font-size:16px;">Tailor‑Made Tours</h5>
-                                        <p style="margin:0; font-size:14px; color:#555;">Tailor-made tours across Rwanda &amp; East Africa.</p>
+                                        <h5 style="margin:0 0 4px; font-size:16px;">{{ $item->title }}</h5>
+                                        @if($item->description)
+                                        <p style="margin:0; font-size:14px; color:#555;">{{ $item->description }}</p>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-12">
-                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
-                                        ★
-                                    </div>
-                                    <div>
-                                        <h5 style="margin:0 0 4px; font-size:16px;">Local Expert Guides</h5>
-                                        <p style="margin:0; font-size:14px; color:#555;">Professional, local guides who know the region deeply.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
-                                        ★
-                                    </div>
-                                    <div>
-                                        <h5 style="margin:0 0 4px; font-size:16px;">Rich Experiences</h5>
-                                        <p style="margin:0; font-size:14px; color:#555;">Wildlife, primates, culture &amp; scenic adventures.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
-                                        ★
-                                    </div>
-                                    <div>
-                                        <h5 style="margin:0 0 4px; font-size:16px;">For Every Budget</h5>
-                                        <p style="margin:0; font-size:14px; color:#555;">Options for both luxury and budget-friendly travel.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
-                                        ★
-                                    </div>
-                                    <div>
-                                        <h5 style="margin:0 0 4px; font-size:16px;">Hassle‑Free Support</h5>
-                                        <p style="margin:0; font-size:14px; color:#555;">Hassle-free booking and complete travel support.</p>
-                                    </div>
-                                </div>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -547,6 +436,7 @@ Why Choose Stay Nets
             </div>
         </div>
     </section>
+    @endif
 
     <!--==============================
 About Area  

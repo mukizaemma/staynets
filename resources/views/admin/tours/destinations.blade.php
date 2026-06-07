@@ -60,7 +60,7 @@
                                                 {{ $destination->trips->count() }} Activities
                                             </a>
                                         @else
-                                            <span class="badge bg-secondary">0 Activities</span>
+                                            <span class="text-muted small">—</span>
                                         @endif
                                     </td>
                                     <td>

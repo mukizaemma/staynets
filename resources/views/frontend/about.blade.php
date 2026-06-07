@@ -159,7 +159,8 @@
         </div>
     </section>
 
-    {{-- Reviews (same as reviews page section) --}}
+    {{-- Reviews --}}
+    @if(($reviews ?? collect())->isNotEmpty())
     <section class="position-relative overflow-hidden space-top space-extra-bottom" id="reviews-sec" style="background: #f8f9fa;">
         <div class="container">
             <div class="row justify-content-center mb-4">
@@ -188,8 +189,7 @@
             </div>
 
             <div class="row gy-4">
-                @php $reviews = $reviews ?? collect(); @endphp
-                @forelse($reviews as $review)
+                @foreach($reviews as $review)
                 <div class="col-lg-4 col-md-6">
                     <a href="{{ route('reviews.show', $review->id) }}" style="text-decoration: none; color: inherit;">
                         <div class="review-card" style="background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)'">
@@ -242,18 +242,7 @@
                         </div>
                     </a>
                 </div>
-                @empty
-                <div class="col-12">
-                    <div class="text-center py-5">
-                        <p class="text-muted">No reviews yet. Be the first to share your experience!</p>
-                        @auth
-                        <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#aboutReviewModal" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none;">Add Review & Rate Us (1-5)</button>
-                        @else
-                        <a href="{{ route('login') }}?redirect={{ urlencode(route('about') . '#reviews-sec') }}" class="btn btn-primary mt-3" style="background: linear-gradient(135deg, #25D366, #128C7E); border: none;">Login to Add Your Review</a>
-                        @endauth
-                    </div>
-                </div>
-                @endforelse
+                @endforeach
             </div>
 
             <div class="row mt-4">
@@ -263,6 +252,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     @auth
     {{-- Review modal (same as reviews page) --}}
