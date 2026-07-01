@@ -2,46 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SitemapService;
+use App\Models\Car;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
 
 class SitemapController extends Controller
 {
-    public function index(SitemapService $sitemapService): Response
+    public function index(): Response
     {
-        $xml = Cache::remember('site.sitemap.xml', now()->addHour(), function () use ($sitemapService) {
-            return $sitemapService->toXml($sitemapService->entries());
-        });
-
-        return response($xml, 200, [
-            'Content-Type' => 'application/xml; charset=UTF-8',
-        ]);
-    }
-
-    public function robots(): Response
-    {
-        $sitemapUrl = url('/sitemap.xml');
-
-        $lines = [
-            'User-agent: *',
-            'Allow: /',
-            'Disallow: /dashboard',
-            'Disallow: /admin/',
-            'Disallow: /my-properties',
-            'Disallow: /Users',
-            'Disallow: /setting',
-            'Disallow: /getCars',
-            'Disallow: /editCar/',
-            'Disallow: /storeCar',
-            'Disallow: /logouts',
-            'Disallow: /email/verify',
-            '',
-            'Sitemap: ' . $sitemapUrl,
+        $urls = [
+            ['loc' => route('home'), 'priority' => '1.0'],
+            ['loc' => route('showCars'), 'priority' => '0.9'],
+            ['loc' => route('carLanding.airport'), 'priority' => '0.9'],
+            ['loc' => route('carLanding.4x4'), 'priority' => '0.9'],
+            ['loc' => route('carLanding.selfdrive'), 'priority' => '0.9'],
+            ['loc' => route('about'), 'priority' => '0.6'],
+            ['loc' => route('connect'), 'priority' => '0.6'],
         ];
 
-        return response(implode("\n", $lines) . "\n", 200, [
-            'Content-Type' => 'text/plain; charset=UTF-8',
-        ]);
+        $cars = Car::where('status', 'available')->whereNotNull('slug')->get(['slug', 'updated_at']);
+        foreach ($cars as $car) {
+            $urls[] = [
+                'loc' => route('carDetails', $car->slug),
+                'lastmod' => optional($car->updated_at)->toAtomString(),
+                'priority' => '0.8',
+            ];
+        }
+
+        $xml = view('frontend.sitemap', compact('urls'))->render();
+
+        return response($xml, 200)->header('Content-Type', 'application/xml');
     }
 }

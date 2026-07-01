@@ -40,16 +40,20 @@ class SettingsController extends Controller
     public function saveSetting(Request $request){
         $data = Setting::first();
         $data->company = $request->input('company');
+        $data->title = $request->input('title');
         $data->address = $request->input('address');
         $data->phone = $request->input('phone');
+        $data->phone1 = $request->input('phone1');
         $data->email = $request->input('email');
         $data->facebook = $request->input('facebook');
         $data->instagram = $request->input('instagram');
         $data->youtube = $request->input('youtube');
         $data->linkedin = $request->input('linkedin');
+        $data->tiktok = $request->input('tiktok');
         $data->linktree = $request->input('linktree');
         $data->keywords = $request->input('keywords');
         $data->quote = $request->input('quote');
+        $data->meta_description = $request->input('meta_description');
         $data->user_id = Auth()->user()->id;
 
 
@@ -78,9 +82,11 @@ class SettingsController extends Controller
             $data->donate = $fileNameLogo2;
         }
 
-        $saved = $data->update();
+        $saved = $data->save();
 
-        if($saved){
+        if ($saved) {
+            cache()->forget('shared_setting');
+
             return redirect()->back()->with('success', 'Setting has been updated successfully');
         }
         else{

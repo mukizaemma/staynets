@@ -1,131 +1,79 @@
 @extends('layouts.frontbase')
 
-@section('content')
-<style>
-    .transport-hero {
-        background: linear-gradient(135deg, #f8fafc 0%, #e8f5e9 50%, #f1f8e9 100%);
-        border-radius: 20px;
-        padding: 48px 40px;
-        position: relative;
-        overflow: hidden;
-    }
-    .transport-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 60%;
-        height: 200%;
-        background: radial-gradient(ellipse at center, rgba(18, 140, 126, 0.06) 0%, transparent 70%);
-        pointer-events: none;
-    }
-    .transport-hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(18, 140, 126, 0.12);
-        color: #128C7E;
-        padding: 8px 16px;
-        border-radius: 50px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-bottom: 16px;
-        letter-spacing: 0.3px;
-    }
-    .transport-hero-title {
-        font-size: 2.25rem;
-        font-weight: 700;
-        color: #1a1a1a;
-        line-height: 1.2;
-        margin-bottom: 12px;
-        letter-spacing: -0.02em;
-    }
-    .transport-hero-subtitle {
-        font-size: 1.15rem;
-        font-weight: 600;
-        color: #128C7E;
-        margin-bottom: 16px;
-    }
-    .transport-hero-desc {
-        font-size: 1rem;
-        color: #555;
-        line-height: 1.65;
-        max-width: 540px;
-    }
-    .transport-hero-image {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-    }
-    .transport-hero-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .transport-booking-card {
-        background: white;
-        border-radius: 16px;
-        padding: 28px;
-        box-shadow: 0 12px 40px rgba(18, 140, 126, 0.12);
-        border: 1px solid rgba(18, 140, 126, 0.15);
-    }
-    .transport-booking-card h5 {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #1a1a1a;
-        margin-bottom: 8px;
-    }
-    .transport-booking-card .card-desc {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 20px;
-        line-height: 1.5;
-    }
-    @media (max-width: 991px) {
-        .transport-hero {
-            padding: 32px 24px;
-        }
-        .transport-hero-title {
-            font-size: 1.75rem;
-        }
-    }
-</style>
+@section('meta_title', 'Car Rental Fleet | ' . ($setting->company ?? 'Rwanda'))
+@section('meta_description', 'Browse our car rental fleet in Kigali, Rwanda. Transparent RWF daily rates, airport pickup, 4x4 safari vehicles, and self-drive options.')
+@section('canonical_url', route('showCars'))
 
-<section class="space">
-    @php
-        $carContent = \App\Models\CarRentalContent::first();
-    @endphp
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/car-rental.css') }}">
+@endpush
+
+@section('content')
+@php
+    $carContent = \App\Models\CarRentalContent::first();
+    $fleetCount = $cars->total() ?? $cars->count();
+    $heroImage = ($carContent && $carContent->hero_image)
+        ? asset('storage/images/car-rental/' . $carContent->hero_image)
+        : carImageUrl(optional($cars->first())->image);
+
+    $benefits = [
+        [
+            'icon' => 'fa-car-side',
+            'title' => 'Our Fleet',
+            'content' => $carContent->fleet_content ?? "Sedans, SUVs, 4x4s, and minibuses for city travel, airport transfers, safaris, and long-term hire across Rwanda.",
+        ],
+        [
+            'icon' => 'fa-shield-halved',
+            'title' => 'Why Choose Us',
+            'content' => $carContent->why_content ?? "Well-maintained vehicles, professional drivers on request, flexible daily & monthly rentals, and reliable airport pickup in Kigali.",
+        ],
+        [
+            'icon' => 'fa-route',
+            'title' => 'Our Services',
+            'content' => $carContent->services_content ?? "Self-drive and chauffeur options, KGL airport meet & greet, corporate travel, and upcountry trips to national parks.",
+        ],
+    ];
+@endphp
+
+<section class="space car-rental-page">
     <div class="container">
-        <!-- Hero / Intro -->
-        <div class="transport-hero mb-40">
-            <div class="row align-items-center">
-                <div class="col-lg-7">
-                    <div class="transport-hero-badge">
-                        <i class="fas fa-car-side"></i>
-                        Car Rental
-                    </div>
-                    <h2 class="transport-hero-title">{{ $carContent->heading ?? 'Stay Nets Car Rental Services' }}</h2>
-                    <h4 class="transport-hero-subtitle">{{ $carContent->subheading ?? 'Reliable, Comfortable, and Flexible Car Rental in Rwanda' }}</h4>
-                    <p class="transport-hero-desc">
-                        {{ $carContent->description ?? 'Travel Rwanda and East Africa with ease and comfort through Stay Nets Car Rental Services.' }}
-                    </p>
-                </div>
-                <div class="col-lg-5 mt-4 mt-lg-0">
-                    <div class="row g-3 align-items-end">
-                        @if($carContent && $carContent->hero_image)
-                            <div class="col-12">
-                                <div class="transport-hero-image" style="height: 200px;">
-                                    <img src="{{ asset('storage/images/car-rental/' . $carContent->hero_image) }}"
-                                         alt="Stay Nets Car Rental">
-                                </div>
+
+        {{-- Hero --}}
+        <div class="car-rental-hero">
+            <div class="car-rental-hero__inner">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-7">
+                        <span class="car-rental-hero__badge">
+                            <i class="fas fa-car-side"></i> Car Rental in Rwanda
+                        </span>
+                        <h1 class="car-rental-hero__title">{{ $carContent->heading ?? 'Premium Car Rental Services' }}</h1>
+                        <p class="car-rental-hero__subtitle">{{ $carContent->subheading ?? 'Reliable, comfortable & flexible rentals in Kigali' }}</p>
+                        <p class="car-rental-hero__desc">
+                            {{ $carContent->description ?? 'Explore Rwanda with a trusted fleet — from airport pickups to safari-ready 4x4s. Transparent RWF pricing and quick booking.' }}
+                        </p>
+                        <div class="car-rental-hero__stats">
+                            <div class="car-rental-hero__stat">
+                                <strong>{{ $fleetCount }}+</strong>
+                                <span>Vehicles</span>
                             </div>
-                        @endif
-                        <div class="col-12">
-                            <div class="transport-booking-card">
-                                <h5><i class="fas fa-calendar-check me-2" style="color:#128C7E;"></i>Book Your Vehicle</h5>
-                                <p class="card-desc">
-                                    Select your dates and send us a quick request. Our team will respond with options and pricing.
-                                </p>
+                            <div class="car-rental-hero__stat">
+                                <strong>24/7</strong>
+                                <span>Support</span>
+                            </div>
+                            <div class="car-rental-hero__stat">
+                                <strong>KGL</strong>
+                                <span>Airport pickup</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="car-rental-hero__visual">
+                            <div class="car-rental-hero__image">
+                                <img src="{{ $heroImage }}" alt="Car rental fleet in Kigali">
+                            </div>
+                            <div class="car-rental-booking-card">
+                                <h5><i class="fas fa-calendar-check me-2" style="color:var(--brand-blue);"></i>Book Your Vehicle</h5>
+                                <p>Tell us your dates and route — we'll confirm availability and pricing quickly.</p>
                                 <button type="button" class="th-btn style3 w-100 mb-2" data-bs-toggle="modal" data-bs-target="#carRentalRequestModal">
                                     {{ $carContent->cta_book_label ?? 'Book Your Car' }}
                                 </button>
@@ -139,72 +87,64 @@
             </div>
         </div>
 
-        <!-- Overview columns -->
-        <div class="row gy-4 mb-40">
-            <div class="col-md-4">
-                <h4 class="box-title mb-2">Our Fleet</h4>
-                <div style="color:#555; font-size:14px;">
-                    {!! nl2br(e($carContent->fleet_content ?? '')) !!}
+        {{-- Trust strip --}}
+        <div class="car-rental-trust">
+            <span class="car-rental-trust__item"><i class="fa fa-plane-arrival"></i> Airport transfers</span>
+            <span class="car-rental-trust__item"><i class="fa fa-tags"></i> Transparent RWF rates</span>
+            <span class="car-rental-trust__item"><i class="fa fa-mountain-sun"></i> 4x4 safari ready</span>
+            <span class="car-rental-trust__item"><i class="fa fa-headset"></i> Local support team</span>
+        </div>
+
+        {{-- Benefits --}}
+        <div class="row gy-4 car-rental-benefits">
+            @foreach($benefits as $benefit)
+                <div class="col-md-4">
+                    <div class="car-benefit-card">
+                        <div class="car-benefit-card__icon"><i class="fas {{ $benefit['icon'] }}"></i></div>
+                        <h4>{{ $benefit['title'] }}</h4>
+                        <div class="car-benefit-card__body">{!! nl2br(e($benefit['content'])) !!}</div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <h4 class="box-title mb-2">Why Choose Stay Nets Car Rental</h4>
-                <div style="color:#555; font-size:14px;">
-                    {!! nl2br(e($carContent->why_content ?? '')) !!}
-                </div>
-            </div>
-            <div class="col-md-4">
-                <h4 class="box-title mb-2">Our Services</h4>
-                <div style="color:#555; font-size:14px;">
-                    {!! nl2br(e($carContent->services_content ?? '')) !!}
-                </div>
-            </div>
+            @endforeach
         </div>
 
         @if($cars->count() > 0)
-            <!-- Existing search + results (only if cars exist) -->
-            <div class="th-sort-bar">
-                <div class="row justify-content-between align-items-center">
-                    <div class="col-md-4">
+            {{-- Fleet header + toolbar --}}
+            <div class="car-fleet-section-head">
+                <div>
+                    <h3>Choose Your Vehicle
+                        <span class="car-fleet-count">{{ $fleetCount }} available</span>
+                    </h3>
+                    <p class="text-muted mb-0 mt-1">Compare models, specs, and daily rates — then book in minutes.</p>
+                </div>
+            </div>
+
+            <div class="car-fleet-toolbar">
+                <div class="row justify-content-between align-items-center g-3">
+                    <div class="col-md-5 col-lg-4">
                         <div class="search-form-area">
-                            <form id="accommodationsSearchForm" class="search-form" method="get" action="{{ url()->current() }}" style="position: relative;">
-                                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search" id="searchInput">
-
-                                <!-- Clear button always present (hidden when input empty) -->
+                            <form id="carsSearchForm" class="search-form" method="get" action="{{ url()->current() }}" style="position:relative;">
+                                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search by name, model, type…" id="searchInput" autocomplete="off">
                                 <button type="button" id="clearSearch" aria-label="Clear search"
-                                    style="
-                                        position:absolute;
-                                        right:45px;
-                                        top:50%;
-                                        transform:translateY(-50%);
-                                        border:none;
-                                        background:none;
-                                        font-size:18px;
-                                        cursor:pointer;
-                                        color:#999;
-                                        display: {{ request('q') ? 'inline-block' : 'none' }};
-                                    ">
-                                    &times;
-                                </button>
-
+                                    style="position:absolute;right:48px;top:50%;transform:translateY(-50%);border:none;background:none;font-size:18px;cursor:pointer;color:#94a3b8;display:{{ request('q') ? 'inline-block' : 'none' }};">&times;</button>
                                 <button type="submit"><i class="fa-light fa-magnifying-glass"></i></button>
                             </form>
                         </div>
                     </div>
-
                     <div class="col-md-auto">
-                        <div class="sorting-filter-wrap">
+                        <div class="sorting-filter-wrap d-flex align-items-center gap-2">
                             <div class="nav" role="tablist">
-                                <a class="active" href="#" id="tab-destination-grid" data-bs-toggle="tab" data-bs-target="#tab-grid" role="tab" aria-controls="tab-grid" aria-selected="true"><i class="fa-light fa-grid-2"></i></a>
-
-                                <a href="#" id="tab-destination-list" data-bs-toggle="tab" data-bs-target="#tab-list" role="tab" aria-controls="tab-list" aria-selected="false" class=""><i class="fa-solid fa-list"></i></a>
+                                <a class="active" href="#" id="tab-destination-grid" data-bs-toggle="tab" data-bs-target="#tab-grid" role="tab"><i class="fa-light fa-grid-2"></i></a>
+                                <a href="#" id="tab-destination-list" data-bs-toggle="tab" data-bs-target="#tab-list" role="tab"><i class="fa-solid fa-list"></i></a>
                             </div>
-                            <form class="woocommerce-ordering" method="get">
-                                <select name="orderby" class="orderby" aria-label="destination order">
-                                    <option value="menu_order" {{ request('orderby') == 'menu_order' ? 'selected' : '' }}>Default Sorting</option>
-                                    <option value="popularity" {{ request('orderby') == 'popularity' ? 'selected' : '' }}>Sort by popularity</option>
-                                    <option value="rating" {{ request('orderby') == 'rating' ? 'selected' : '' }}>Sort by average rating</option>
-                                    <option value="date" {{ request('orderby') == 'date' ? 'selected' : '' }}>Sort by latest</option>
+                            <form class="woocommerce-ordering mb-0" method="get">
+                                @if(request('q'))
+                                    <input type="hidden" name="q" value="{{ request('q') }}">
+                                @endif
+                                <select name="orderby" class="orderby form-select form-select-sm" aria-label="Sort vehicles" style="min-width:160px;border-radius:10px;">
+                                    <option value="date" {{ request('orderby', 'date') == 'date' ? 'selected' : '' }}>Newest first</option>
+                                    <option value="price" {{ request('orderby') == 'price' ? 'selected' : '' }}>Price: low to high</option>
+                                    <option value="price-desc" {{ request('orderby') == 'price-desc' ? 'selected' : '' }}>Price: high to low</option>
                                 </select>
                             </form>
                         </div>
@@ -212,210 +152,98 @@
                 </div>
             </div>
 
-            <div class="row" id="car-rental-form">
-                <div class="col-12">
-
-                    {{-- RESULTS: this container is replaced by AJAX responses --}}
-                    <div id="accommodations-results">
-                        <div class="tab-content" id="nav-tabContent">
-
-                        {{-- GRID VIEW --}}
-                        <div class="tab-pane fade active show" id="tab-grid" role="tabpanel" aria-labelledby="tab-destination-grid">
-                            <div class="row gy-30">
-                                @forelse($cars as $car)
-                                    <div class="col-xxl-4 col-xl-6">
-                                        <div class="tour-box th-ani">
-                                        <div class="tour-box_img global-img"
-                                            style="height:250px; overflow:hidden;">
-                                            @if($car->image && file_exists(storage_path('app/public/images/cars/' . $car->image)))
-                                                <img src="{{ asset('storage/images/cars/' . $car->image) }}"
-                                                    alt="{{ $car->name }}"
-                                                    style="width:100%; height:100%; object-fit:cover;">
-                                            @else
-                                                <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}"
-                                                    alt="{{ $car->name }}"
-                                                    style="width:100%; height:100%; object-fit:cover;">
-                                            @endif
-                                        </div>
-
-
-                                            <div class="tour-content">
-                                                <h3 class="box-title">
-                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
-                                                </h3>
-
-                                                <ul class="list-unstyled mb-3 small text-muted row">
-                                                    <li class="col-6 mb-1"><i class="fa fa-car me-1"></i> {{ $car->model }}</li>
-                                                    <li class="col-6 mb-1"><i class="fa fa-gas-pump me-1"></i> {{ $car->fuel_type }}</li>
-                                                    <li class="col-6 mb-1"><i class="fa fa-cogs me-1"></i> {{ $car->transmission }}</li>
-                                                    <li class="col-6 mb-1"><i class="fa fa-users me-1"></i> {{ $car->seats }} seats</li>
-                                                </ul>
-
-                                                <div class="tour-action">
-                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="col-12">
-                                        <p class="text-center">No Cars found.</p>
-                                    </div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                        {{-- LIST VIEW --}}
-                        <div class="tab-pane fade" id="tab-list" role="tabpanel" aria-labelledby="tab-destination-list">
-                            <div class="row gy-30">
-                                @forelse($cars as $car)
-                                    <div class="col-12">
-                                        <div class="tour-box style-flex th-ani">
-                                            <div class="tour-box_img global-img">
-                                                @if($car->image && file_exists(storage_path('app/public/images/cars/' . $car->image)))
-                                                    <img src="{{ asset('storage/images/cars/' . $car->image) }}" alt="{{ $car->name }}" loading="lazy" decoding="async">
-                                                @else
-                                                    <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $car->name }}">
-                                                @endif
-                                            </div>
-
-                                            <div class="tour-content">
-                                                <h3 class="box-title">
-                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}">{{ $car->name }}</a>
-                                                </h3>
-
-                                                <ul class="list-unstyled mb-3 small text-muted row">
-                                                    <li class="col-6 mb-1"><i class="fa fa-car me-1"></i> {{ $car->model }}</li>
-                                                    <li class="col-6 mb-1"><i class="fa fa-gas-pump me-1"></i> {{ $car->fuel_type }}</li>
-                                                    <li class="col-6 mb-1"><i class="fa fa-cogs me-1"></i> {{ $car->transmission }}</li>
-                                                    <li class="col-6 mb-1"><i class="fa fa-users me-1"></i> {{ $car->seats }} seats</li>
-                                                </ul>
-
-                                                <div class="tour-action">
-                                                    <a href="{{ route('carDetails', $car->slug ?? $car->id) }}" class="th-btn style3">Book Now</a>
-                                                </div>
-                                            </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="col-12">
-                                        <p class="text-center">No Cars found.</p>
-                                    </div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                        {{-- pagination --}}
-                        <div class="th-pagination text-center mt-60 mb-0">
-                            @if(method_exists($cars, 'links'))
-                                <div class="row">
-                                    <div class="col-12 d-flex justify-content-center">
-                                        {!! $cars->appends(request()->query())->links() !!}
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                {{-- end #accommodations-results --}}
-
+            <div id="accommodations-results">
+                @include('frontend.partials.cars_results', ['cars' => $cars])
             </div>
-        </div>
         @else
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        No cars are currently available for rent. Please check back soon or contact our team for assistance.
-                    </div>
+            <div class="text-center py-5">
+                <div class="car-benefit-card d-inline-block text-start" style="max-width:480px;">
+                    <div class="car-benefit-card__icon mx-auto"><i class="fas fa-car"></i></div>
+                    <h4 class="text-center">Fleet coming soon</h4>
+                    <p class="text-center text-muted mb-3">We're updating our vehicles. Send a request and we'll find the right car for your trip.</p>
+                    <button type="button" class="th-btn style3 w-100" data-bs-toggle="modal" data-bs-target="#carRentalRequestModal">Request a Vehicle</button>
                 </div>
             </div>
         @endif
     </div>
-<!-- Car Rental Request Modal -->
-<div class="modal fade" id="carRentalRequestModal" tabindex="-1" aria-labelledby="carRentalRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="carRentalRequestModalLabel">Request a Car Rental</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+    {{-- Request modal --}}
+    <div class="modal fade" id="carRentalRequestModal" tabindex="-1" aria-labelledby="carRentalRequestModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius:16px;border:none;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="carRentalRequestModalLabel">Request a Car Rental</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('carRentalRequest.store') }}" method="POST">
+                    @csrf
+                    <div class="modal-body pt-2">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" value="{{ auth()->check() ? auth()->user()->name : old('name') }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" value="{{ auth()->check() ? auth()->user()->email : old('email') }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone / WhatsApp <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" class="form-control" value="{{ old('phone') }}" placeholder="+250 7XX XXX XXX" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Type of Car <span class="text-danger">*</span></label>
+                            <select name="car_type" class="form-select" required>
+                                <option value="">Select type</option>
+                                <option value="Sedan / Compact" {{ old('car_type') == 'Sedan / Compact' ? 'selected' : '' }}>Sedan / Compact</option>
+                                <option value="SUV / 4x4" {{ old('car_type') == 'SUV / 4x4' ? 'selected' : '' }}>SUV / 4x4</option>
+                                <option value="Minivan / Coach" {{ old('car_type') == 'Minivan / Coach' ? 'selected' : '' }}>Minivan / Coach</option>
+                                <option value="Luxury Vehicle" {{ old('car_type') == 'Luxury Vehicle' ? 'selected' : '' }}>Luxury Vehicle</option>
+                                <option value="Not sure yet" {{ old('car_type') == 'Not sure yet' ? 'selected' : '' }}>Not sure yet</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Passengers</label>
+                                <input type="number" name="people" class="form-control" value="{{ old('people') }}" min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Pickup date</label>
+                                <input type="date" name="rental_date" class="form-control" value="{{ old('rental_date') }}" min="{{ date('Y-m-d') }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trip details</label>
+                            <textarea name="message" class="form-control" rows="3" placeholder="Pickup location, route, return date…">{{ old('message') }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="submit" class="th-btn style3 w-100">Send Request</button>
+                    </div>
+                </form>
             </div>
-            <form action="{{ route('carRentalRequest.store') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" value="{{ auth()->check() ? auth()->user()->name : old('name') }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control" value="{{ auth()->check() ? auth()->user()->email : old('email') }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Phone <span class="text-danger">*</span></label>
-                        <input type="text" name="phone" class="form-control" value="{{ old('phone') }}" placeholder="+250 7XX XXX XXX" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Type of Car Needed <span class="text-danger">*</span></label>
-                        <select name="car_type" class="form-select" required>
-                            <option value="">Select type</option>
-                            <option value="Sedan / Compact" {{ old('car_type') == 'Sedan / Compact' ? 'selected' : '' }}>Sedan / Compact</option>
-                            <option value="SUV / 4x4" {{ old('car_type') == 'SUV / 4x4' ? 'selected' : '' }}>SUV / 4x4</option>
-                            <option value="Minivan / Coach" {{ old('car_type') == 'Minivan / Coach' ? 'selected' : '' }}>Minivan / Coach</option>
-                            <option value="Luxury Vehicle" {{ old('car_type') == 'Luxury Vehicle' ? 'selected' : '' }}>Luxury Vehicle</option>
-                            <option value="Not sure yet" {{ old('car_type') == 'Not sure yet' ? 'selected' : '' }}>Not sure yet</option>
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Number of People</label>
-                            <input type="number" name="people" class="form-control" value="{{ old('people') }}" min="1">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Preferred Date</label>
-                            <input type="date" name="rental_date" class="form-control" value="{{ old('rental_date') }}" min="{{ date('Y-m-d') }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Additional Details</label>
-                        <textarea name="message" class="form-control" rows="4" placeholder="Tell us about your route, pickup location, timings, or any special requests...">{{ old('message') }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Submit Request</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
-
 </section>
 
+@push('scripts')
 <script>
 (function () {
-    // Elements
     const resultsContainer = document.getElementById('accommodations-results');
     const searchInput = document.getElementById('searchInput');
     const orderSelect = document.querySelector('.woocommerce-ordering select[name="orderby"]');
     const clearBtn = document.getElementById('clearSearch');
+    const carsUrl = @json(route('showCars'));
 
-    // Debounce utility
-    function debounce(fn, wait = 300) {
+    function debounce(fn, wait) {
         let t;
-        return function(...args) {
+        return function (...args) {
             clearTimeout(t);
             t = setTimeout(() => fn.apply(this, args), wait);
         };
     }
 
-    // AJAX fetch function (exposed globally so clear button or other scripts can call it)
-    async function fetchResults(params = {}) {
-        // ensure results container exists
+    async function fetchResults(params) {
         if (!resultsContainer) return;
-
-        // build url with current querystring + params
         const url = new URL(window.location.href);
         Object.keys(params).forEach(k => {
             if (params[k] === null || params[k] === undefined || params[k] === '') {
@@ -424,124 +252,82 @@
                 url.searchParams.set(k, params[k]);
             }
         });
-
-        // loading indication
-        resultsContainer.style.opacity = '0.5';
-
+        resultsContainer.style.opacity = '0.55';
         try {
-            const res = await fetch(url.toString(), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-
-            // expect JSON: { html: '...' }
+            const res = await fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const json = await res.json();
-
             if (json && json.html !== undefined) {
                 resultsContainer.innerHTML = json.html;
-                bindPaginationLinks(); // rebind links inside injected html
-            } else if (typeof json === 'string') {
-                resultsContainer.innerHTML = json;
                 bindPaginationLinks();
-            } else {
-                console.warn('Unexpected AJAX response', json);
             }
-
-            // update URL so user can bookmark/share and back works
             window.history.pushState({}, '', url.toString());
         } catch (err) {
-            console.error('Search fetch error', err);
+            console.error(err);
         } finally {
             resultsContainer.style.opacity = '1';
         }
     }
 
-    // Expose for other scripts
-    window.fetchAccommodationsResults = fetchResults;
-
-    // Bind pagination links inside results to load via AJAX
     function bindPaginationLinks() {
         if (!resultsContainer) return;
-        // find pagination anchors (support both your .th-pagination and Laravel .pagination)
-        const pagerLinks = resultsContainer.querySelectorAll('.th-pagination a, .pagination a');
-        pagerLinks.forEach(a => {
-            // remove previous handlers by cloning (defensive)
-            const newA = a.cloneNode(true);
-            a.parentNode.replaceChild(newA, a);
-
-            newA.addEventListener('click', function(e) {
+        resultsContainer.querySelectorAll('.pagination a, .th-pagination a').forEach(a => {
+            const clone = a.cloneNode(true);
+            a.parentNode.replaceChild(clone, a);
+            clone.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
                 if (!href) return;
-                // parse page param from href
                 const linkUrl = new URL(href, window.location.origin);
                 const page = linkUrl.searchParams.get('page');
                 if (page) {
                     e.preventDefault();
-                    const q = searchInput ? searchInput.value : '';
-                    const orderby = orderSelect ? orderSelect.value : '';
-                    fetchResults({ q, orderby, page });
+                    fetchResults({
+                        q: searchInput ? searchInput.value : '',
+                        orderby: orderSelect ? orderSelect.value : '',
+                        page,
+                    });
                 }
             });
         });
     }
 
-    // Hook search input (debounced)
     if (searchInput) {
-        const onInput = debounce(function() {
-            const q = this.value;
-            const orderby = orderSelect ? orderSelect.value : '';
-            fetchResults({ q, orderby, page: 1 });
-        }, 350);
-        searchInput.addEventListener('input', onInput);
+        searchInput.addEventListener('input', debounce(function () {
+            fetchResults({ q: this.value, orderby: orderSelect ? orderSelect.value : '', page: 1 });
+        }, 350));
     }
 
-    // Hook order select (change)
     if (orderSelect) {
-        orderSelect.addEventListener('change', function() {
-            const q = searchInput ? searchInput.value : '';
-            fetchResults({ q, orderby: this.value, page: 1 });
+        orderSelect.addEventListener('change', function () {
+            fetchResults({ q: searchInput ? searchInput.value : '', orderby: this.value, page: 1 });
         });
     }
 
-    // Clear button behavior: full reload and redirect to accommodations route
     if (clearBtn) {
-        clearBtn.addEventListener('click', function(e) {
+        clearBtn.addEventListener('click', function (e) {
             e.preventDefault();
-            // full-page redirect to accommodations route (server will show unfiltered list)
-            window.location.href = {!! json_encode(route('accommodations')) !!};
+            window.location.href = carsUrl;
         });
     }
 
-    // Update clear button visibility as user types
-    function toggleClearBtn() {
-        if (!clearBtn || !searchInput) return;
-        if (searchInput.value && searchInput.value.trim().length > 0) {
-            clearBtn.style.display = 'inline-block';
-        } else {
-            clearBtn.style.display = 'none';
-        }
-    }
-    if (searchInput) {
-        searchInput.addEventListener('input', toggleClearBtn);
-        toggleClearBtn();
+    if (searchInput && clearBtn) {
+        searchInput.addEventListener('input', function () {
+            clearBtn.style.display = this.value.trim() ? 'inline-block' : 'none';
+        });
     }
 
-    // Handle browser back/forward
-    window.addEventListener('popstate', function() {
+    window.addEventListener('popstate', function () {
         const url = new URL(window.location.href);
-        const q = url.searchParams.get('q') || '';
-        const orderby = url.searchParams.get('orderby') || '';
-        const page = url.searchParams.get('page') || 1;
-
-        if (searchInput) searchInput.value = q;
-        if (orderSelect) orderSelect.value = orderby;
-
-        fetchResults({ q, orderby, page });
+        if (searchInput) searchInput.value = url.searchParams.get('q') || '';
+        if (orderSelect) orderSelect.value = url.searchParams.get('orderby') || 'date';
+        fetchResults({
+            q: url.searchParams.get('q') || '',
+            orderby: url.searchParams.get('orderby') || 'date',
+            page: url.searchParams.get('page') || 1,
+        });
     });
 
-    // initial bindings
     bindPaginationLinks();
-
 })();
 </script>
-
+@endpush
 @endsection

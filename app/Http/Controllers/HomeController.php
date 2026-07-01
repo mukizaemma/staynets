@@ -278,7 +278,7 @@ public function hotelsSearch(Request $request)
             ->where('status', 'available')
             ->select([
                 'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
-                'price_to_buy', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
+                'price_to_buy', 'currency', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
             ])
             ->with(['carImages' => fn ($q) => $q->select('id', 'car_id', 'image')]);
 
@@ -420,7 +420,7 @@ public function hotelsSearch(Request $request)
                              . "Booking Type: {$bookingTypeLabel}\n"
                              . "Customer: {$request->name} ({$request->email})\n"
                              . "Phone: {$request->phone}\n"
-                             . ($totalAmount ? "Total Amount: " . number_format($totalAmount) . " RWF\n" : "")
+                             . ($totalAmount ? 'Total Amount: ' . formatMoney($totalAmount, $car->currency_code) . "\n" : '')
                              . "\nYou can view and manage this booking in the admin panel:\n"
                              . route('admin.carBookings.index'),
                     'lastline' => 'Please log in to review and respond to this booking request.',

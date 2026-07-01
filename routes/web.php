@@ -343,6 +343,19 @@ Route::middleware(['redirect.admin'])->group(function () {
     Route::get('/services/left-bags/request', [App\Http\Controllers\HomeController::class, 'leftBagsRequest'])->name('leftBags.request');
     Route::get('transport', [App\Http\Controllers\HomeController::class, 'showCars'])->name('showCars');
     Route::get('transport/{slug}', [App\Http\Controllers\HomeController::class, 'carDetails'])->name('carDetails');
+    Route::get('/kigali-airport-car-rental', fn (\Illuminate\Http\Request $request) => app(App\Http\Controllers\CarLandingController::class)->show($request, 'kigali-airport-car-rental'))->name('carLanding.airport');
+    Route::get('/4x4-rental-rwanda', fn (\Illuminate\Http\Request $request) => app(App\Http\Controllers\CarLandingController::class)->show($request, '4x4-rental-rwanda'))->name('carLanding.4x4');
+    Route::get('/self-drive-kigali', fn (\Illuminate\Http\Request $request) => app(App\Http\Controllers\CarLandingController::class)->show($request, 'self-drive-kigali'))->name('carLanding.selfdrive');
+    Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+    Route::get('/robots.txt', function () {
+        $lines = [
+            'User-agent: *',
+            'Allow: /',
+            'Sitemap: ' . route('sitemap'),
+        ];
+
+        return response(implode("\n", $lines), 200)->header('Content-Type', 'text/plain');
+    })->name('robots');
     Route::post('car-booking', [App\Http\Controllers\HomeController::class, 'storeCarBooking'])->name('storeCarBooking');
     Route::post('car-rental/request', [App\Http\Controllers\CarRentalRequestController::class, 'store'])->name('carRentalRequest.store');
     Route::get('/hotels/{slug}/rooms', [App\Http\Controllers\HomeController::class, 'hotelRooms'])->name('hotelRooms');

@@ -22,6 +22,7 @@ class Car extends Model
         'price_per_day',
         'price_per_month',
         'price_to_buy',
+        'currency',
         'image', // Cover image
         'images', // JSON array (for backward compatibility)
         'description',
@@ -62,22 +63,48 @@ class Car extends Model
         return $this->reviews()->count();
     }
 
+    public function getCurrencyCodeAttribute(): string
+    {
+        return strtoupper($this->currency ?: 'RWF');
+    }
+
     public function getDisplayPriceAttribute()
     {
         if ($this->price_to_buy > 0) {
-            return ['amount' => $this->price_to_buy, 'label' => 'For Sale'];
+            return [
+                'amount' => $this->price_to_buy,
+                'label' => 'for sale',
+                'currency' => $this->currency_code,
+            ];
         }
 
         if ($this->price_per_day > 0) {
-            return ['amount' => $this->price_per_day, 'label' => '/ day'];
+            return [
+                'amount' => $this->price_per_day,
+                'label' => '/day',
+                'currency' => $this->currency_code,
+            ];
         }
 
         if ($this->price_per_month > 0) {
-            return ['amount' => $this->price_per_month, 'label' => '/ month'];
+            return [
+                'amount' => $this->price_per_month,
+                'label' => '/month',
+                'currency' => $this->currency_code,
+            ];
         }
 
         return null;
     }
 
+    public function formattedPriceLine(): ?string
+    {
+        $price = $this->display_price;
 
+        if (! $price) {
+            return null;
+        }
+
+        return formatMoney($price['amount'], $price['currency']) . $price['label'];
+    }
 }

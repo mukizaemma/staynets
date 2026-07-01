@@ -1,6 +1,5 @@
 <!doctype html>
-<base href="/public">
-<html class="no-js" lang="zxx">
+<html class="no-js" lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -11,10 +10,7 @@
             $setting = \App\Models\Setting::first();
         }
     @endphp
-    <title>{{ $setting->company ?? '' }}</title>
-    <meta name="author" content="StayNets">
-    <meta name="description" content="Best Accommodation Booking Engine in Rwanda">
-    <meta name="keywords" content="{{ $setting->company ?? '' }} ">
+    @include('layouts.partials.seo-head')
     <meta name="robots" content="INDEX,FOLLOW">
 
     <!-- Mobile Specific Metas -->
@@ -66,7 +62,8 @@
     <link rel="manifest" href="assets/img/favicons/manifest.json">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ $favicon }}">
-    <meta name="theme-color" content="#4B9043">
+    <meta name="theme-color" content="#1E4D70">
+    <base href="{{ rtrim(asset(''), '/') }}/">
 
     <!--==============================
 	  Google Fonts
@@ -139,10 +136,7 @@
                     </div>
                     <p class="about-text">Discover Rwanda's charm with a peaceful stay through our booking engine.</p>
                     <div class="th-social">
-                        <a href="https://www.facebook.com/"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.twitter.com/"><i class="fab fa-twitter"></i></a>
-                        <a href="https://www.linkedin.com/"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.whatsapp.com/"><i class="fab fa-whatsapp"></i></a>
+                        @include('layouts.partials.social-links')
                     </div>
                 </div>
             </div>
@@ -182,8 +176,10 @@
                             <img src="assets/img/icon/phone.svg" alt="img">
                         </div>
                         <div class="details">
-                            <p><a href="tel:{{ $setting->phone ?? '' }}" class="info-box_link">{{ $setting->phone ?? '' }}</a></p>
-                            <p><a href="tel:{{ $setting->phone1 ?? '' }}" class="info-box_link">{{ $setting->phone1 ?? '' }}</a></p>
+                            @php $primaryPhone = primaryPhone($setting); @endphp
+                            @if($primaryPhone)
+                            <p><a href="tel:{{ preg_replace('/\s+/', '', $primaryPhone) }}" class="info-box_link">{{ $primaryPhone }}</a></p>
+                            @endif
                         </div>
                     </div>
                     <div class="info-box_text">

@@ -35,15 +35,13 @@
                             <div class="about-logo">
                                 <a href="{{ route('home') }}"><img src="{{ $footerLogoUrl }}" alt="{{ $setting->company ?? 'StayNets' }}"></a>
                             </div>
-                            <p class="about-text">The Best Hospitality Services Management in Rwanda</p>
-                            <div class="th-social th-social--footer">
-                                <a href="https://www.facebook.com/" rel="noopener noreferrer" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
-                                <a href="https://instagram.com/" rel="noopener noreferrer" target="_blank" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-                                <a href="https://www.tiktok.com/" rel="noopener noreferrer" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
-                            </div>
+                    <p class="about-text">{{ $setting->quote ?? 'Reliable car rental and travel services in Rwanda.' }}</p>
+                    <div class="th-social th-social--footer">
+                        @include('layouts.partials.social-links')
+                    </div>
 
-                            <div class="footer-book-cta mt-4">
-                                <a href="{{ route('hotelsSearch') }}" class="th-btn style3 th-icon footer-book-btn">Book With Us</a>
+                    <div class="footer-book-cta mt-4">
+                        <a href="{{ route('showCars') }}" class="th-btn style3 th-icon footer-book-btn">Book Your Car</a>
                             </div>
                         </div>
                     </div>
@@ -55,7 +53,9 @@
                             <ul class="menu footer-quick-links">
                                 <li><a href="{{ route('hotelsSearch') }}">Accommodation Booking</a></li>
                                 <li><a href="{{ route('tours') }}">Tour Experiences</a></li>
-                                <li><a href="{{ route('showCars') }}">Car Rental</a></li>
+                                <li><a href="{{ route('carLanding.airport') }}">Airport Car Rental</a></li>
+                                <li><a href="{{ route('carLanding.4x4') }}">4x4 Rental Rwanda</a></li>
+                                <li><a href="{{ route('carLanding.selfdrive') }}">Self Drive Kigali</a></li>
                                 <li><a href="{{ route('connect') }}">Travel Support</a></li>
                                 <li><a href="{{ route('about') }}">About Stay Nets</a></li>
                                 <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
@@ -129,9 +129,11 @@
 </footer>
 
 @php
-    $rawPhone = optional($setting)->phone ?: optional($setting)->phone1 ?: '250788316330';
-    $whatsappNumber = preg_replace('/\D/', '', $rawPhone) ?: '250788316330';
+    $rawPhone = primaryPhone($setting);
+    $whatsappNumber = preg_replace('/\D/', '', $rawPhone) ?: null;
 @endphp
+@if($whatsappNumber)
 <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" class="whatsapp-float" rel="noopener noreferrer" aria-label="Contact us on WhatsApp">
     <i class="fab fa-whatsapp"></i>
 </a>
+@endif

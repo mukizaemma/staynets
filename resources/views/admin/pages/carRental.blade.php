@@ -55,6 +55,7 @@
                             {{-- Our Fleet --}}
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Our Fleet Content</label>
+                                <p class="small text-muted mb-2">Use <strong>RWF</strong> for prices (e.g. RWF 60,000/day). Do not prefix Rwandan Franc amounts with $.</p>
                                 <textarea name="fleet_content" rows="6" class="form-control"
                                           id="fleetContent">{{ old('fleet_content', $data->fleet_content) }}</textarea>
                                 <small class="text-muted">Use bullet points for each vehicle category.</small>

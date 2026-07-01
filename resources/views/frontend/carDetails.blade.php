@@ -1,5 +1,9 @@
 @extends('layouts.frontbase')
 
+@section('meta_title', $car->name . ' | Car Rental')
+@section('meta_description', Str::limit(strip_tags($car->description ?: ($car->name . ' available for rent in Kigali, Rwanda.')), 155))
+@section('canonical_url', route('carDetails', $car->slug ?? $car->id))
+
 @section('content')
 
 <section class="space">
@@ -76,15 +80,9 @@
                             @foreach($allImages as $img)
                             <div class="swiper-slide">
                                 <div class="tour-slider-img">
-                                        @if($img['image'] === 'placeholder')
-                                            <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" 
-                                                 alt="{{ $car->name }}" 
-                                                 style="width:100%; height:560px; object-fit:cover;">
-                                        @else
-                                            <img src="{{ asset('storage/images/cars/' . $img['image']) }}" 
-                                                 alt="{{ $car->name }}" 
-                                                 style="width:100%; height:560px; object-fit:cover;">
-                                        @endif
+                                        <img src="{{ carImageUrl($img['image'] === 'placeholder' ? null : $img['image']) }}" 
+                                             alt="{{ $car->name }}" 
+                                             style="width:100%; height:560px; object-fit:cover;">
                                     </div>
                                 </div>
                             @endforeach
@@ -105,15 +103,9 @@
                             @foreach($allImages as $img)
                                 <div class="swiper-slide">
                                     <div class="tour-slider-img" style="cursor:pointer;">
-                                        @if($img['image'] === 'placeholder')
-                                            <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" 
-                                                 alt="Thumbnail" 
-                                                 style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:2px solid transparent;">
-                                        @else
-                                            <img src="{{ asset('storage/images/cars/' . $img['image']) }}" 
-                                                 alt="Thumbnail" 
-                                                 style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:2px solid transparent;">
-                                        @endif
+                                        <img src="{{ carImageUrl($img['image'] === 'placeholder' ? null : $img['image']) }}" 
+                                             alt="Thumbnail" 
+                                             style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:2px solid transparent;">
                                     </div>
                                 </div>
                             @endforeach
@@ -134,7 +126,14 @@
                         </div>
 
                         <div class="text-end">
-                            <p class="text-muted small mb-2">Pricing available on request</p>
+                            @if($car->formattedPriceLine())
+                                <p class="text-success fw-semibold mb-1" style="font-size:1.15rem;">{{ $car->formattedPriceLine() }}</p>
+                                @if($car->price_per_day && $car->price_per_month)
+                                    <p class="text-muted small mb-2">Monthly: {{ formatMoney($car->price_per_month, $car->currency_code) }}</p>
+                                @endif
+                            @else
+                                <p class="text-muted small mb-2">Price on request</p>
+                            @endif
                             <button type="button" class="th-btn style4 mt-2" data-bs-toggle="modal" data-bs-target="#carBookingModal">
                                 Book Now
                             </button>
@@ -209,7 +208,7 @@
                                             {{ $car->model }} • {{ $car->fuel_type }}
                                         </p>
 
-                                        <p class="text-muted small mb-3">Pricing available on request</p>
+                                        @include('frontend.partials.car-price', ['car' => $car])
 
                                         <ul class="list-unstyled small">
                                             <li>Seats: <strong>{{ $car->seats }}</strong></li>
@@ -237,21 +236,17 @@
                                         <div class="tour-box th-ani">
                                         <div class="tour-box_img global-img"
                                             style="height:250px; overflow:hidden;">
-                                                @if($r->image && file_exists(storage_path('app/public/images/cars/' . $r->image)))
-                                                    <img src="{{ asset('storage/images/cars/' . $r->image) }}"
-                                                        alt="{{ $r->name }}"
-                                                    style="width:100%; height:100%; object-fit:cover;">
-                                            @else
-                                                <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}"
-                                                        alt="{{ $r->name }}"
-                                                    style="width:100%; height:100%; object-fit:cover;">
-                                            @endif
+                                            <img src="{{ carImageUrl($r->image) }}"
+                                                 alt="{{ $r->name }}"
+                                                 loading="lazy"
+                                                 style="width:100%; height:100%; object-fit:cover;">
                                         </div>
 
                                             <div class="tour-content">
                                                 <h3 class="box-title">
                                                     <a href="{{ route('carDetails', $r->slug ?? $r->id) }}">{{ $r->name }}</a>
                                                 </h3>
+                                                @include('frontend.partials.car-price', ['car' => $r])
 
                                                 <ul class="list-unstyled mb-3 small text-muted row">
                                                     <li class="col-6 mb-1"><i class="fa fa-car me-1"></i> {{ $r->model }}</li>
@@ -683,5 +678,26 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
+
+@if($car->formattedPriceLine())
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+    '@context' => 'https://schema.org',
+    '@type' => 'Product',
+    'name' => $car->name,
+    'description' => strip_tags($car->description ?? $car->name),
+    'image' => carImageUrl($car->image),
+    'offers' => [
+        '@type' => 'Offer',
+        'priceCurrency' => $car->currency_code,
+        'price' => $car->price_per_day ?: $car->price_per_month,
+        'availability' => $car->status === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        'url' => route('carDetails', $car->slug ?? $car->id),
+    ],
+]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endpush
+@endif
 
 @endsection

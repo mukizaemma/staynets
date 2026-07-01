@@ -100,6 +100,7 @@ class CarsController extends Controller
             'price_per_day' => 'nullable|numeric|min:0',
             'price_per_month' => 'nullable|numeric|min:0',
             'price_to_buy' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|in:RWF,USD,EUR,GBP',
             'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'car_images' => 'nullable|array',
             'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -134,6 +135,7 @@ class CarsController extends Controller
                 'price_per_day' => $request->input('price_per_day'),
                 'price_per_month' => $request->input('price_per_month'),
                 'price_to_buy' => $request->input('price_to_buy'),
+                'currency' => $request->input('currency', 'RWF'),
                 'image' => $coverImageName, // Cover image
                 'description' => $request->input('description'),
                 'program_id' => $request->input('program_id'),
@@ -209,6 +211,7 @@ class CarsController extends Controller
             'price_per_day' => 'nullable|numeric|min:0',
             'price_per_month' => 'nullable|numeric|min:0',
             'price_to_buy' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|in:RWF,USD,EUR,GBP',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'car_images' => 'nullable|array',
             'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -242,6 +245,7 @@ class CarsController extends Controller
             $car->price_per_day = $request->input('price_per_day');
             $car->price_per_month = $request->input('price_per_month');
             $car->price_to_buy = $request->input('price_to_buy');
+            $car->currency = $request->input('currency', $car->currency ?: 'RWF');
     
             // Update slug if name changed
             if ($car->isDirty('name')) {

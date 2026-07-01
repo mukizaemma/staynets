@@ -80,16 +80,16 @@
                                     {{-- Price --}}
                                     <td>
                                         @if($rs->price_per_day)
-                                            <div><strong>{{ number_format($rs->price_per_day) }}</strong> / day</div>
+                                            <div><strong>{{ formatMoney($rs->price_per_day, $rs->currency ?? 'RWF') }}</strong> / day</div>
                                         @endif
 
                                         @if($rs->price_per_month)
-                                            <div>{{ number_format($rs->price_per_month) }} / month</div>
+                                            <div>{{ formatMoney($rs->price_per_month, $rs->currency ?? 'RWF') }} / month</div>
                                         @endif
 
                                         @if($rs->price_to_buy)
                                             <div class="text-success">
-                                                Buy: {{ number_format($rs->price_to_buy) }}
+                                                Buy: {{ formatMoney($rs->price_to_buy, $rs->currency ?? 'RWF') }}
                                             </div>
                                         @endif
                                     </td>
@@ -220,11 +220,20 @@
 
                             <div id="rent_fields">
                                 <div class="row mb-3">
-                                    <div class="col-lg-6 col-sm-12">
+                                    <div class="col-lg-4 col-sm-12">
+                                        <label class="form-label">Currency</label>
+                                        <select name="currency" class="form-control">
+                                            <option value="RWF" selected>RWF (Rwandan Franc)</option>
+                                            <option value="USD">USD</option>
+                                            <option value="EUR">EUR</option>
+                                            <option value="GBP">GBP</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-4 col-sm-12">
                                         <label class="form-label">Price Per Day</label>
                                         <input type="number" step="0.01" name="price_per_day" id="price_per_day" class="form-control">
                                     </div>
-                                    <div class="col-lg-6 col-sm-12">
+                                    <div class="col-lg-4 col-sm-12">
                                         <label class="form-label">Price Per Month</label>
                                         <input type="number" step="0.01" name="price_per_month" id="price_per_month" class="form-control">
                                     </div>

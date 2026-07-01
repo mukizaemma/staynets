@@ -148,14 +148,22 @@
                                 {{-- Pricing (Rent) --}}
                                 <div id="rent_fields">
                                     <div class="row mb-3">
-                                        <div class="col-lg-6 col-sm-12">
+                                        <div class="col-lg-4 col-sm-12">
+                                            <label class="form-label">Currency</label>
+                                            <select name="currency" class="form-control">
+                                                @foreach(['RWF' => 'RWF (Rwandan Franc)', 'USD' => 'USD', 'EUR' => 'EUR', 'GBP' => 'GBP'] as $code => $label)
+                                                    <option value="{{ $code }}" {{ old('currency', $car->currency ?? 'RWF') === $code ? 'selected' : '' }}>{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-4 col-sm-12">
                                             <label class="form-label">Price Per Day</label>
                                             <input type="number" step="0.01" name="price_per_day" id="price_per_day"
                                                 class="form-control"
                                                 value="{{ old('price_per_day', $car->price_per_day) }}">
                                         </div>
 
-                                        <div class="col-lg-6 col-sm-12">
+                                        <div class="col-lg-4 col-sm-12">
                                             <label class="form-label">Price Per Month</label>
                                             <input type="number" step="0.01" name="price_per_month" id="price_per_month"
                                                 class="form-control"

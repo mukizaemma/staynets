@@ -28,19 +28,44 @@
                                 <h4 class="mb-3">General Information</h4>
                                 <div class="row mb-4">
                                     <div class="col-lg-6">
-                                        <label for="company" class="form-label">Website Title</label>
+                                        <label for="company" class="form-label">Website Title (browser tab)</label>
                                         <input type="text" class="form-control" value="{{ $data->company }}" name="company">
                                     </div>
                                     <div class="col-lg-6">
-                                        <label for="address" class="form-label">Address</label>
-                                        <input type="text" class="form-control" value="{{ $data->address }}" name="address">
+                                        <label for="title" class="form-label">SEO Page Title</label>
+                                        <input type="text" class="form-control" value="{{ $data->title }}" name="title" placeholder="Car Rental in Kigali, Rwanda | Your Company">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-lg-12">
+                                        <label for="quote" class="form-label">Tagline (footer &amp; fallback description)</label>
+                                        <input type="text" class="form-control" value="{{ $data->quote }}" name="quote" placeholder="Affordable car rental in Kigali with transparent RWF rates.">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-lg-12">
+                                        <label for="meta_description" class="form-label">Meta Description (Google)</label>
+                                        <textarea class="form-control" name="meta_description" rows="2" placeholder="Rent a car in Kigali, Rwanda. Airport pickup, 4x4 safari vehicles, and self-drive daily rentals.">{{ $data->meta_description ?? '' }}</textarea>
                                     </div>
                                 </div>
 
                                 <div class="row mb-4">
                                     <div class="col-lg-6">
-                                        <label for="phone" class="form-label">Phone</label>
-                                        <input type="text" class="form-control" value="{{ $data->phone }}" name="phone">
+                                        <label for="address" class="form-label">Address</label>
+                                        <input type="text" class="form-control" value="{{ $data->address }}" name="address">
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="keywords" class="form-label">SEO Keywords</label>
+                                        <input type="text" class="form-control" value="{{ $data->keywords }}" name="keywords" placeholder="car rental Kigali, rent a car Rwanda">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-lg-6">
+                                        <label for="phone" class="form-label">Primary Phone / WhatsApp</label>
+                                        <input type="text" class="form-control" value="{{ $data->phone }}" name="phone" placeholder="+250 7XX XXX XXX">
                                     </div>
                                     <div class="col-lg-6">
                                         <label for="email" class="form-label">Email</label>
@@ -62,12 +87,22 @@
                                 </div>
                                 <div class="row mb-4">
                                     <div class="col-lg-6">
-                                        <label for="twitter" class="form-label">YouTube</label>
+                                        <label for="youtube" class="form-label">YouTube</label>
                                         <input type="text" class="form-control" value="{{ $data->youtube }}" name="youtube">
                                     </div>
                                     <div class="col-lg-6">
                                         <label for="linkedin" class="form-label">LinkedIn</label>
                                         <input type="text" class="form-control" value="{{ $data->linkedin }}" name="linkedin">
+                                    </div>
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-lg-6">
+                                        <label for="tiktok" class="form-label">TikTok</label>
+                                        <input type="text" class="form-control" value="{{ $data->tiktok }}" name="tiktok" placeholder="https://www.tiktok.com/@yourpage">
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="phone1" class="form-label">Secondary Phone (optional, not shown on site)</label>
+                                        <input type="text" class="form-control" value="{{ $data->phone1 }}" name="phone1">
                                     </div>
                                 </div>
                                 <div class="row mb-4">
