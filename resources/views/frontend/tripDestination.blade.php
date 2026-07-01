@@ -226,10 +226,20 @@ if ($images->isEmpty()) {
                             @if(!empty($destination->location)) 
                                 <p class="text-muted mb-1"><i class="fa-solid fa-location-dot"></i> {{ $destination->location }}</p> 
                             @endif
+                            @php
+                                $sidebarActivityCount = $destination->trips->count();
+                                $sidebarGalleryCount = $destination->images->count();
+                            @endphp
+                            @if($sidebarActivityCount > 0 || $sidebarGalleryCount > 0)
                             <ul class="list-unstyled mb-3 small">
-                                <li><strong>Activities:</strong> {{ $destination->trips->count() }}</li>
-                                <li><strong>Gallery Images:</strong> {{ $destination->images->count() }}</li>
+                                @if($sidebarActivityCount > 0)
+                                <li><strong>Activities:</strong> {{ $sidebarActivityCount }}</li>
+                                @endif
+                                @if($sidebarGalleryCount > 0)
+                                <li><strong>Gallery Images:</strong> {{ $sidebarGalleryCount }}</li>
+                                @endif
                             </ul>
+                            @endif
                         </div>
                     </div>
                 </aside>

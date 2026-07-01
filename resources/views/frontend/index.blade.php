@@ -203,7 +203,7 @@
                     <a href="{{ route('connect') }}" class="text-decoration-none">
                         <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
                             <div class="card-body p-4">
-                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(56,136,64,0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(75, 144, 67, 0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
                                     <i class="fas fa-plane" style="color:var(--brand-green); font-size:28px;"></i>
                                 </div>
                                 <h5 class="card-title mb-2" style="color:#1a1a1a;">Airport Transfers</h5>
@@ -219,7 +219,7 @@
                     <a href="{{ route('showCars') }}" class="text-decoration-none">
                         <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
                             <div class="card-body p-4">
-                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(56,136,64,0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(75, 144, 67, 0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
                                     <i class="fas fa-car" style="color:var(--brand-green); font-size:28px;"></i>
                                 </div>
                                 <h5 class="card-title mb-2" style="color:#1a1a1a;">Car Rentals</h5>
@@ -235,7 +235,7 @@
                     <a href="{{ route('tours') }}" class="text-decoration-none">
                         <div class="card h-100 text-center border-0 shadow-sm travel-service-card" style="border-radius: 18px; transition: all 0.3s ease; background: rgba(255,255,255,0.95);">
                             <div class="card-body p-4">
-                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(56,136,64,0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                <div style="width:64px; height:64px; border-radius:18px; background:rgba(75, 144, 67, 0.20); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
                                     <i class="fas fa-map-marked-alt" style="color:var(--brand-green); font-size:28px;"></i>
                                 </div>
                                 <h5 class="card-title mb-2" style="color:#1a1a1a;">Tours</h5>
@@ -498,10 +498,11 @@ Service Area
 
 
 <style>
-/* Hero Section Fixes */
-#hero.th-hero-wrapper.hero-7 {
-    min-height: 500px !important;
-    max-height: 600px;
+/* Hero Section — full viewport on landing */
+#hero.th-hero-wrapper.hero-7.hero-home {
+    min-height: 85vh !important;
+    min-height: 85dvh !important;
+    max-height: none;
     background-size: cover !important;
     background-position: center center !important;
     background-repeat: no-repeat !important;
@@ -542,7 +543,7 @@ Service Area
 #heroSearchForm .form-select:focus {
     background: #ffffff !important;
     border-color: var(--brand-green) !important;
-    box-shadow: 0 0 0 0.2rem rgba(56, 136, 64, 0.20);
+    box-shadow: 0 0 0 0.2rem rgba(75, 144, 67, 0.20);
     outline: none;
     color: #333 !important;
 }
@@ -568,12 +569,13 @@ Service Area
 /* Button hover effect */
 #searchBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(56, 136, 64, 0.35) !important;
+    box-shadow: 0 6px 20px rgba(75, 144, 67, 0.35) !important;
 }
 
 @media (max-width: 991px) {
-    #hero.th-hero-wrapper.hero-7 {
-        min-height: 450px;
+    #hero.th-hero-wrapper.hero-7.hero-home {
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
         max-height: none;
     }
     
@@ -637,7 +639,7 @@ Service Area
 /* Travel Service Card Hover */
 .travel-service-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(56, 136, 64, 0.20) !important;
+    box-shadow: 0 12px 30px rgba(75, 144, 67, 0.20) !important;
 }
 
 /* Travel Services section – full-width background image */

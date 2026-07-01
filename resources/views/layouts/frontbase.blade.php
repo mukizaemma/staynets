@@ -66,7 +66,7 @@
     <link rel="manifest" href="assets/img/favicons/manifest.json">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ $favicon }}">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#4B9043">
 
     <!--==============================
 	  Google Fonts
@@ -108,7 +108,7 @@
                     icon: 'success',
                     title: 'Success!',
                     text: '{{ session('success') }}',
-                    confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--brand-green').trim() || '#388840'
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--brand-green').trim() || '#4B9043'
                 });
             });
         </script>
@@ -314,7 +314,7 @@
                                 </a>
                                 <a href="{{ route('myPropertyCreate') }}"
                                    class="btn btn-add-property me-2"
-                                   style="background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(56, 136, 64, 0.35); transition: all 0.3s ease;">
+                                   style="background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(75, 144, 67, 0.35); transition: all 0.3s ease;">
                                     <i class="fas fa-plus-circle me-2"></i>Add your Property
                                 </a>
                                 <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -325,7 +325,7 @@
                                 </form>
                             @else
                                 <a href="#login-form" class="popup-content btn btn-add-property"
-                                   style="background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(56, 136, 64, 0.35); transition: all 0.3s ease;">
+                                   style="background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(75, 144, 67, 0.35); transition: all 0.3s ease;">
                                     <i class="fas fa-plus-circle me-2"></i>Add your Property
                                 </a>
                             @endif

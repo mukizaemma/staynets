@@ -1455,7 +1455,11 @@ public function bookNow(Request $request)
 
     public function tours(){
         // Show trip destinations instead of trips directly
-        $destinations = \App\Models\TripDestination::where('status', 'Active')->with('trips')->oldest()->get();
+        $destinations = \App\Models\TripDestination::where('status', 'Active')
+            ->whereHas('trips')
+            ->with('trips')
+            ->oldest()
+            ->get();
         $setting = Setting::first();
         $about = About::first();
         return view('frontend.tours',[
@@ -1472,6 +1476,7 @@ public function bookNow(Request $request)
         
         $relatedDestinations = \App\Models\TripDestination::where('id', '!=', $destination->id)
             ->where('status', 'Active')
+            ->whereHas('trips')
             ->oldest()
             ->take(3)
             ->get();

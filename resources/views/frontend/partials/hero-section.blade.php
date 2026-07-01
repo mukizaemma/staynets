@@ -53,10 +53,10 @@
                             @endforeach
                         </div>
                         @if($slides->every(fn($s) => empty($s->heading) && empty($s->subheading)))
-                            <h1 class="hero-title text-white mb-4" style="font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 700;">Your Travel Booking Partner</h1>
+                            <h1 class="hero-title hero-tagline text-white mb-4">Stay Nets helps travelers book hotels, apartments, tour activities and car rentals across Rwanda and East Africa</h1>
                         @endif
                     @else
-                        <h1 class="hero-title text-white mb-4" style="font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 700;">Your Travel Booking Partner</h1>
+                        <h1 class="hero-title hero-tagline text-white mb-4">Stay Nets helps travelers book hotels, apartments, tour activities and car rentals across Rwanda and East Africa</h1>
                     @endif
                     <div class="btn-group mb-4 flex-wrap justify-content-center">
                         <a href="{{ route('hotels') }}" class="th-btn th-icon style3">Hotels</a>

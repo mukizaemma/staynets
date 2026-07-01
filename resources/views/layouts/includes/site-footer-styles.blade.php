@@ -2,7 +2,7 @@
 <style>
         /* Enhanced Footer Styling */
         .footer-wrapper.bg-title {
-            background: linear-gradient(135deg, #0b2f42 0%, var(--brand-blue) 55%, #0b2f42 100%);
+            background: linear-gradient(135deg, var(--brand-green-dark) 0%, var(--brand-green) 45%, var(--brand-blue) 100%);
             position: relative;
             overflow: hidden;
         }
@@ -166,12 +166,12 @@
         .th-social a:hover {
             background: linear-gradient(135deg, var(--brand-green), var(--brand-blue));
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(56, 136, 64, 0.35);
+            box-shadow: 0 5px 15px rgba(75, 144, 67, 0.35);
         }
         
         .th-social--footer a:hover {
             background: linear-gradient(135deg, var(--brand-green), var(--brand-blue));
-            box-shadow: 0 5px 16px rgba(56, 136, 64, 0.30);
+            box-shadow: 0 5px 16px rgba(75, 144, 67, 0.30);
         }
         
         .footer-widget.widget_nav_menu ul.menu {
@@ -219,7 +219,7 @@
         
         .footer-widget.widget_nav_menu ul.menu.footer-quick-links li a:hover {
             padding-left: 0;
-            color: #5eead4;
+            color: rgba(255, 255, 255, 0.95);
         }
         
         /* Quick links: grid for even spacing (replaces tight CSS columns) */
@@ -262,8 +262,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(45, 212, 191, 0.15);
-            color: #5eead4;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
             font-size: 0.85rem;
         }
         
@@ -306,13 +306,13 @@
             align-items: center;
             font-size: 0.875rem;
             font-weight: 600;
-            color: #5eead4;
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             transition: color 0.2s ease, transform 0.2s ease;
         }
         
         .footer-reviews-card__link:hover {
-            color: #99f6e4;
+            color: #fff;
         }
         
         .footer-reviews-card__link i {
@@ -372,17 +372,17 @@
         .site-footer-enhanced .info-box_text:hover {
             background: rgba(255, 255, 255, 0.08);
             transform: translateY(-2px);
-            border-color: rgba(45, 212, 191, 0.22);
+            border-color: rgba(255, 255, 255, 0.2);
         }
         
         .site-footer-enhanced .info-box_text .icon {
-            background: rgba(45, 212, 191, 0.12);
-            border: 1px solid rgba(45, 212, 191, 0.22);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
         
         .site-footer-enhanced .info-box_text:hover .icon {
-            background: rgba(45, 212, 191, 0.2);
-            border-color: rgba(94, 234, 212, 0.45);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.35);
         }
         
         .info-box_text {
@@ -400,12 +400,12 @@
         }
         
         .info-box_text .icon {
-            background: rgba(56, 136, 64, 0.20);
-            border: 1px solid rgba(56, 136, 64, 0.30);
+            background: rgba(75, 144, 67, 0.20);
+            border: 1px solid rgba(75, 144, 67, 0.30);
         }
         
         .info-box_text:hover .icon {
-            background: rgba(56, 136, 64, 0.28);
+            background: rgba(75, 144, 67, 0.28);
             border-color: var(--brand-green);
         }
         
@@ -424,17 +424,17 @@
             padding: 12px 30px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(56, 136, 64, 0.25);
+            box-shadow: 0 4px 15px rgba(75, 144, 67, 0.25);
         }
         
         .destination-btn .th-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 136, 64, 0.35);
+            box-shadow: 0 6px 20px rgba(75, 144, 67, 0.35);
         }
         
         .copyright-wrap {
-            background: rgba(0, 0, 0, 0.22);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.18);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
             padding: 25px 0;
             position: relative;
             z-index: 1;
@@ -468,7 +468,7 @@
         
         .btn-add-property:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 136, 64, 0.35) !important;
+            box-shadow: 0 6px 20px rgba(75, 144, 67, 0.35) !important;
             color: #fff !important;
         }
         
@@ -514,7 +514,7 @@
             align-items: center;
             justify-content: center;
             font-size: 28px;
-            box-shadow: 0 4px 20px rgba(56, 136, 64, 0.35);
+            box-shadow: 0 4px 20px rgba(75, 144, 67, 0.35);
             z-index: 1000;
             transition: all 0.3s ease;
             text-decoration: none;
@@ -523,7 +523,7 @@
         
         .whatsapp-float:hover {
             transform: scale(1.1) translateY(-5px);
-            box-shadow: 0 6px 25px rgba(56, 136, 64, 0.45);
+            box-shadow: 0 6px 25px rgba(75, 144, 67, 0.45);
             background: linear-gradient(135deg, var(--brand-blue), var(--brand-green));
         }
         
@@ -533,13 +533,13 @@
         
         @keyframes pulse {
             0% {
-                box-shadow: 0 4px 20px rgba(56, 136, 64, 0.35);
+                box-shadow: 0 4px 20px rgba(75, 144, 67, 0.35);
             }
             50% {
-                box-shadow: 0 4px 30px rgba(56, 136, 64, 0.45);
+                box-shadow: 0 4px 30px rgba(75, 144, 67, 0.45);
             }
             100% {
-                box-shadow: 0 4px 20px rgba(56, 136, 64, 0.35);
+                box-shadow: 0 4px 20px rgba(75, 144, 67, 0.35);
             }
         }
         

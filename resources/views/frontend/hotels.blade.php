@@ -188,7 +188,7 @@
                                                     $currencySymbol = getCurrencySymbol($currency);
                                                 @endphp
                                                 @if($minPrice)
-                                                    <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                                                    <div style="position: absolute; top: 15px; right: 15px; background: rgba(75, 144, 67, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                                                         {{ $currencySymbol }}{{ number_format($minPrice, 0) }}/night
                                                     </div>
                                                 @endif

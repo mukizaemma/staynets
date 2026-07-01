@@ -31,7 +31,7 @@
             <span class="d-block mt-1">Click a day for that room type to open details, see StayNets guests for that night, and set vacant rooms (this date only).</span>
         @endif
     </p>
-    <div class="booking-cal-wrap" style="overflow-x: auto;">
+    <div class="booking-cal-wrap staynets-booking-calendar" style="overflow-x: auto;">
         @if(count($yearUrls) > 0)
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                 <span class="fw-bold text-secondary small">YEAR</span>

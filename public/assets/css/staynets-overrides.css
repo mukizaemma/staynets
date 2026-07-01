@@ -2,8 +2,10 @@
    Loaded after the template CSS to enforce consistent palette + typography. */
 
 :root {
-  --brand-blue: #104868;
-  --brand-green: #388840;
+  --brand-blue: #1E4D70;
+  --brand-green: #4B9043;
+  --brand-green-dark: #3d7536;
+  --brand-blue-dark: #163a56;
   --listing-card-image-height: 220px;
 }
 
@@ -67,8 +69,89 @@ a:hover, a:focus, .text-primary:hover {
 }
 .btn-success:hover,
 .btn-success:focus {
-  background-color: #2f7436 !important;
-  border-color: #2f7436 !important;
+  background-color: var(--brand-green-dark) !important;
+  border-color: var(--brand-green-dark) !important;
+}
+
+/* Hero tagline — readable on photo backgrounds */
+.hero-home .hero-tagline {
+  font-size: clamp(1.2rem, 3.2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.4;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.hero-home .hero-style7 {
+  text-align: center;
+}
+
+.hero-home .btn-group .th-btn {
+  min-width: 130px;
+}
+
+/* Section titles — consistent spacing on landing pages */
+.title-area.text-center {
+  margin-bottom: 0.5rem;
+}
+
+.title-area .sec-text {
+  color: #5a6570;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Booking calendar — greenish headers (admin + owner dashboard) */
+.staynets-booking-calendar .booking-cal-table thead th {
+  background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  font-weight: 600;
+}
+
+.staynets-booking-calendar .booking-cal-table thead th.bg-light {
+  background: var(--brand-blue) !important;
+  color: #fff !important;
+}
+
+.staynets-booking-calendar h6.fw-bold {
+  color: var(--brand-blue);
+}
+
+.staynets-booking-calendar .btn-primary {
+  background-color: var(--brand-green) !important;
+  border-color: var(--brand-green) !important;
+}
+
+.staynets-booking-calendar .btn-primary:hover,
+.staynets-booking-calendar .btn-outline-primary:hover {
+  background-color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
+}
+
+.staynets-booking-calendar .btn-outline-primary {
+  color: var(--brand-green) !important;
+  border-color: var(--brand-green) !important;
+}
+
+.admin-calendar-panel {
+  border-top: 4px solid var(--brand-green);
+}
+
+.admin-calendar-panel > .d-flex h4,
+.admin-calendar-panel h5.fw-bold {
+  color: var(--brand-blue);
+}
+
+#calendar .card-title {
+  color: var(--brand-blue);
+}
+
+#calendar .card {
+  border-top: 4px solid var(--brand-green) !important;
 }
 
 /* Property / listing grid cards: equal cover image height */

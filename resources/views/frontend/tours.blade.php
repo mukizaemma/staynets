@@ -18,6 +18,8 @@
 
             <div class="row gy-30">
                 @forelse($destinations as $destination)
+                    @php $activityCount = $destination->trips->count(); @endphp
+                    @if($activityCount > 0)
                     <div class="col-lg-4 col-md-6">
                         <div class="tour-box th-ani" style="height: 100%;">
                             <div class="tour-box_img global-img" style="position: relative;">
@@ -26,8 +28,8 @@
                                 @else
                                     <img src="{{ asset('assets/img/tour/tour_3_1.jpg') }}" alt="{{ $destination->name }}" style="height: 250px; object-fit: cover;">
                                 @endif
-                                <div style="position: absolute; top: 15px; right: 15px; background: rgba(37, 211, 102, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                                    {{ $destination->trips->count() }} Activities
+                                <div style="position: absolute; top: 15px; right: 15px; background: rgba(75, 144, 67, 0.95); color: white; padding: 8px 15px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                                    {{ $activityCount }} {{ $activityCount === 1 ? 'Activity' : 'Activities' }}
                                 </div>
                             </div>
                             <div class="tour-content">
@@ -52,6 +54,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 @empty
                     <div class="col-12">
                         <div class="text-center py-5">
@@ -80,7 +83,7 @@
                         <div class="row g-3">
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -91,7 +94,7 @@
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -102,7 +105,7 @@
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -113,7 +116,7 @@
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>
@@ -124,7 +127,7 @@
                             </div>
                             <div class="col-sm-12">
                                 <div style="display:flex; gap:14px; padding:14px 16px; border-radius:10px; background:#ffffff; box-shadow:0 8px 20px rgba(0,0,0,0.04);">
-                                    <div style="width:34px; height:34px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
+                                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">
                                         ★
                                     </div>
                                     <div>

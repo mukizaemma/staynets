@@ -42,6 +42,7 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('admin/css/style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/staynets-overrides.css') }}">
     {{-- <link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
 </head>
 
@@ -54,7 +55,7 @@
                         icon: 'success',
                         title: 'Success!',
                         text: '{{ session('success') }}',
-                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--brand-green').trim() || '#388840'
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--brand-green').trim() || '#4B9043'
                     });
                 });
             </script>

@@ -171,7 +171,7 @@
 
         {{-- Booking Calendar: room × day grid + upcoming list --}}
         <div class="tab-pane fade" id="calendar" role="tabpanel" tabindex="0">
-            <div class="card border-0 shadow-sm" style="border-radius: 14px;">
+            <div class="card border-0 shadow-sm staynets-booking-calendar" style="border-radius: 14px;">
                 <div class="card-body p-4">
                     @php
                         $cvUp = \App\Services\RoomBookingCalendarService::VIEW_UPCOMING;
