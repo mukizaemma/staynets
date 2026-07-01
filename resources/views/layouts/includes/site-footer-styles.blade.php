@@ -2,7 +2,7 @@
 <style>
         /* Enhanced Footer Styling */
         .footer-wrapper.bg-title {
-            background: linear-gradient(135deg, var(--brand-green-dark) 0%, var(--brand-green) 45%, var(--brand-blue) 100%);
+            background: var(--brand-blue);
             position: relative;
             overflow: hidden;
         }

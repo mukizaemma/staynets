@@ -316,9 +316,9 @@ public function hotelsSearch(Request $request)
     }
 
     public function carDetails($slug){
-        $car = Car::with('images')->where('slug', $slug)->firstOrFail();
+        $car = Car::with('carImages')->where('slug', $slug)->firstOrFail();
 
-        $images = $car->images;
+        $images = $car->carImages;
         $allCars = Car::where('id','!=',$car->id)->where('status', 'available')->limit(3)->get();
         return view('frontend.carDetails',[
             'car'=>$car,

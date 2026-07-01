@@ -16,6 +16,18 @@ use Illuminate\Support\Facades\Log;
 
 class CarsController extends Controller
 {
+    /**
+     * Convert empty strings to null so nullable validation rules pass.
+     */
+    private function normalizeCarRequest(Request $request): void
+    {
+        foreach (['program_id', 'seats', 'price_per_day', 'price_per_month', 'price_to_buy'] as $field) {
+            if ($request->has($field) && $request->input($field) === '') {
+                $request->merge([$field => null]);
+            }
+        }
+    }
+
         public function index()
     {
         $cars = Car::latest()->get();
@@ -75,6 +87,8 @@ class CarsController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->normalizeCarRequest($request);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'model' => 'nullable|string|max:255',
@@ -180,27 +194,29 @@ class CarsController extends Controller
 
     public function update(Request $request, $id)
     {
+        $car = Car::findOrFail($id);
+
+        $this->normalizeCarRequest($request);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'model' => 'nullable|string|max:255',
+            'fuel_type' => 'nullable|string|max:50',
+            'transmission' => 'nullable|string|max:50',
+            'seats' => 'nullable|integer|min:1',
+            'program_id' => 'nullable|exists:programs,id',
+            'advert_type' => 'nullable|in:rent,sell',
+            'price_per_day' => 'nullable|numeric|min:0',
+            'price_per_month' => 'nullable|numeric|min:0',
+            'price_to_buy' => 'nullable|numeric|min:0',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'car_images' => 'nullable|array',
+            'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            'description' => 'nullable|string',
+            'status' => 'required|in:available,rented,maintenance,unavailable',
+        ]);
+
         try {
-            $car = Car::findOrFail($id);
-    
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'model' => 'nullable|string|max:255',
-                'fuel_type' => 'nullable|string|max:50',
-                'transmission' => 'nullable|string|max:50',
-                'seats' => 'nullable|integer|min:1',
-                'program_id' => 'nullable|exists:programs,id',
-                'advert_type' => 'nullable|in:rent,sell',
-                'price_per_day' => 'nullable|numeric|min:0',
-                'price_per_month' => 'nullable|numeric|min:0',
-                'price_to_buy' => 'nullable|numeric|min:0',
-                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-                'car_images' => 'nullable|array',
-                'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
-                'description' => 'nullable|string',
-                'status' => 'required|in:available,rented,maintenance,unavailable',
-            ]);
-    
             // Handle cover image update
             if ($request->hasFile('cover_image')) {
                 // Delete old cover image if exists
@@ -273,8 +289,8 @@ class CarsController extends Controller
                 Storage::delete('public/images/cars/' . $car->image);
             }
             
-            // Delete all car images
-            foreach ($car->images as $carImage) {
+            // Delete gallery images (use relationship, not JSON `images` column)
+            foreach ($car->carImages as $carImage) {
                 if ($carImage->image) {
                     Storage::delete('public/images/cars/' . $carImage->image);
                 }

@@ -227,12 +227,11 @@
                     <li><a href="{{ route('home') }}">Home</a></li>
                     <li><a href="{{ route('hotels', ['type' => 'hotel']) }}">Hotels</a></li>
                     <li><a href="{{ route('apartments') }}">Apartments</a></li>
-                    <li><a href="{{ route('villas') }}">Villas</a></li>
+                    <li><a href="{{ route('showCars') }}">Car Rentals</a></li>
                     <li class="menu-item-has-children">
                         <a href="{{ route('tours') }}">Travel Services</a>
                         <ul class="sub-menu">
                             <li><a href="{{ route('connect') }}">Airport Transfers</a></li>
-                            <li><a href="{{ route('showCars') }}">Car Rentals</a></li>
                             <li><a href="{{ route('tours') }}">Tours</a></li>
                             <li><a href="{{ route('leftBags') }}">Left Bags</a></li>
                             <li><a href="{{ route('ticketing') }}">Ticketing</a></li>
@@ -287,13 +286,12 @@
                                         <a href="{{ route('apartments') }}" class="{{ request()->routeIs('hotelsSearch') && request('property_type') == 'apartment' ? 'active' : '' }}">Apartments</a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('villas') }}" class="{{ request()->routeIs('hotelsSearch') && request('property_type') == 'villa' ? 'active' : '' }}">Villas</a>
+                                        <a href="{{ route('showCars') }}" class="{{ request()->routeIs('showCars', 'carDetails') ? 'active' : '' }}">Car Rentals</a>
                                     </li>
                                     <li class="menu-item-has-children">
                                         <a href="{{ route('tours') }}">Travel Services <i class="far fa-caret-down"></i></a>
                                         <ul class="sub-menu">
                                             <li><a href="{{ route('connect') }}"><i class="fas fa-plane-arrival me-2"></i>Airport Transfers</a></li>
-                                            <li><a href="{{ route('showCars') }}"><i class="fas fa-car me-2"></i>Car Rentals</a></li>
                                             <li><a href="{{ route('tours') }}"><i class="fas fa-map-marked-alt me-2"></i>Tours</a></li>
                                             <li><a href="{{ route('leftBags') }}"><i class="fas fa-suitcase-rolling me-2"></i>Left Bags</a></li>
                                             <li><a href="{{ route('ticketing') }}"><i class="fas fa-ticket-alt me-2"></i>Ticketing</a></li>
