@@ -92,6 +92,62 @@ a:hover, a:focus, .text-primary:hover {
   min-width: 130px;
 }
 
+/* Homepage hero — full viewport width background */
+#hero.th-hero-wrapper.hero-7.hero-home {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  left: 0;
+  right: 0;
+}
+
+.hero-7.hero-home::before {
+  display: none !important;
+}
+
+#hero .hero-bg-layer,
+#hero #homeHeroCarousel.hero-bg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+}
+
+#hero .hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+}
+
+#hero .hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+#hero #homeHeroCarousel .carousel-item,
+#hero #homeHeroCarousel .carousel-inner {
+  height: 100%;
+}
+
+#hero #homeHeroCarousel .carousel-item .hero-bg-layer {
+  position: absolute;
+  inset: 0;
+}
+
+#hero #homeHeroCarousel .carousel-control-prev,
+#hero #homeHeroCarousel .carousel-control-next {
+  z-index: 3;
+}
+
 /* Section titles — consistent spacing on landing pages */
 .title-area.text-center {
   margin-bottom: 0.5rem;

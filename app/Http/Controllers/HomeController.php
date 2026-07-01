@@ -280,7 +280,7 @@ public function hotelsSearch(Request $request)
                 'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
                 'price_to_buy', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
             ])
-            ->with(['images' => fn ($q) => $q->select('id', 'car_id', 'image')]);
+            ->with(['carImages' => fn ($q) => $q->select('id', 'car_id', 'image')]);
 
         if (!empty($q)) {
             $query->where(function ($qb) use ($q) {

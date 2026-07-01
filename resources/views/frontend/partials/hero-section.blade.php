@@ -5,16 +5,16 @@
     $hasSlides = isset($slides) && $slides->isNotEmpty();
 @endphp
 
-<div class="th-hero-wrapper hero-7 hero-home" id="hero" @unless($hasSlides) data-bg-src="{{ $heroBg }}" @endunless style="position: relative; overflow: hidden; @unless($hasSlides) background-size: cover; background-position: center; @endunless">
+<div class="th-hero-wrapper hero-7 hero-home" id="hero">
     @if($hasSlides)
-        <div id="homeHeroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="7000" style="position: absolute; inset: 0; z-index: 0;">
+        <div id="homeHeroCarousel" class="carousel slide carousel-fade hero-bg-layer" data-bs-ride="carousel" data-bs-interval="7000">
             <div class="carousel-inner h-100">
                 @foreach($slides as $key => $slide)
                     @php
                         $slideUrl = asset('storage/images/slides/' . ltrim($slide->image ?? '', '/'));
                     @endphp
                     <div class="carousel-item {{ $key === 0 ? 'active' : '' }} h-100">
-                        <div style="position: absolute; inset: 0; background: url('{{ $slideUrl }}') center center / cover no-repeat;"></div>
+                        <div class="hero-bg-layer" style="background-image: url('{{ $slideUrl }}');"></div>
                     </div>
                 @endforeach
             </div>
@@ -30,12 +30,12 @@
             @endif
         </div>
     @else
-        <div style="position: absolute; inset: 0; background: url('{{ $heroBg }}') center center / cover no-repeat; z-index: 0;"></div>
+        <div class="hero-bg-layer" style="background-image: url('{{ $heroBg }}');"></div>
     @endif
 
-    <div class="hero-overlay" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 100%); z-index: 1;"></div>
+    <div class="hero-overlay"></div>
 
-    <div class="container h-100" style="position: relative; z-index: 2;">
+    <div class="container h-100 hero-content">
         <div class="row align-items-center justify-content-center h-100" style="min-height: 60vh; min-height: 60dvh; padding-top: 56px;">
             <div class="col-12">
                 <div class="hero-style7 text-center" style="padding: 40px 0 30px 0;">

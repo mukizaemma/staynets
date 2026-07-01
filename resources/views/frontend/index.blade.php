@@ -503,9 +503,9 @@ Service Area
     min-height: 85vh !important;
     min-height: 85dvh !important;
     max-height: none;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     display: flex;
     align-items: center;
     position: relative;

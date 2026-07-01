@@ -388,10 +388,13 @@
 
 
 
-    <div class="container-fluid">
-
+    @if(request()->routeIs('home'))
         @yield('content')
-    </div>
+    @else
+        <div class="container-fluid">
+            @yield('content')
+        </div>
+    @endif
     
     @include('layouts.includes.site-footer')
 
