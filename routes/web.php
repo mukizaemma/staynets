@@ -315,6 +315,9 @@ Route::middleware(['auth', 'allow.booking.owner'])->group(function () {
     Route::get('/admin/bookings/{id}/delete', [App\Http\Controllers\Admin\AdminBookingsController::class, 'destroy'])->name('admin.bookings.destroy');
 });
 
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
+
 // Frontend routes - admins will be redirected to dashboard via middleware
 Route::get('/guide', [App\Http\Controllers\GuideController::class, 'index'])->name('guide');
 
