@@ -21,7 +21,7 @@ a, .link, .text-primary {
   color: var(--brand-blue);
 }
 a:hover, a:focus, .text-primary:hover {
-  color: var(--brand-green);
+  color: var(--brand-blue-dark);
 }
 
 /* Primary buttons (template th-btn + bootstrap btn-primary) */
@@ -33,9 +33,9 @@ a:hover, a:focus, .text-primary:hover {
   color: #fff !important;
 }
 
-/* Hover uses the secondary brand color */
+/* Hover uses darker navy */
 .th-btn:before {
-  background-color: var(--brand-green) !important;
+  background-color: var(--brand-blue-dark) !important;
 }
 .btn.btn-primary:hover,
 .btn-primary:hover,
@@ -43,8 +43,8 @@ a:hover, a:focus, .text-primary:hover {
 .btn-primary:focus,
 .th-btn:hover,
 .th-btn:focus {
-  background-color: var(--brand-green) !important;
-  border-color: var(--brand-green) !important;
+  background-color: var(--brand-blue-dark) !important;
+  border-color: var(--brand-blue-dark) !important;
   color: #fff !important;
 }
 
@@ -60,17 +60,17 @@ a:hover, a:focus, .text-primary:hover {
   border-color: var(--brand-blue) !important;
 }
 
-/* Success accents */
-.text-success { color: var(--brand-green) !important; }
-.bg-success { background-color: var(--brand-green) !important; }
+/* Success accents — aligned to primary navy */
+.text-success { color: var(--brand-blue) !important; }
+.bg-success { background-color: var(--brand-blue) !important; }
 .btn-success {
-  background-color: var(--brand-green) !important;
-  border-color: var(--brand-green) !important;
+  background-color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
 }
 .btn-success:hover,
 .btn-success:focus {
-  background-color: var(--brand-green-dark) !important;
-  border-color: var(--brand-green-dark) !important;
+  background-color: var(--brand-blue-dark) !important;
+  border-color: var(--brand-blue-dark) !important;
 }
 
 /* Hero tagline — readable on photo backgrounds */
@@ -106,7 +106,7 @@ a:hover, a:focus, .text-primary:hover {
 
 /* Booking calendar — greenish headers (admin + owner dashboard) */
 .staynets-booking-calendar .booking-cal-table thead th {
-  background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-blue) 100%) !important;
+  background: linear-gradient(135deg, var(--brand-blue-dark) 0%, var(--brand-blue) 100%) !important;
   color: #fff !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   font-weight: 600;
@@ -122,23 +122,23 @@ a:hover, a:focus, .text-primary:hover {
 }
 
 .staynets-booking-calendar .btn-primary {
-  background-color: var(--brand-green) !important;
-  border-color: var(--brand-green) !important;
-}
-
-.staynets-booking-calendar .btn-primary:hover,
-.staynets-booking-calendar .btn-outline-primary:hover {
   background-color: var(--brand-blue) !important;
   border-color: var(--brand-blue) !important;
 }
 
+.staynets-booking-calendar .btn-primary:hover,
+.staynets-booking-calendar .btn-outline-primary:hover {
+  background-color: var(--brand-blue-dark) !important;
+  border-color: var(--brand-blue-dark) !important;
+}
+
 .staynets-booking-calendar .btn-outline-primary {
-  color: var(--brand-green) !important;
-  border-color: var(--brand-green) !important;
+  color: var(--brand-blue) !important;
+  border-color: var(--brand-blue) !important;
 }
 
 .admin-calendar-panel {
-  border-top: 4px solid var(--brand-green);
+  border-top: 4px solid var(--brand-blue);
 }
 
 .admin-calendar-panel > .d-flex h4,
@@ -151,7 +151,7 @@ a:hover, a:focus, .text-primary:hover {
 }
 
 #calendar .card {
-  border-top: 4px solid var(--brand-green) !important;
+  border-top: 4px solid var(--brand-blue) !important;
 }
 
 /* Property / listing grid cards: equal cover image height */
@@ -209,7 +209,7 @@ a:hover, a:focus, .text-primary:hover {
 }
 
 .btn-book-room:hover:not(:disabled) {
-  background: var(--brand-green) !important;
+  background: var(--brand-blue-dark) !important;
 }
 
 .btn-book-room:disabled {
