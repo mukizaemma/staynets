@@ -38,6 +38,7 @@
                             · Representative: {{ $templateModel->platform_representative_name }}
                         @endif
                         @if($templateModel)
+                            · {{ count(\App\Models\ListingAgreementTemplate::ensureCompleteSections($templateModel->sections)) }} sections
                             <span class="text-muted small">· Last updated {{ $templateModel->updated_at?->format('M j, Y g:i A') }}</span>
                         @endif
                     </p>

@@ -11,6 +11,11 @@ class WhyChooseUsItemController extends Controller
 {
     public function index()
     {
+        if (! WhyChooseUsItem::tableReady()) {
+            return redirect()->route('dashboard')
+                ->with('error', 'The Why Choose Us table is missing. Run: php artisan migrate');
+        }
+
         $items = WhyChooseUsItem::ordered()->get();
         $setting = Setting::first();
 
@@ -19,6 +24,11 @@ class WhyChooseUsItemController extends Controller
 
     public function store(Request $request)
     {
+        if (! WhyChooseUsItem::tableReady()) {
+            return redirect()->back()
+                ->with('error', 'The Why Choose Us table is missing. Run: php artisan migrate');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -41,6 +51,11 @@ class WhyChooseUsItemController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (! WhyChooseUsItem::tableReady()) {
+            return redirect()->back()
+                ->with('error', 'The Why Choose Us table is missing. Run: php artisan migrate');
+        }
+
         $item = WhyChooseUsItem::findOrFail($id);
 
         $validated = $request->validate([
@@ -67,6 +82,11 @@ class WhyChooseUsItemController extends Controller
 
     public function destroy($id)
     {
+        if (! WhyChooseUsItem::tableReady()) {
+            return redirect()->back()
+                ->with('error', 'The Why Choose Us table is missing. Run: php artisan migrate');
+        }
+
         WhyChooseUsItem::findOrFail($id)->delete();
         cache()->forget('home_why_choose_us');
 

@@ -231,7 +231,9 @@ class SettingsController extends Controller
     {
         $setting = Setting::first();
         $slidesCount = Slide::count();
-        $whyChooseUsCount = WhyChooseUsItem::active()->count();
+        $whyChooseUsCount = WhyChooseUsItem::tableReady()
+            ? WhyChooseUsItem::active()->count()
+            : 0;
 
         return view('admin.pages.homepage', compact('setting', 'slidesCount', 'whyChooseUsCount'));
     }

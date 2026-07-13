@@ -1,15 +1,26 @@
 @php
-    $sections = $template->sections ?: \App\Models\ListingAgreementTemplate::defaultSections();
-    $pageOne = array_slice($sections, 0, 6);
-    $pageTwo = array_slice($sections, 6);
-    $listingName = $listing->name ?? '—';
-    $listingLocation = $listing->location ?? $listing->city ?? $listing->address ?? '—';
-    $listingType = $listing->property_type ?? $listing->type ?? class_basename($listing);
-    $hostName = $signature->host_printed_name ?? ($owner->name ?? auth()->user()->name ?? '—');
-    $startDate = $signature->start_date ?? ($signature->signed_at ?? now());
-    $startDateFormatted = $startDate instanceof \Carbon\Carbon ? $startDate->format('d/m/Y') : now()->format('d/m/Y');
-    $platformSig = $signature->admin_signature_path ?? $template->platform_signature_path ?? null;
-    $ownerSig = $signature->owner_signature_path ?? ($owner->signature_path ?? auth()->user()->signature_path ?? null);
+    $sections = \App\Models\ListingAgreementTemplate::ensureCompleteSections(
+        $template->sections ?: null
+    );
+    $breakAfter = max(1, (int) ($template->page_break_after ?? 6));
+    $pageOne = array_slice($sections, 0, $breakAfter);
+    $pageTwo = array_slice($sections, $breakAfter);
+    $listingName = optional($listing)->name;
+    $listingLocation = optional($listing)->location
+        ?? optional($listing)->city
+        ?? optional($listing)->address;
+    $listingType = optional($listing)->property_type ?? optional($listing)->type;
+    $hostName = optional($signature)->host_printed_name
+        ?? optional($owner)->name
+        ?? (auth()->user()->name ?? null);
+    $startDate = optional($signature)->start_date ?? optional($signature)->signed_at;
+    $startDateFormatted = $startDate instanceof \Carbon\Carbon
+        ? $startDate->format('d/m/Y')
+        : ($startDate ? \Carbon\Carbon::parse($startDate)->format('d/m/Y') : '...../...../.......');
+    $platformSig = optional($signature)->admin_signature_path ?? $template->platform_signature_path ?? null;
+    $ownerSig = optional($signature)->owner_signature_path
+        ?? optional($owner)->signature_path
+        ?? (auth()->user()->signature_path ?? null);
     $logoUrl = asset('assets/img/logo.svg');
     $rawLogo = ltrim((string) (optional($setting ?? null)->logo ?? ''), '/');
     if (!empty($rawLogo)) {
@@ -22,30 +33,88 @@
             } catch (\Throwable $e) {}
         }
     }
-    $resolveLine = function ($line) use ($template, $listingName, $listingLocation, $listingType, $startDateFormatted) {
+
+    $blankDots = '................';
+    $displayPropertyName = $listingName ?: $blankDots;
+    $displayLocation = $listingLocation ?: $blankDots;
+    $displayType = $listingType
+        ? ucfirst(str_replace('_', ' ', (string) $listingType))
+        : $blankDots;
+    $displayHost = $hostName ?: '[Full Name / Company Name]';
+    $displayRep = $template->platform_representative_name ?: 'Joseph K';
+
+    $resolveLine = function ($line) use (
+        $template,
+        $displayPropertyName,
+        $displayLocation,
+        $displayType,
+        $startDateFormatted,
+        $displayHost,
+        $displayRep
+    ) {
         return str_replace(
-            ['[X]', '[30 days]', '[START DATE]', '[PROPERTY NAME]', '[LOCATION]', '[TYPE]', '[COMMISSION]', '[PAYMENT METHOD]', '[PAYMENT TIMELINE]'],
+            [
+                '[X]',
+                '[30 days]',
+                '[START DATE]',
+                '[PROPERTY NAME]',
+                '[LOCATION]',
+                '[TYPE]',
+                '[COMMISSION]',
+                '[PAYMENT METHOD]',
+                '[PAYMENT TIMELINE]',
+                '[HOST NAME]',
+                '[REPRESENTATIVE]',
+            ],
             [
                 (string) ($template->damage_report_hours ?? 24),
                 ($template->termination_notice_days ?? 30).' days',
                 $startDateFormatted,
-                $listingName,
-                $listingLocation,
-                ucfirst(str_replace('_', ' ', (string) $listingType)),
-                $template->commission_rate ?? '5%',
+                $displayPropertyName,
+                $displayLocation,
+                $displayType,
+                $template->commission_rate ?? 'up to 10%',
                 $template->payment_method ?? 'Bank transfer / Mobile Money / Card',
                 $template->payment_timeline ?? 'Within 7–14 days after guest checkout',
+                $displayHost,
+                $displayRep,
             ],
             (string) $line
         );
     };
+
+    $introRaw = $template->intro_text ?: \App\Models\ListingAgreementTemplate::defaultIntro();
+    $introResolved = $resolveLine($introRaw);
+
+    $renderSection = function ($block) use ($template, $resolveLine, $platformSig, $ownerSig, $displayHost, $displayRep, $signature) {
+        $isSignatures = $template->isSignaturesSection($block);
+        if ($isSignatures) {
+            return [
+                'signatures' => true,
+                'heading' => $block['heading'] ?? 'SIGNATURES',
+                'items' => $block['items'] ?? [],
+            ];
+        }
+
+        return [
+            'signatures' => false,
+            'heading' => $block['heading'] ?? '',
+            'lead_in' => $block['lead_in'] ?? '',
+            'items' => $block['items'] ?? [],
+            'closing' => $block['closing'] ?? '',
+        ];
+    };
+
+    $footerBar = $template->footer_services_text
+        ?? 'Booking Engine: Hotel, Apartment, Villa House, Tour Package and Car Rental.';
+    $footerPhone = $template->platform_phone ?? '+250784251094/250788788633';
 @endphp
 
 @include('partials.listing-agreement-styles')
 
 <div class="staynets-contract {{ $printClass ?? '' }}" id="staynets-contract-document">
     {{-- PAGE 1 --}}
-    <div class="staynets-contract__page staynets-contract__page-break">
+    <div class="staynets-contract__page {{ count($pageTwo) ? 'staynets-contract__page-break' : '' }}">
         <header class="staynets-contract__header">
             <div class="staynets-contract__brand">
                 <img src="{{ $logoUrl }}" alt="{{ $template->platform_name }}" class="staynets-contract__logo">
@@ -60,86 +129,85 @@
 
         <h1 class="staynets-contract__title">Property Listing Agreement</h1>
 
-        @if($template->intro_text)
-            <div class="staynets-contract__intro">{!! nl2br(e($template->intro_text)) !!}</div>
-        @else
-            <div class="staynets-contract__intro">
-                This Agreement is made between:<br><br>
-                <strong>1. Platform Owner:</strong> {{ $template->platform_name ?? 'Stay Nets' }}, operating an online booking platform (“Platform”)<br><br>
-                <strong>AND</strong><br><br>
-                <strong>2. Property Owner / Host</strong> (“Host”): <strong>{{ $hostName }}</strong>
-            </div>
-        @endif
-
-        <div class="staynets-contract__property-box">
-            <p><strong>Property Name:</strong> {{ $listingName }}</p>
-            <p><strong>Location:</strong> {{ $listingLocation }}</p>
-            <p><strong>Property Type:</strong> {{ ucfirst(str_replace('_', ' ', (string) $listingType)) }}</p>
-            <p><strong>Agreement Start Date:</strong> {{ $startDateFormatted }}</p>
-        </div>
+        <div class="staynets-contract__intro">{!! nl2br(e($introResolved)) !!}</div>
 
         @foreach($pageOne as $block)
-            <div class="staynets-contract__section">
-                <h3 class="staynets-contract__section-title">{{ $block['heading'] ?? '' }}</h3>
-                @if(!empty($block['items']))
-                    <ul>
-                        @foreach($block['items'] as $line)
-                            <li>{!! nl2br(e($resolveLine($line))) !!}</li>
-                        @endforeach
-                    </ul>
-                @endif
-            </div>
-        @endforeach
-    </div>
-
-    {{-- PAGE 2 --}}
-    <div class="staynets-contract__page">
-        @foreach($pageTwo as $block)
-            @php $heading = strtoupper(trim($block['heading'] ?? '')); @endphp
-            @if(str_contains($heading, 'SIGNATURE'))
-                <div class="staynets-contract__signatures">
-                    <h3 class="staynets-contract__section-title">14. SIGNATURES</h3>
-                    <div class="row">
-                        <div class="col-md-6 staynets-contract__sig-block">
-                            <div class="staynets-contract__sig-label">Stay Nets Representative: {{ $template->platform_representative_name ?? 'Joseph K' }}</div>
-                            <div class="staynets-contract__sig-label small">Signature:</div>
-                            <div class="staynets-contract__sig-line">
-                                @if($platformSig && ($showSignatures ?? true))
-                                    <img src="{{ asset('storage/'.$platformSig) }}" alt="Platform signature">
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 staynets-contract__sig-block">
-                            <div class="staynets-contract__sig-label">Host: {{ $hostName }}</div>
-                            <div class="staynets-contract__sig-label small">Signature:</div>
-                            <div class="staynets-contract__sig-line">
-                                @if($ownerSig && ($showSignatures ?? true))
-                                    <img src="{{ asset('storage/'.$ownerSig) }}" alt="Host signature">
-                                @endif
-                            </div>
-                            <div class="staynets-contract__sig-label small mt-3">Date: {{ $signature->signed_at?->format('d/m/Y') ?? '…………………' }}</div>
-                        </div>
-                    </div>
-                </div>
+            @php $section = $renderSection($block); @endphp
+            @if($section['signatures'])
+                @include('partials.listing-agreement-signatures', [
+                    'heading' => $section['heading'],
+                    'items' => $section['items'],
+                    'resolveLine' => $resolveLine,
+                    'platformSig' => $platformSig,
+                    'ownerSig' => $ownerSig,
+                    'displayHost' => $displayHost,
+                    'displayRep' => $displayRep,
+                    'signature' => $signature,
+                    'showSignatures' => $showSignatures ?? true,
+                ])
             @else
                 <div class="staynets-contract__section">
-                    <h3 class="staynets-contract__section-title">{{ $block['heading'] ?? '' }}</h3>
-                    @if(!empty($block['items']))
+                    <h3 class="staynets-contract__section-title">{{ $section['heading'] }}</h3>
+                    @if(!empty($section['lead_in']))
+                        <p class="staynets-contract__lead-in">{{ $resolveLine($section['lead_in']) }}</p>
+                    @endif
+                    @if(!empty($section['items']))
                         <ul>
-                            @foreach($block['items'] as $line)
+                            @foreach($section['items'] as $line)
                                 <li>{!! nl2br(e($resolveLine($line))) !!}</li>
                             @endforeach
                         </ul>
+                    @endif
+                    @if(!empty($section['closing']))
+                        <p class="staynets-contract__closing">{{ $resolveLine($section['closing']) }}</p>
                     @endif
                 </div>
             @endif
         @endforeach
 
-        <div class="staynets-contract__footer-bar">
-            {{ $template->footer_services_text ?? 'Booking Engine: Hotel, Apartment, Villa House, Tour Package and Car Rental.' }}
-        </div>
-        <div class="staynets-contract__footer-phone">
-            Phone: {{ $template->platform_phone ?? '+250784251094/250788788633' }}
-        </div>
+        <div class="staynets-contract__footer-bar">{{ $footerBar }}</div>
+        <div class="staynets-contract__footer-phone">Phone: {{ $footerPhone }}</div>
     </div>
+
+    {{-- PAGE 2+ --}}
+    @if(count($pageTwo))
+        <div class="staynets-contract__page">
+            @foreach($pageTwo as $block)
+                @php $section = $renderSection($block); @endphp
+                @if($section['signatures'])
+                    @include('partials.listing-agreement-signatures', [
+                        'heading' => $section['heading'],
+                        'items' => $section['items'],
+                        'resolveLine' => $resolveLine,
+                        'platformSig' => $platformSig,
+                        'ownerSig' => $ownerSig,
+                        'displayHost' => $displayHost,
+                        'displayRep' => $displayRep,
+                        'signature' => $signature,
+                        'showSignatures' => $showSignatures ?? true,
+                    ])
+                @else
+                    <div class="staynets-contract__section">
+                        <h3 class="staynets-contract__section-title">{{ $section['heading'] }}</h3>
+                        @if(!empty($section['lead_in']))
+                            <p class="staynets-contract__lead-in">{{ $resolveLine($section['lead_in']) }}</p>
+                        @endif
+                        @if(!empty($section['items']))
+                            <ul>
+                                @foreach($section['items'] as $line)
+                                    <li>{!! nl2br(e($resolveLine($line))) !!}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        @if(!empty($section['closing']))
+                            <p class="staynets-contract__closing">{{ $resolveLine($section['closing']) }}</p>
+                        @endif
+                    </div>
+                @endif
+            @endforeach
+
+            <div class="staynets-contract__footer-bar">{{ $footerBar }}</div>
+            <div class="staynets-contract__footer-phone">Phone: {{ $footerPhone }}</div>
+        </div>
+    @endif
 </div>

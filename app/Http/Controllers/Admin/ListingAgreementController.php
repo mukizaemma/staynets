@@ -160,9 +160,13 @@ class ListingAgreementController extends Controller
             'payment_method' => 'nullable|string|max:255',
             'payment_timeline' => 'nullable|string|max:255',
             'footer_services_text' => 'nullable|string|max:500',
+            'page_break_after' => 'nullable|integer|min:1|max:50',
             'platform_signature' => 'nullable|image|max:4096',
             'sections' => 'nullable|array',
             'sections.*.heading' => 'nullable|string|max:500',
+            'sections.*.lead_in' => 'nullable|string|max:1000',
+            'sections.*.closing' => 'nullable|string|max:2000',
+            'sections.*.type' => 'nullable|in:list,signatures',
             'sections.*.items_text' => 'nullable|string|max:10000',
         ]);
 
@@ -175,10 +179,20 @@ class ListingAgreementController extends Controller
             $items = array_values(array_filter(array_map('trim', $lines), static function ($line) {
                 return $line !== '';
             }));
-            $sections[] = [
-                'heading' => trim($block['heading']),
+            $entry = [
+                'heading' => ListingAgreementTemplate::normalizeHeadingKey($block['heading']),
                 'items' => $items,
+                'type' => ($block['type'] ?? 'list') === 'signatures' ? 'signatures' : 'list',
             ];
+            $leadIn = trim((string) ($block['lead_in'] ?? ''));
+            $closing = trim((string) ($block['closing'] ?? ''));
+            if ($leadIn !== '') {
+                $entry['lead_in'] = $leadIn;
+            }
+            if ($closing !== '') {
+                $entry['closing'] = $closing;
+            }
+            $sections[] = $entry;
         }
 
         $payload = [
@@ -191,11 +205,14 @@ class ListingAgreementController extends Controller
             'intro_text' => $validated['intro_text'] ?? null,
             'damage_report_hours' => $validated['damage_report_hours'] ?? 24,
             'termination_notice_days' => $validated['termination_notice_days'] ?? 30,
-            'commission_rate' => $validated['commission_rate'] ?? '5%',
+            'commission_rate' => $validated['commission_rate'] ?? 'up to 10%',
             'payment_method' => $validated['payment_method'] ?? null,
             'payment_timeline' => $validated['payment_timeline'] ?? null,
             'footer_services_text' => $validated['footer_services_text'] ?? null,
-            'sections' => $sections ?: ListingAgreementTemplate::defaultSections(),
+            'page_break_after' => $validated['page_break_after'] ?? 6,
+            'sections' => ListingAgreementTemplate::renumberSections(
+                $sections ?: ListingAgreementTemplate::defaultSections()
+            ),
         ];
 
         if ($request->hasFile('platform_signature')) {
@@ -210,5 +227,29 @@ class ListingAgreementController extends Controller
 
         return redirect()->route('admin.listing-agreement.index')
             ->with('success', 'Listing agreement template updated.');
+    }
+
+    public function resetDefaults()
+    {
+        $template = ListingAgreementTemplate::current();
+
+        $template->update([
+            'intro_text' => ListingAgreementTemplate::defaultIntro(),
+            'damage_report_hours' => 24,
+            'termination_notice_days' => 30,
+            'commission_rate' => 'up to 10%',
+            'payment_method' => 'Bank transfer / Mobile Money / Card',
+            'payment_timeline' => 'Within 7–14 days after guest checkout',
+            'footer_services_text' => 'Booking Engine: Hotel, Apartment, Villa House, Tour Package and Car Rental.',
+            'page_break_after' => 6,
+            'platform_tagline' => $template->platform_tagline ?: 'Stay Nets - One Platform, Endless Destinations.',
+            'platform_representative_name' => $template->platform_representative_name ?: 'Joseph K',
+            'sections' => ListingAgreementTemplate::renumberSections(
+                ListingAgreementTemplate::defaultSections()
+            ),
+        ]);
+
+        return redirect()->route('admin.listing-agreement.edit')
+            ->with('success', 'Agreement template restored to the official Stay Nets defaults (all 14 sections).');
     }
 }

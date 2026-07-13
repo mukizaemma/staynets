@@ -52,6 +52,20 @@ class Handler extends ExceptionHandler
                 return response()->json(['message' => $message], 422);
             }
 
+            // Form submissions: send the user back with a flash message.
+            // GET page loads: avoid redirect loops that re-hit the same broken query.
+            if ($request->isMethodSafe()) {
+                $previous = url()->previous();
+                $current = $request->fullUrl();
+                if ($previous && $previous !== $current) {
+                    return redirect()->to($previous)
+                        ->with('error', $message)
+                        ->withErrors(['database' => $message]);
+                }
+
+                return parent::render($request, $e);
+            }
+
             return redirect()->back()->withInput()->with('error', $message)->withErrors(['database' => $message]);
         }
 

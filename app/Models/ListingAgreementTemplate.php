@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class ListingAgreementTemplate extends Model
 {
@@ -21,6 +22,7 @@ class ListingAgreementTemplate extends Model
         'payment_method',
         'payment_timeline',
         'footer_services_text',
+        'page_break_after',
         'sections',
     ];
 
@@ -28,12 +30,45 @@ class ListingAgreementTemplate extends Model
         'sections' => 'array',
         'damage_report_hours' => 'integer',
         'termination_notice_days' => 'integer',
+        'page_break_after' => 'integer',
     ];
 
     public static function current(): self
     {
         $row = static::query()->first();
         if ($row) {
+            $existing = is_array($row->sections) ? $row->sections : [];
+            $existingKeys = [];
+            foreach ($existing as $block) {
+                if (is_array($block)) {
+                    $key = self::normalizeHeadingKey($block['heading'] ?? '');
+                    if ($key !== '') {
+                        $existingKeys[] = $key;
+                    }
+                }
+            }
+
+            $defaultKeys = array_map(
+                static fn ($s) => self::normalizeHeadingKey($s['heading'] ?? ''),
+                self::defaultSections()
+            );
+            $missing = array_values(array_diff($defaultKeys, $existingKeys));
+
+            $dirty = [];
+            if ($existing === [] || $missing !== []) {
+                $dirty['sections'] = self::ensureCompleteSections($existing);
+            }
+            if (blank($row->intro_text)) {
+                $dirty['intro_text'] = self::defaultIntro();
+            }
+            if ($row->page_break_after === null && Schema::hasColumn($row->getTable(), 'page_break_after')) {
+                $dirty['page_break_after'] = 6;
+            }
+            if ($dirty !== []) {
+                $row->update($dirty);
+                $row->refresh();
+            }
+
             return $row;
         }
 
@@ -48,44 +83,48 @@ class ListingAgreementTemplate extends Model
             'intro_text' => self::defaultIntro(),
             'damage_report_hours' => 24,
             'termination_notice_days' => 30,
-            'commission_rate' => '5%',
+            'commission_rate' => 'up to 10%',
             'payment_method' => 'Bank transfer / Mobile Money / Card',
             'payment_timeline' => 'Within 7–14 days after guest checkout',
             'footer_services_text' => 'Booking Engine: Hotel, Apartment, Villa House, Tour Package and Car Rental.',
-            'sections' => self::defaultSections(),
+            'page_break_after' => 6,
+            'sections' => self::renumberSections(self::defaultSections()),
         ]);
     }
 
     public static function defaultIntro(): string
     {
         return "This Agreement is made between:\n\n"
-            . "1. Platform Owner: Stay Nets, operating an online booking platform (“Platform”)\n\n"
+            . "1. Stay Nets Owner: [REPRESENTATIVE]\n"
+            . "   Stay Nets operating an online booking platform\n\n"
             . "AND\n\n"
-            . "2. Property Owner / Host (“Host”)";
+            . "2. Property Owner / Host:\n"
+            . "   [HOST NAME] (“Host”)";
     }
 
     /**
-     * @return array<int, array{heading: string, items: array<int, string>}>
+     * @return array<int, array{heading: string, lead_in?: string, items: array<int, string>, closing?: string, type?: string}>
      */
     public static function defaultSections(): array
     {
         return [
             [
-                'heading' => '1. PURPOSE',
+                'heading' => 'PURPOSE',
                 'items' => [
                     'The Host agrees to list their property on the Platform, and the Platform agrees to market and facilitate bookings for the Host.',
                 ],
             ],
             [
-                'heading' => '2. PROPERTY DETAILS',
+                'heading' => 'PROPERTY DETAILS',
                 'items' => [
                     'Property Name: [PROPERTY NAME]',
                     'Location: [LOCATION]',
-                    'Property Type: [TYPE]',
+                    'Type (Apartment / Hotel / Villa): [TYPE]',
                 ],
             ],
             [
-                'heading' => '3. PLATFORM SERVICES',
+                'heading' => 'PLATFORM SERVICES',
+                'lead_in' => 'Stay Nets will:',
                 'items' => [
                     'Display the property listing to users',
                     'Process reservations',
@@ -94,15 +133,17 @@ class ListingAgreementTemplate extends Model
                 ],
             ],
             [
-                'heading' => '4. COMMISSION & PAYMENTS',
+                'heading' => 'COMMISSION & PAYMENTS',
                 'items' => [
-                    'Commission Rate: [COMMISSION] per booking unless otherwise agreed',
+                    'Commission Rate: [COMMISSION] per booking',
                     'Payment Method: [PAYMENT METHOD]',
                     'Payment Timeline: [PAYMENT TIMELINE]',
                 ],
+                'closing' => 'Commission is a standard part of such agreements',
             ],
             [
-                'heading' => '5. HOST RESPONSIBILITIES',
+                'heading' => 'HOST RESPONSIBILITIES',
+                'lead_in' => 'The Host agrees to:',
                 'items' => [
                     'Provide accurate property information',
                     'Maintain availability and pricing',
@@ -111,24 +152,24 @@ class ListingAgreementTemplate extends Model
                 ],
             ],
             [
-                'heading' => '6. BOOKINGS & CONTRACT',
+                'heading' => 'BOOKINGS & CONTRACT',
                 'items' => [
                     'A booking becomes valid once confirmed and paid',
                     'The agreement for stay is between Host and Guest',
-                    'The Platform acts only as an intermediary',
+                    'The Platform acts only as an intermediary but when list a property and booking pass to Stay Nets and Stay Nets book to the Hotel. This is common in booking systems',
                 ],
             ],
             [
-                'heading' => '7. CANCELLATION POLICY',
+                'heading' => 'CANCELLATION POLICY',
+                'lead_in' => 'The Host must define:',
                 'items' => [
-                    'The Host must define:',
                     'Free cancellation period (if any)',
                     'Refund conditions',
                     'No-show policy',
                 ],
             ],
             [
-                'heading' => '8. DAMAGE & LIABILITY',
+                'heading' => 'DAMAGE & LIABILITY',
                 'items' => [
                     'Guests are responsible for damages',
                     'Host must report damages within [X] hours',
@@ -136,16 +177,16 @@ class ListingAgreementTemplate extends Model
                 ],
             ],
             [
-                'heading' => '9. CONTENT & LISTING RIGHTS',
+                'heading' => 'CONTENT & LISTING RIGHTS',
+                'lead_in' => 'Host grants Platform the right to use:',
                 'items' => [
-                    'Host grants Platform the right to use:',
                     'Photos',
                     'Property descriptions',
                     'Platform may promote listings for marketing',
                 ],
             ],
             [
-                'heading' => '10. TERM & TERMINATION',
+                'heading' => 'TERM & TERMINATION',
                 'items' => [
                     'Start Date: [START DATE]',
                     'Either party may terminate with [30 days] notice',
@@ -153,34 +194,144 @@ class ListingAgreementTemplate extends Model
                 ],
             ],
             [
-                'heading' => '11. LEGAL COMPLIANCE',
+                'heading' => 'LEGAL COMPLIANCE',
+                'lead_in' => 'The Host must:',
                 'items' => [
-                    'The Host must:',
                     'Follow local laws and tax regulations',
-                    'Ensure property is legally rentable',
+                    'Ensure the property is legally rentable',
                 ],
             ],
             [
-                'heading' => '12. LIMITATION OF LIABILITY',
+                'heading' => 'LIMITATION OF LIABILITY',
+                'lead_in' => 'The Platform:',
                 'items' => [
-                    'The Platform:',
                     'Is not responsible for guest behavior',
                     'Does not guarantee bookings',
                     'Is not liable for indirect losses',
                 ],
             ],
             [
-                'heading' => '13. GOVERNING LAW',
+                'heading' => 'GOVERNING LAW',
                 'items' => [
                     'This Agreement shall be governed by the laws of Rwanda',
                 ],
             ],
             [
-                'heading' => '14. SIGNATURES',
+                'heading' => 'SIGNATURES',
+                'type' => 'signatures',
                 'items' => [
                     'By signing below, the Host confirms they have read and accept this Property Listing Agreement.',
                 ],
             ],
         ];
+    }
+
+    public static function normalizeHeadingKey(?string $heading): string
+    {
+        $heading = strtoupper(trim((string) $heading));
+        $heading = preg_replace('/^\d+\.\s*/', '', $heading) ?? $heading;
+
+        return trim($heading);
+    }
+
+    /**
+     * Append any missing default sections and renumber headings 1..N.
+     *
+     * @param  array<int, mixed>|null  $sections
+     * @return array<int, array{heading: string, lead_in?: string, items: array<int, string>, closing?: string, type?: string}>
+     */
+    public static function ensureCompleteSections(?array $sections): array
+    {
+        $defaults = self::defaultSections();
+        if ($sections === null || $sections === []) {
+            return self::renumberSections($defaults);
+        }
+
+        $normalized = [];
+        foreach ($sections as $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+            $heading = trim((string) ($block['heading'] ?? ''));
+            if ($heading === '') {
+                continue;
+            }
+            $items = $block['items'] ?? [];
+            if (! is_array($items)) {
+                $items = preg_split('/\r\n|\r|\n/', (string) $items) ?: [];
+            }
+            $items = array_values(array_filter(array_map('trim', $items), static fn ($line) => $line !== ''));
+
+            $entry = [
+                'heading' => self::normalizeHeadingKey($heading),
+                'items' => $items,
+            ];
+            $leadIn = trim((string) ($block['lead_in'] ?? ''));
+            $closing = trim((string) ($block['closing'] ?? ''));
+            $type = trim((string) ($block['type'] ?? ''));
+            if ($leadIn !== '') {
+                $entry['lead_in'] = $leadIn;
+            }
+            if ($closing !== '') {
+                $entry['closing'] = $closing;
+            }
+            if ($type !== '') {
+                $entry['type'] = $type;
+            } elseif (self::normalizeHeadingKey($heading) === 'SIGNATURES') {
+                $entry['type'] = 'signatures';
+            }
+            $normalized[] = $entry;
+        }
+
+        $existingKeys = array_map(
+            static fn ($s) => self::normalizeHeadingKey($s['heading'] ?? ''),
+            $normalized
+        );
+
+        foreach ($defaults as $def) {
+            $key = self::normalizeHeadingKey($def['heading'] ?? '');
+            if ($key !== '' && ! in_array($key, $existingKeys, true)) {
+                $normalized[] = $def;
+                $existingKeys[] = $key;
+            }
+        }
+
+        return self::renumberSections($normalized);
+    }
+
+    /**
+     * @param  array<int, array{heading: string, lead_in?: string, items: array<int, string>, closing?: string, type?: string}>  $sections
+     * @return array<int, array{heading: string, lead_in?: string, items: array<int, string>, closing?: string, type?: string}>
+     */
+    public static function renumberSections(array $sections): array
+    {
+        $out = [];
+        $n = 1;
+        foreach ($sections as $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+            $title = self::normalizeHeadingKey($block['heading'] ?? '');
+            if ($title === '') {
+                continue;
+            }
+            $block['heading'] = $n.'. '.$title;
+            if (($block['type'] ?? '') === '' && $title === 'SIGNATURES') {
+                $block['type'] = 'signatures';
+            }
+            $out[] = $block;
+            $n++;
+        }
+
+        return $out;
+    }
+
+    public function isSignaturesSection(array $block): bool
+    {
+        if (($block['type'] ?? '') === 'signatures') {
+            return true;
+        }
+
+        return str_contains(self::normalizeHeadingKey($block['heading'] ?? ''), 'SIGNATURE');
     }
 }

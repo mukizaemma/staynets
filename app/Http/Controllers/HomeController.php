@@ -74,7 +74,7 @@ class HomeController extends Controller
             ->get(['id', 'user_id', 'names', 'rating', 'testimony']);
 
         $whyChooseUsItems = cache()->remember('home_why_choose_us', 3600, function () {
-            return \App\Models\WhyChooseUsItem::active()->ordered()->get();
+            return \App\Models\WhyChooseUsItem::activeOrderedOrEmpty();
         });
 
         return view('frontend.index', [

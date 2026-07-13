@@ -12,7 +12,7 @@
         align-items: flex-start;
         gap: 16px;
         padding-bottom: 10px;
-        border-bottom: 3px solid #2d8a3e;
+        border-bottom: 2px solid #2d8a3e;
         margin-bottom: 20px;
     }
     .staynets-contract__brand {
@@ -64,27 +64,35 @@
         text-transform: uppercase;
         margin: 0 0 6px;
     }
+    .staynets-contract__lead-in,
+    .staynets-contract__closing,
+    .staynets-contract__sig-note {
+        margin: 0 0 6px;
+    }
     .staynets-contract__section ul {
         margin: 0;
-        padding-left: 18px;
+        padding-left: 0;
+        list-style: none;
     }
     .staynets-contract__section li {
         margin-bottom: 4px;
+        padding-left: 1.1em;
+        position: relative;
     }
-    .staynets-contract__property-box {
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        padding: 12px 14px;
-        margin-bottom: 16px;
-        background: #fafafa;
-    }
-    .staynets-contract__property-box p {
-        margin: 0 0 4px;
+    .staynets-contract__section li::before {
+        content: '-';
+        position: absolute;
+        left: 0;
     }
     .staynets-contract__signatures {
-        margin-top: 24px;
-        padding-top: 16px;
-        border-top: 1px solid #ccc;
+        margin-top: 20px;
+        padding-top: 8px;
+    }
+    .staynets-contract__sig-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 12px;
     }
     .staynets-contract__sig-block {
         margin-bottom: 18px;
@@ -125,6 +133,9 @@
     .staynets-contract__page-break {
         page-break-after: always;
         break-after: page;
+        margin-bottom: 32px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed #ccc;
     }
     @media print {
         .staynets-contract {
@@ -134,6 +145,22 @@
         }
         .staynets-contract__page-break {
             page-break-after: always;
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .staynets-contract__sig-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 700px) {
+        .staynets-contract__header {
+            flex-direction: column;
+        }
+        .staynets-contract__meta {
+            text-align: left;
+        }
+        .staynets-contract__sig-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>

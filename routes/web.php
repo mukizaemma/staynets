@@ -149,6 +149,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/properties/{id}', [App\Http\Controllers\Admin\AdminPropertiesController::class, 'show'])->name('admin.properties.show'); // Generic show route (must be last)
 
     Route::post('/admin/listing-agreement/signed/{signature}/approve', [App\Http\Controllers\Admin\ListingAgreementController::class, 'approve'])->name('admin.listing-agreement.approve');
+    Route::post('/admin/listing-agreement/reset', [App\Http\Controllers\Admin\ListingAgreementController::class, 'resetDefaults'])->name('admin.listing-agreement.reset');
     Route::get('/admin/listing-agreement/edit', [App\Http\Controllers\Admin\ListingAgreementController::class, 'edit'])->name('admin.listing-agreement.edit');
     Route::get('/admin/listing-agreement/signed/{signature}', [App\Http\Controllers\Admin\ListingAgreementController::class, 'showSigned'])->name('admin.listing-agreement.signed.show');
     Route::put('/admin/listing-agreement', [App\Http\Controllers\Admin\ListingAgreementController::class, 'update'])->name('admin.listing-agreement.update');

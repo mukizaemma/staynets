@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class WhyChooseUsItem extends Model
 {
@@ -27,5 +29,30 @@ class WhyChooseUsItem extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Safe for public pages when the migration has not been run yet.
+     */
+    public static function tableReady(): bool
+    {
+        try {
+            return Schema::hasTable((new static)->getTable());
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    public static function activeOrderedOrEmpty(): Collection
+    {
+        try {
+            if (! static::tableReady()) {
+                return collect();
+            }
+
+            return static::active()->ordered()->get();
+        } catch (\Throwable $e) {
+            return collect();
+        }
     }
 }

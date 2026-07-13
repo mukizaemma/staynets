@@ -1,10 +1,10 @@
 @php
-    $company = $setting->company ?? config('app.name', 'Car Rental');
-    $defaultTitle = $setting->title ?: "Car Rental in Kigali, Rwanda | {$company}";
-    $defaultDescription = $setting->meta_description
-        ?: $setting->quote
+    $company = $setting?->company ?? config('app.name', 'Car Rental');
+    $defaultTitle = $setting?->title ?: "Car Rental in Kigali, Rwanda | {$company}";
+    $defaultDescription = $setting?->meta_description
+        ?: $setting?->quote
         ?: "Rent a car in Kigali, Rwanda. Self-drive, airport pickup, 4x4 safari vehicles, and transparent daily rates in RWF.";
-    $defaultKeywords = $setting->keywords ?: 'car rental Kigali, rent a car Rwanda, Kigali airport car rental, 4x4 rental Rwanda, self drive Kigali';
+    $defaultKeywords = $setting?->keywords ?: 'car rental Kigali, rent a car Rwanda, Kigali airport car rental, 4x4 rental Rwanda, self drive Kigali';
     $pageTitle = trim($__env->yieldContent('meta_title')) ?: $defaultTitle;
     $pageDescription = trim($__env->yieldContent('meta_description')) ?: $defaultDescription;
     $pageKeywords = trim($__env->yieldContent('meta_keywords')) ?: $defaultKeywords;
@@ -33,7 +33,7 @@
     $phone = primaryPhone($setting);
     $wa = whatsappUrl($phone);
 @endphp
-@if($phone || $setting->email || $setting->address)
+@if($phone || $setting?->email || $setting?->address)
 <script type="application/ld+json">
 {!! json_encode(array_filter([
     '@context' => 'https://schema.org',
@@ -41,19 +41,19 @@
     'name' => $company,
     'url' => url('/'),
     'telephone' => $phone ?: null,
-    'email' => $setting->email ?? null,
-    'address' => ! empty($setting->address) ? [
+    'email' => $setting?->email ?? null,
+    'address' => ! empty($setting?->address) ? [
         '@type' => 'PostalAddress',
         'streetAddress' => $setting->address,
         'addressLocality' => 'Kigali',
         'addressCountry' => 'RW',
     ] : null,
     'sameAs' => array_values(array_filter([
-        $setting->facebook ?? null,
-        $setting->instagram ?? null,
-        $setting->youtube ?? null,
-        $setting->linkedin ?? null,
-        $setting->tiktok ?? null,
+        $setting?->facebook ?? null,
+        $setting?->instagram ?? null,
+        $setting?->youtube ?? null,
+        $setting?->linkedin ?? null,
+        $setting?->tiktok ?? null,
     ])),
 ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
