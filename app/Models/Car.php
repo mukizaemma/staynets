@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 
 class Car extends Model
 {
@@ -32,6 +33,32 @@ class Car extends Model
     protected $casts = [
         'images' => 'array',
     ];
+
+    /**
+     * Columns used on public fleet listing pages.
+     * Skips columns that are not migrated yet (e.g. currency on older DBs).
+     *
+     * @return array<int, string>
+     */
+    public static function publicListColumns(): array
+    {
+        $columns = [
+            'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
+            'price_to_buy', 'currency', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
+        ];
+
+        try {
+            if (! Schema::hasTable('cars')) {
+                return ['id'];
+            }
+
+            return array_values(array_filter($columns, static function (string $column) {
+                return Schema::hasColumn('cars', $column);
+            }));
+        } catch (\Throwable $e) {
+            return array_values(array_filter($columns, static fn (string $column) => $column !== 'currency'));
+        }
+    }
 
     public function partner()
     {
@@ -65,7 +92,9 @@ class Car extends Model
 
     public function getCurrencyCodeAttribute(): string
     {
-        return strtoupper($this->currency ?: 'RWF');
+        $code = $this->attributes['currency'] ?? null;
+
+        return strtoupper($code ?: 'RWF');
     }
 
     public function getDisplayPriceAttribute()

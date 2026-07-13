@@ -45,37 +45,46 @@ class CarLandingController extends Controller
 
         $page = $pages[$slug];
 
-        $query = Car::query()
-            ->where('status', 'available')
-            ->select([
-                'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
-                'price_to_buy', 'currency', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
+        try {
+            $query = Car::query()
+                ->where('status', 'available')
+                ->select(Car::publicListColumns());
+
+            $terms = $page['search_terms'] ?? [];
+            if (! empty($terms)) {
+                $query->where(function ($qb) use ($terms) {
+                    foreach ($terms as $term) {
+                        $qb->orWhere('name', 'like', "%{$term}%")
+                            ->orWhere('model', 'like', "%{$term}%")
+                            ->orWhere('description', 'like', "%{$term}%")
+                            ->orWhere('fuel_type', 'like', "%{$term}%");
+                    }
+                });
+            }
+
+            $cars = $query->latest()->paginate(12)->appends($request->query());
+
+            if ($cars->isEmpty()) {
+                $cars = Car::query()
+                    ->where('status', 'available')
+                    ->select(Car::publicListColumns())
+                    ->latest()
+                    ->paginate(12)
+                    ->appends($request->query());
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Car landing listing failed', [
+                'slug' => $slug,
+                'message' => $e->getMessage(),
             ]);
 
-        $terms = $page['search_terms'] ?? [];
-        if (! empty($terms)) {
-            $query->where(function ($qb) use ($terms) {
-                foreach ($terms as $term) {
-                    $qb->orWhere('name', 'like', "%{$term}%")
-                        ->orWhere('model', 'like', "%{$term}%")
-                        ->orWhere('description', 'like', "%{$term}%")
-                        ->orWhere('fuel_type', 'like', "%{$term}%");
-                }
-            });
-        }
-
-        $cars = $query->latest()->paginate(12)->appends($request->query());
-
-        if ($cars->isEmpty()) {
-            $cars = Car::query()
-                ->where('status', 'available')
-                ->select([
-                    'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
-                    'price_to_buy', 'currency', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
-                ])
-                ->latest()
-                ->paginate(12)
-                ->appends($request->query());
+            $cars = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect(),
+                0,
+                12,
+                (int) $request->input('page', 1),
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
         }
 
         $canonical = match ($slug) {

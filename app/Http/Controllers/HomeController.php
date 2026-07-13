@@ -274,41 +274,53 @@ public function hotelsSearch(Request $request)
         $q = $request->input('q');
         $orderby = $request->input('orderby');
 
-        $query = Car::query()
-            ->where('status', 'available')
-            ->select([
-                'id', 'name', 'slug', 'model', 'image', 'price_per_day', 'price_per_month',
-                'price_to_buy', 'currency', 'fuel_type', 'transmission', 'seats', 'description', 'created_at',
-            ])
-            ->with(['carImages' => fn ($q) => $q->select('id', 'car_id', 'image')]);
+        try {
+            $query = Car::query()
+                ->where('status', 'available')
+                ->select(Car::publicListColumns())
+                ->with(['carImages' => fn ($qb) => $qb->select('id', 'car_id', 'image')]);
 
-        if (!empty($q)) {
-            $query->where(function ($qb) use ($q) {
-                $qb->where('name', 'like', "%{$q}%")
-                ->orWhere('model', 'like', "%{$q}%")
-                ->orWhere('fuel_type', 'like', "%{$q}%")
-                ->orWhere('transmission', 'like', "%{$q}%");
-            });
+            if (! empty($q)) {
+                $query->where(function ($qb) use ($q) {
+                    $qb->where('name', 'like', "%{$q}%")
+                        ->orWhere('model', 'like', "%{$q}%")
+                        ->orWhere('fuel_type', 'like', "%{$q}%")
+                        ->orWhere('transmission', 'like', "%{$q}%");
+                });
+            }
+
+            switch ($orderby) {
+                case 'price':
+                    $query->orderBy('price_per_day', 'asc');
+                    break;
+
+                case 'price-desc':
+                    $query->orderBy('price_per_day', 'desc');
+                    break;
+
+                case 'date':
+                default:
+                    $query->latest();
+            }
+
+            $cars = $query->paginate(12)->appends($request->query());
+        } catch (\Throwable $e) {
+            \Log::error('Car rental listing failed', [
+                'message' => $e->getMessage(),
+            ]);
+
+            $cars = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect(),
+                0,
+                12,
+                (int) $request->input('page', 1),
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
         }
-
-        switch ($orderby) {
-            case 'price':
-                $query->orderBy('price_per_day', 'asc');
-                break;
-
-            case 'price-desc':
-                $query->orderBy('price_per_day', 'desc');
-                break;
-
-            case 'date':
-            default:
-                $query->latest();
-        }
-
-        $cars = $query->paginate(12)->appends($request->query());
 
         if ($request->ajax()) {
             $html = view('frontend.partials.cars_results', compact('cars'))->render();
+
             return response()->json(['html' => $html]);
         }
 
